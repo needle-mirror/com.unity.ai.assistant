@@ -1,0 +1,27 @@
+.execution-entry-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-height: 20px;
+    margin-left: 5px;
+}
+
+.execution-entry-icon {
+    width: 16px;
+    height: 16px;
+    margin: 4px;
+    margin-left: 17px;
+}
+
+.mui-execution-log-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.mui-text-object-pill-spacing {
+    margin-right: 3px;
+}
+
+.mui-object-pill-warning {
+    color: var(--muse-chat-warning-color)
+}

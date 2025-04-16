@@ -1,0 +1,459 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using Unity.AI.Assistant.CodeAnalyze;
+using Unity.AI.Assistant.Editor;
+using Unity.AI.Assistant.Editor.Agent;
+using Unity.AI.Assistant.Editor.Commands;
+using Unity.AI.Assistant.Editor.Context;
+using Unity.AI.Assistant.Editor.Data;
+using Unity.AI.Assistant.Editor.Utils;
+using Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements;
+using Unity.AI.Assistant.UI.Editor.Scripts.Data;
+using Unity.AI.Assistant.UI.Editor.Scripts.Utils;
+using Unity.Muse.Agent.Dynamic;
+
+namespace Unity.AI.Assistant.UI.Editor.Scripts
+{
+    internal class AssistantUIAPIInterpreter
+    {
+        readonly AssistantBlackboard m_Blackboard;
+
+        public AssistantUIAPIInterpreter(IAssistantProvider provider, AssistantBlackboard blackboard)
+        {
+            m_Blackboard = blackboard;
+            Provider = provider;
+        }
+
+        /// <summary>
+        /// The current Assistant provider in use, generally try to avoid using this directly, the interpreter functions should suffice
+        /// </summary>
+        public IAssistantProvider Provider { get; }
+
+        public void Initialize()
+        {
+            Provider.OnConnectionChanged += OnConnectionChanged;
+
+            Provider.ConversationLoaded += OnConversationLoaded;
+            Provider.ConversationCreated += OnConversationCreated;
+            Provider.ConversationChanged += OnConversationChanged;
+            Provider.ConversationDeleted += OnConversationDeleted;
+            Provider.ConversationsRefreshed += OnConversationsRefreshed;
+            Provider.ConversationCreationFailed += OnConversationCreationFailed;
+
+            Provider.PointCostReceived += OnPointCostReceived;
+
+            Provider.PromptStateChanged += OnPromptStateChanged;
+            Provider.InspirationsRefreshed += OnInspirationsRefreshed;
+
+            Provider.FeedbackLoaded += OnFeedbackLoaded;
+        }
+
+        public event Action<string, bool> ConnectionChanged;
+        public event Action<AssistantConversationId> ConversationReload;
+        public event Action<AssistantConversationId> ConversationChanged;
+        public event Action<AssistantConversationId> ConversationDeleted;
+        public event Action ConversationsRefreshed;
+        public event Action InspirationsRefreshed;
+        public event Action APIStateChanged;
+
+        public event Action<PointCostRequestId, int> PointCostReceived;
+
+        public event Action<AssistantMessageId, FeedbackData?> FeedbackLoaded;
+
+        void OnConversationChanged(AssistantConversation data)
+        {
+            var model = ConvertConversationToModel(data);
+
+            if (!m_Blackboard.ActiveConversationId.IsValid)
+            {
+                m_Blackboard.SetActiveConversation(data.Id);
+            }
+
+            ConversationChanged?.Invoke(model.Id);
+        }
+
+        void NotifyAPIStateChanged(AssistantConversationId conversationId)
+        {
+            if (m_Blackboard.ActiveConversationId.IsValid && conversationId != m_Blackboard.ActiveConversationId)
+            {
+                // Only inform changes for the active conversation (or if none set)
+                return;
+            }
+
+            APIStateChanged?.Invoke();
+        }
+
+        void OnInspirationsRefreshed(IEnumerable<AssistantInspiration> data)
+        {
+            m_Blackboard.Inspirations.Clear();
+            foreach (AssistantInspiration inspiration in data)
+            {
+                var model = new InspirationModel { Command = inspiration.Command, Value = inspiration.Value };
+                m_Blackboard.Inspirations.Add(model);
+            }
+
+            InspirationsRefreshed?.Invoke();
+        }
+
+        void OnFeedbackLoaded(AssistantMessageId messageId, FeedbackData? feedback)
+        {
+            FeedbackLoaded?.Invoke(messageId, feedback);
+        }
+
+        void OnConversationDeleted(AssistantConversationId conversationId)
+        {
+            if (m_Blackboard.RemoveConversation(conversationId))
+            {
+                if (m_Blackboard.ActiveConversationId == conversationId)
+                {
+                    m_Blackboard.SetActiveConversation(AssistantConversationId.Invalid);
+                }
+
+                ConversationDeleted?.Invoke(conversationId);
+            }
+        }
+
+        void OnConversationsRefreshed(IEnumerable<AssistantConversationInfo> infos)
+        {
+            foreach (var conversationInfo in infos)
+            {
+                var model = m_Blackboard.GetConversation(conversationInfo.Id);
+                if (model == null)
+                {
+                    model = new ConversationModel
+                    {
+                        Id = conversationInfo.Id,
+                        IsLoaded = false,
+                    };
+
+                    m_Blackboard.UpdateConversation(model.Id, model);
+                }
+
+                model.Title = conversationInfo.Title;
+                model.LastMessageTimestamp = conversationInfo.LastMessageTimestamp;
+                model.IsFavorite = conversationInfo.IsFavorite;
+
+                m_Blackboard.SetFavorite(conversationInfo.Id, conversationInfo.IsFavorite);
+            }
+
+            ConversationsRefreshed?.Invoke();
+        }
+
+        void OnConnectionChanged(string message, bool connected)
+        {
+            ConnectionChanged?.Invoke(message, connected);
+        }
+
+        void OnPromptStateChanged(AssistantConversationId conversationId, Assistant.Editor.Assistant.PromptState newState)
+        {
+            m_Blackboard.IsAPIStreaming = false;
+            m_Blackboard.IsAPIRepairing = false;
+            m_Blackboard.IsAPIReadyForPrompt = false;
+            m_Blackboard.IsAPICanceling = false;
+
+            switch (newState)
+            {
+                case Assistant.Editor.Assistant.PromptState.None:
+                {
+                    SetWorkingState(false);
+                    m_Blackboard.IsAPIReadyForPrompt = true;
+                    break;
+                }
+
+                case Assistant.Editor.Assistant.PromptState.Streaming:
+                {
+                    m_Blackboard.IsAPIStreaming = true;
+                    break;
+                }
+
+                case Assistant.Editor.Assistant.PromptState.RepairCode:
+                {
+                    m_Blackboard.IsAPIRepairing = true;
+                    break;
+                }
+
+                case Assistant.Editor.Assistant.PromptState.Canceling:
+                {
+                    m_Blackboard.IsAPICanceling = true;
+                    m_Blackboard.IsAPIReadyForPrompt = false;
+                    break;
+                }
+            }
+
+            NotifyAPIStateChanged(conversationId);
+        }
+
+        void OnConversationCreationFailed(AssistantConversationId conversationId)
+        {
+            // TODO: Do we want any UI here to indicate the conversation could not be created?
+            ErrorHandlingUtils.ShowGeneralError("Could not create conversation");
+
+            CancelAssistant(conversationId);
+        }
+
+        public void Deinitialize()
+        {
+            Provider.OnConnectionChanged -= OnConnectionChanged;
+            Provider.ConversationsRefreshed -= OnConversationsRefreshed;
+            Provider.ConversationCreationFailed -= OnConversationCreationFailed;
+            Provider.PromptStateChanged -= OnPromptStateChanged;
+            Provider.ConversationLoaded -= OnConversationLoaded;
+            Provider.ConversationChanged -= OnConversationChanged;
+            Provider.ConversationDeleted -= OnConversationDeleted;
+            Provider.InspirationsRefreshed -= OnInspirationsRefreshed;
+        }
+
+        void OnConversationCreated(AssistantConversation conversation)
+        {
+            var model = ConvertConversationToModel(conversation);
+
+            if (!m_Blackboard.ActiveConversationId.IsValid)
+            {
+                m_Blackboard.SetActiveConversation(conversation.Id);
+            }
+
+            ConversationReload?.Invoke(model.Id);
+        }
+
+        void OnConversationLoaded(AssistantConversation conversation)
+        {
+            var model = ConvertConversationToModel(conversation);
+            ConversationReload?.Invoke(model.Id);
+        }
+
+        ConversationModel ConvertConversationToModel(AssistantConversation conversation)
+        {
+            var model = m_Blackboard.GetConversation(conversation.Id);
+            if (model == null)
+            {
+                model = new ConversationModel { Id = conversation.Id };
+                m_Blackboard.UpdateConversation(model.Id, model);
+            }
+
+            model.StartTime = conversation.StartTime;
+            model.Title = conversation.Title;
+
+            model.Messages.Clear();
+            foreach (AssistantMessage message in conversation.Messages)
+            {
+                var messageModel = ConvertMessageToModel(message);
+                model.Messages.Add(messageModel);
+            }
+
+            model.IsLoaded = true;
+            return model;
+        }
+
+        public void RefreshInspirations()
+        {
+            Provider.RefreshInspirations().WithExceptionLogging();
+        }
+
+        public void ConversationLoad(AssistantConversationId conversationId)
+        {
+            Provider.ConversationLoad(conversationId).WithExceptionLogging();
+        }
+
+        public void SetFavorite(AssistantConversationId conversationId, bool isFavorited)
+        {
+            Provider.ConversationFavoriteToggle(conversationId, isFavorited);
+
+            // Set the local caches so we are in sync until the next server data
+            var conversation = m_Blackboard.GetConversation(conversationId);
+            if (conversation != null)
+            {
+                conversation.IsFavorite = isFavorited;
+            }
+
+            m_Blackboard.SetFavorite(conversationId, isFavorited);
+
+            ConversationsRefreshed?.Invoke();
+        }
+
+        public void ConversationDelete(AssistantConversationId conversationId)
+        {
+            Provider.ConversationDeleteAsync(conversationId).WithExceptionLogging();
+        }
+
+        public void ConversationRename(AssistantConversationId conversationId, string newName)
+        {
+            Provider.ConversationRename(conversationId, newName).WithExceptionLogging();
+        }
+
+        public void GetPointCost(PointCostRequestId id, PointCostRequestData data)
+        {
+            Provider.PointCostRequest(id, data).WithExceptionLogging();
+        }
+
+        public void SuspendConversationRefresh()
+        {
+            Provider.SuspendConversationRefresh();
+        }
+
+        public void ResumeConversationRefresh()
+        {
+            Provider.ResumeConversationRefresh();
+        }
+
+        public void RefreshConversations()
+        {
+            Provider.RefreshConversationsAsync().WithExceptionLogging();
+        }
+
+        public void CancelAssistant(AssistantConversationId conversationId)
+        {
+            Provider.AbortPrompt(conversationId);
+            Provider.ConversationLoad(conversationId);
+
+            if (m_Blackboard.IsAPIWorking)
+            {
+                SetWorkingState(false);
+            }
+        }
+
+        public void SendPrompt(string stringPrompt)
+        {
+            if (!m_Blackboard.IsAPIWorking)
+            {
+                SetWorkingState(true);
+            }
+
+            Provider.ProcessPrompt(m_Blackboard.ActiveConversationId, BuildPrompt(stringPrompt)).WithExceptionLogging();
+        }
+
+        AssistantPrompt BuildPrompt(string stringPrompt)
+        {
+            var prompt = new AssistantPrompt(stringPrompt);
+            prompt.ObjectAttachments.AddRange(m_Blackboard.ObjectAttachments);
+            prompt.ConsoleAttachments.AddRange(m_Blackboard.ConsoleAttachments);
+
+            return prompt;
+        }
+
+        public void SendFeedback(AssistantMessageId messageId, bool flagMessage, string feedbackText, bool upVote)
+        {
+            Provider.SendFeedback(messageId, flagMessage, feedbackText, upVote).WithExceptionLogging();
+        }
+
+        public void LoadFeedback(AssistantMessageId messageId)
+        {
+            Provider.LoadFeedback(messageId).WithExceptionLogging();
+        }
+
+        public void SendEditRunCommand(AssistantMessageId messageId, string updatedCode)
+        {
+            Provider.SendEditRunCommand(messageId, updatedCode).WithExceptionLogging();
+        }
+
+        public bool ValidateCode(string code, out string localFixedCode, out CompilationErrors compilationErrors)
+        {
+            return Provider.ValidateCode(code, out localFixedCode, out compilationErrors);
+        }
+
+        public int GetAttachedContextLength()
+        {
+            var contextBuilder = new ContextBuilder();
+            Provider.GetAttachedContextString(BuildPrompt(string.Empty), ref contextBuilder, true);
+            return contextBuilder.PredictedLength;
+        }
+
+        public AgentRunCommand BuildAgentRunCommand(string script, List<UnityEngine.Object> contextAttachments)
+        {
+            return Provider.BuildAgentRunCommand(script, contextAttachments);
+        }
+
+        public void RunAgentCommand(AgentRunCommand command)
+        {
+            Provider.RunAgentCommand(m_Blackboard.ActiveConversationId, command, ChatElementRunExecutionBlock.FencedBlockTag);
+        }
+
+        public ExecutionResult GetRunCommandExecution(int executionId)
+        {
+            return Provider.GetRunCommandExecution(executionId);
+        }
+
+        MessageModel ConvertMessageToModel(AssistantMessage message)
+        {
+            var result = new MessageModel
+            {
+                Id = message.Id,
+                Content = message.Content,
+
+                IsComplete = message.IsComplete,
+
+                Context = message.Context,
+
+                ErrorCode = message.ErrorCode,
+                ErrorText = message.ErrorText
+            };
+
+            if (message.IsError)
+            {
+                result.Role = MessageModelRole.Error;
+                result.IsComplete = true;
+            }
+            else
+            {
+                switch (message.Role.ToLower())
+                {
+                    case Assistant.Editor.Assistant.k_AssistantRole:
+                    {
+                        result.Role = MessageModelRole.Assistant;
+                        break;
+                    }
+
+                    case Assistant.Editor.Assistant.k_UserRole:
+                    {
+                        result.Role = MessageModelRole.User;
+
+                        // Trim out slash commands from user messages
+                        if(ChatCommandParser.Parse(result.Content, out var commandHandler))
+                        {
+                            int commandLength = 1 + commandHandler.Command.Length;
+                            if (result.Content.Length > commandLength)
+                            {
+                                result.Content = result.Content.Substring(commandLength, result.Content.Length - commandLength).Trim();
+                            }
+                        }
+
+                        break;
+                    }
+
+                    case Assistant.Editor.Assistant.k_SystemRole:
+                    {
+                        result.Role = MessageModelRole.System;
+                        break;
+                    }
+
+                    default:
+                    {
+                        throw new InvalidDataException("Unknown message role: " + message.Role);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        // TODO: this needs to be adjusted to handle multiple active conversations properly
+        public void SetWorkingState(bool isWorking)
+        {
+            if (m_Blackboard.IsAPIWorking == isWorking)
+            {
+                return;
+            }
+
+            m_Blackboard.IsAPIWorking = isWorking;
+            APIStateChanged?.Invoke();
+        }
+
+        void OnPointCostReceived(PointCostRequestId id, int value)
+        {
+            PointCostReceived?.Invoke(id, value);
+        }
+
+        public void HandleFunctionCall(string functionId, string[] functionParameters, AssistantUIContext context)
+            => Provider.FunctionCaller.CallPlugin(functionId, functionParameters, context);
+    }
+}

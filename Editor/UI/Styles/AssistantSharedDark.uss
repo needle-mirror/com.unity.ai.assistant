@@ -1,0 +1,218 @@
+:root {
+    --muse-chat-backgrounds-50: #191919;
+    --muse-chat-backgrounds-75: #232323;
+    --muse-chat-backgrounds-100: #282828;
+    --muse-chat-backgrounds-150: #383838;
+    --muse-chat-backgrounds-200: #3c3c3c;
+    --muse-chat-backgrounds-250: #3f3f3f;
+    --muse-chat-foregrounds-300: #4c4c4c;
+    --muse-chat-foregrounds-25: #676767;
+    --muse-chat-text-primary: #d2d2d2;
+    --muse-chat-text-primary-inverted: #090909;
+    --muse-chat-text-secondary: rgba(210, 210, 210, 0.3);
+    --muse-chat-primary-500: #656565;
+    --muse-chat-accent-50: #2c5d87;
+    --muse-chat-accent-100: #4c7eff;
+    --muse-chat-button-disabled: rgba(88, 88, 88, 0.3);
+    --muse-chat-button-pressed: #46607c;
+    --muse-chat-icon-missing: #d33c79;
+    --muse-chat-warning-color: #F4BC02;
+    --muse-chat-warning-background-color: rgba(244, 188, 2, 0.3);
+    --muse-chat-button-active: #4c607b;
+    --muse-chat-prefab-color: #7baefa;
+    --muse-chat-code-mark-error: rgba(185, 39, 39, 0.3);
+    --muse-chat-code-mark-info: rgba(36, 36, 192, 0.3);
+
+    /* Legacy Colors To Remove */
+    --muse-chat-color-invalid: #dc00ff;
+
+    /* Specialized overrides for dark + light discrepancy */
+    --muse-chat-popup-hover: var(--muse-chat-foregrounds-300);
+}
+
+.-muse-chat-panel {
+    background-color: var(--muse-chat-backgrounds-200);
+}
+
+.muse-chat-icon {
+    ---unity-image-tint-color: blue;
+}
+
+.mui-icon-empty {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/empty.png');
+}
+
+.mui-icon-empty-margin {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/empty.png');
+    width: 28px;
+    height: 14px;
+}
+
+.mui-icon-history {
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ClockCounterClockwise.png');
+}
+
+.mui-icon-copy {
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CopySimple.png');
+}
+
+.mui-icon-cmd-run {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CmdRun.png');
+}
+
+.mui-icon-cmd-ask {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CmdAsk.png');
+}
+
+.mui-icon-cmd-code {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CmdCode.png');
+}
+
+.mui-icon-save {
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/SaveAs.png');
+}
+
+.mui-icon-edit {
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Edit.png');
+}
+
+.mui-icon-delete {
+    background-image: resource('d_console.erroricon');
+}
+
+.mui-icon-upvote {
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ThumbsUp.png');
+}
+
+.mui-icon-downvote {
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ThumbsDown.png');
+}
+
+.mui-icon-cancel {
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/XSquare.png')
+}
+
+.mui-icon-stop {
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/StopCircle.png');
+}
+
+.mui-icon-submit {
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/PaperPlaneRight.png');
+}
+
+.mui-icon-submit-white {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/PaperPlaneRight.png');
+}
+
+.mui-icon-tick {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/tick.png');
+}
+
+.mui-icon-star-filled-white {
+    --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/StarFilledWhite.png");
+}
+
+.mui-icon-star-filled-grey {
+    --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/StarFilledWhite.png");
+    --unity-image-tint-color: rgba(100, 100, 100, 0.2);
+}
+
+.mui-icon-close-s-trimmed {
+    --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Close_S_Trimmed.png");
+}
+
+.mui-icon-close {
+    --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Close.png");
+}
+
+.mui-icon-arrow-square-in {
+    --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/arrow-square-in.png");
+}
+
+.mui-icon-undo {
+    --unity-image:resource("Icons/d_UndoHistory.png");
+}
+
+.mui-icon-error {
+    background-image: resource('d_console.erroricon');
+}
+
+.mui-icon-warn {
+    background-image: resource('d_console.warnicon');
+}
+
+.mui-icon-warn-large {
+    --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Warning.png");
+}
+
+.mui-icon-info {
+    background-image: resource('d_console.infoicon');
+}
+
+.mui-icon-game-object {
+    --unity-image: resource('d_GameObject Icon');
+}
+
+.mui-icon-console {
+    --unity-image: resource('d_UnityEditor.ConsoleWindow');
+}
+
+.mui-icon-pick {
+    --unity-image: resource('d_pick.png');
+}
+
+.mui-icon-shortcut {
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Shortcut.png');
+}
+
+.mui-icon-arrow-up {
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ArrowUp.png');
+}
+
+.mui-icon-arrow-down {
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ArrowDown.png');
+}
+
+.mui-icon-prefab {
+    --unity-image: resource('d_Prefab Icon');
+}
+
+.mui-icon-caret-down {
+    background-image: resource('d_dropdown@2x');
+}
+
+.mui-icon-checkmark {
+    background-image: resource('check');
+}
+
+.mui-icon-arrows-counter-clockwise {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ArrowsCounterClockwise.png');
+}
+
+.mui-icon-plus {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Plus.png');
+}
+
+.mui-icon-menu {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Menu.png');
+}
+
+.mui-icon-arrow-up {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ArrowUp.png');
+}
+
+.mui-icon-arrow-right {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ArrowRight.png');
+}
+
+.mui-icon-sparkle {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Sparkle.png');
+}
+
+.mui-icon-stop-square {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/StopSquare.png');
+}
+
+.mui-icon-arrows-in {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ArrowsIn.png');
+}

@@ -1,0 +1,40 @@
+using Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew;
+using UnityEditor;
+using UnityEngine;
+
+namespace Unity.AI.Assistant.UI.Editor.Scripts
+{
+    internal class WhatsNewWindow : EditorWindow
+    {
+        const string k_WindowName = "What's New";
+
+        static Vector2 k_MinSize = new(400, 600);
+
+        internal AssistantUIContext m_Context;
+        internal WhatsNewView m_View;
+
+        public static void ShowWindow()
+        {
+            var editor = GetWindow<WhatsNewWindow>();
+            editor.titleContent = new GUIContent(k_WindowName);
+            editor.Show();
+            editor.minSize = k_MinSize;
+        }
+
+        void CreateGUI()
+        {
+            m_Context = new AssistantUIContext();
+
+            m_View = new WhatsNewView();
+            m_View.Initialize(m_Context);
+            m_View.CloseRequested += Close;
+            m_View.style.flexGrow = 1;
+            m_View.style.minWidth = 400;
+            rootVisualElement.Add(m_View);
+
+            m_View.RepaintWindow += Repaint;
+
+            m_View.InitializeThemeAndStyle();
+        }
+    }
+}

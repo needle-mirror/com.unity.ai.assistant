@@ -1,0 +1,12 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:VisualElement class="mui-command-code-block">
+
+        <ui:VisualElement name="commandCodeWarningContainer" class="notification-warning-content">
+            <ui:Label name="commandCodeWarningText"/>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="commandCodeBlockRoot">
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</UXML>

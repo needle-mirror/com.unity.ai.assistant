@@ -1,0 +1,25 @@
+.mui-route-popup-item {
+    display: flex;
+    flex-direction: row;
+    padding: 6px;
+    justify-content: space-between;
+}
+
+.mui-route-popup-item:hover {
+    background-color: var(--muse-chat-popup-hover);
+}
+
+.mui-route-popup-command {
+    -unity-font-style: bold;
+    margin-bottom: 2px;
+}
+
+.mui-route-popup-chip {
+    border-radius: 3px;
+    background-color: var(--muse-chat-backgrounds-100);
+    padding: 2px 4px;
+}
+
+.mui-route-chip-hovered {
+    background-color: var(--muse-chat-popup-hover);
+}

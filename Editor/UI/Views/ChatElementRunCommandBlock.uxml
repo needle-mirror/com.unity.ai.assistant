@@ -1,0 +1,38 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:VisualElement class="mui-action-block-root">
+        <VisualElement class="mui-action-block-buttons">
+            <ui:Label name="actionTitle" class="mui-action-block-label"/>
+            <ui:Button name="devToolButton" class="mui-chat-action-block-button">
+                <ui:Image class="mui-action-button-image-large mui-icon-devtool"/>
+            </ui:Button>
+        </VisualElement>
+
+        <ui:VisualElement name="taskBlockHeader" class="mui-task-block-buttons">
+            <ui:Foldout name="overviewFoldout" class="mui-chat-foldout command-detail-foldout">
+            </ui:Foldout>
+            <ui:VisualElement name="taskBlockInner" class="mui-task-block-inner">
+                <ui:VisualElement name="taskWarningTitle" class="mui-task-block-toggle-label">
+                    <ui:Image name="taskWarningIcon" class="mui-task-warning-image mui-icon-warn" />
+                    <ui:Label name="taskMessage" class="mui-action-button-label" text="Tasks"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="previewContainer">
+            <ui:VisualElement name="warningContainer" class="notification-warning-content">
+                <ui:Label name="warningText"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="previewItems"/>
+        </ui:VisualElement>
+
+        <ui:VisualElement class="command-detail-foldout-footer"/>
+
+        <ui:VisualElement name="codePreviewRoot"/>
+        <VisualElement class="mui-execute-button-container">
+            <ui:Button name="executeButton" class="mui-action-button mui-agent-execute-button">
+                <ui:Image name="executeButtonIcon" class="mui-icon-sparkle mui-execute-button-icon" />
+                <ui:Label text="Run" class="mui-action-button-label-header" />
+            </ui:Button>
+        </VisualElement>
+    </ui:VisualElement>
+</UXML>

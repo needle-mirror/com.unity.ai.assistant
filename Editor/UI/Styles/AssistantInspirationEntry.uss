@@ -1,0 +1,30 @@
+.assistantinspirationentry__element {
+    flex-grow: 1;
+}
+
+.assistantinspirationentry__element-root {
+    flex-grow: 1;
+}
+
+.mui-chat-inspiration-entry-button {
+    background-color: var(--muse-chat-backgrounds-50);
+    border-color: var(--muse-chat-backgrounds-200);
+    padding: 6px;
+    margin-left: 0;
+    border-radius: 4px;
+    -unity-text-align: middle-left;
+    flex-direction: row;
+}
+
+.mui-chat-inspiration-entry-button:hover {
+    border-color: var(--muse-chat-backgrounds-200);
+}
+
+#inspirationEntryButton:hover {
+    background-color: var(--muse-chat-backgrounds-200);
+}
+
+#inspirationPointCostDisplayElement {
+    background-color: var(--muse-chat-backgrounds-100);
+    border-color: var(--muse-chat-backgrounds-200);
+}

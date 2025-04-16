@@ -1,0 +1,33 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="inspirationPanel" class="mui-chat-inspiration-panel">
+
+        <ui:VisualElement class="mui-chat-empty-top-buttons">
+            <ui:Button name="museChatWhatsNewButton" class="mui-action-button">
+                <ui:Image class="mui-action-button-image-large mui-icon-sparkle"/>
+                <ui:Label text="See what’s new in 6.2" class="mui-action-button-label"/>
+            </ui:Button>
+        </ui:VisualElement>
+
+        <ui:VisualElement class="mui-chat-disclaimer">
+            <ui:Label name="museChatInspirationDisclaimer" text="Surprises and mistakes are possible. Make sure to check results, and share feedback so we can learn and improve." class="mui-chat-label mui-chat-disclaimer-text"/>
+        </ui:VisualElement>
+
+        <ui:VisualElement class="mui-chat-inspiration-main-content">
+            <ui:VisualElement class="mui-chat-inspiration-section">
+                <ui:VisualElement class="mui-chat-inspiration-section-header">
+                    <ui:Label text="Example" class="mui-chat-label mui-chat-inspiration-section-header-label"/>
+                </ui:VisualElement>
+
+                <ui:VisualElement class="mui-chat-inspiration-content-root">
+                    <ui:VisualElement name="inspirationSectionContent" class="mui-chat-inspiration-content">
+                    </ui:VisualElement>
+                    <ui:VisualElement class="mui-chat-inspiration-spacer"/>
+                    <ui:Button name="refreshButton" tooltip="Refresh currently listed Inspirations" class="mui-chat-inspiration-refresh-btn -muse-chat-button">
+                        <ui:Image class="mui-action-button-image-large mui-icon-arrows-counter-clockwise"/>
+                    </ui:Button>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</ui:UXML>

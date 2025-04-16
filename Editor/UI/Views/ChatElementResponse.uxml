@@ -1,0 +1,59 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:VisualElement class="mui-chat-root mui-chat-response">
+        <ui:VisualElement class="mui-chat-message-content">
+            <ui:VisualElement class="mui-chat-element-avatar-area">
+                <ui:VisualElement class="mui-chat-avatar-frame">
+                    <ui:Image name="unityAvatar" class="mui-chat-avatar"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="errorTitle" class="mui-chat-response-error-title">
+                <ui:Image name="errorTitleImage" class="mui-action-button-image mui-icon-error"/>
+                <ui:Label name="errorTitleLabel" class="mui-chat-response-error-label" text="Error"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="textFieldRoot" class="mui-chat-element-text-area">
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement>
+            <ui:Foldout name="sourcesFoldout" class="mui-chat-foldout mui-chat-sources-foldout" text="Sources">
+                <ui:VisualElement name="sourcesContent">
+                </ui:VisualElement>
+            </ui:Foldout>
+        </ui:VisualElement>
+        <ui:VisualElement name="optionsSection" class="mui-chat-footer">
+            <ui:VisualElement class="mui-control-section-buttons">
+                <ui:Button name="copyButton" tooltip="Copy Message" class="mui-action-button mui-chat-response-button">
+                    <ui:Image class="mui-action-button-image" name="copyButtonImage"/>
+                    <ui:Label text="Copy" class="mui-action-button-label"/>
+                </ui:Button>
+                <ui:Button name="upVoteButton" class="mui-action-button mui-chat-response-button">
+                    <ui:Image class="mui-action-button-image mui-icon-upvote"/>
+                    <ui:Label text="Good response" class="mui-action-button-label"/>
+                </ui:Button>
+                <ui:Button name="downVoteButton" class="mui-action-button mui-chat-response-button">
+                    <ui:Image class="mui-action-button-image mui-icon-downvote"/>
+                    <ui:Label text="Poor response" class="mui-action-button-label"/>
+                </ui:Button>
+            </ui:VisualElement>
+            <ui:VisualElement name="feedbackParamSection" class="mui-feedback-parameters">
+                <ui:VisualElement class="mui-feedback-comment-foldout-container">
+                    <ui:Foldout name="commentFoldout" text="Add a comment &#60;color=#606060&#62;(optional)&#60;/color&#62;" class="mui-chat-foldout">
+                        <ui:ScrollView class="mui-feedback-text-scrollroot">
+                            <ui:Toggle label="Flag as inappropriate" name="feedbackFlagCheckbox"/>
+                            <ui:TextField name="feedbackValueText">
+                                <VisualElement name="placeholderContent" class="mui-mtf-placeholder-root">
+                                    <Label picking-mode="ignore" name="placeholderText"/>
+                                </VisualElement>
+                            </ui:TextField>
+                        </ui:ScrollView>
+                        <ui:VisualElement class="mui-feedback-comment-foldout-button-row">
+                            <ui:Button name="feedbackSendButton" class="mui-action-button mui-mtf-action-button">
+                                <ui:Image class="mui-action-button-image-large" name="feedbackSendButtonImage"/>
+                                <ui:Label class="mui-action-button-label-header" text="Send"/>
+                            </ui:Button>
+                        </ui:VisualElement>
+                    </ui:Foldout>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</UXML>

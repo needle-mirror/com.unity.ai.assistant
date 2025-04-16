@@ -1,0 +1,11 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:VisualElement class="mui-chat-inspiration-entry">
+        <ui:Button name="inspirationEntryButton" class="mui-chat-inspiration-entry-button">
+            <ui:Label class="mui-action-button-label" name="inspirationEntryButtonLabel"/>
+            <ui:Image class="mui-action-button-image-large mui-icon-arrow-up"/>
+            <ui:VisualElement name="inspirationPointCostDisplayElement" class="mui-point-cost-display-element">
+                <ui:Label name="inspirationPointCostDisplayLabel" text="0" class="mui-point-cost-display-label"/>
+            </ui:VisualElement>
+        </ui:Button>
+    </ui:VisualElement>
+</ui:UXML>

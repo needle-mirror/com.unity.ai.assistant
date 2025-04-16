@@ -1,0 +1,13 @@
+.chatelementcommandcodeblock__element {
+}
+
+.mui-code-block-root {
+    margin-bottom: 18px;
+    font-size: var(--muse-chat-small-font-size);
+    cursor: text;
+    justify-content: center;
+}
+
+#commandCodeWarningText {
+    white-space: normal;
+}

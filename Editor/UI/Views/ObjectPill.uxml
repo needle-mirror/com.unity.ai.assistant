@@ -1,0 +1,6 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:VisualElement class="mui-object-pill">
+        <ui:Image name="objectPillIcon" class="mui-object-pill-icon" />
+        <ui:Label name="objectPillLabel" class="mui-object-pill-label" />
+    </ui:VisualElement>
+</UXML>

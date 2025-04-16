@@ -1,0 +1,26 @@
+{
+  "name": "com.unity.ai.assistant",
+  "displayName": "AI Assistant",
+  "version": "1.0.0-pre.2",
+  "unity": "6000.2",
+  "description": "With AI Assistant, you can easily enhance your Unity skills and boost productivity by generating project-specific information, coding solutions, and resolutions to issues such as console errors.",
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.1",
+    "com.unity.modules.unitywebrequest": "1.0.0",
+    "com.unity.serialization": "3.1.1",
+    "com.unity.ai.toolkit": "1.0.0-pre.3"
+  },
+  "unityRelease": "0a8",
+  "_upm": {
+    "changelog": "### Changed\n- Version Bump for re-release in production"
+  },
+  "upmCi": {
+    "footprint": "17749e8d55669ed22deae3f2db9bf7808246d312"
+  },
+  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.ai.assistant@1.0/manual/index.html",
+  "repository": {
+    "url": "https://github.cds.internal.unity3d.com/unity/muse-editor.git",
+    "type": "git",
+    "revision": "76457dede060c2c550dbe475f4497198c46a9664"
+  }
+}

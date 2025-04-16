@@ -1,0 +1,7 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:VisualElement class="mui-execution-log-divider" />
+    <ui:VisualElement name="executionRoot" class="execution-entry-container">
+        <ui:Image name="executionIcon" class="execution-entry-icon"/>
+        <ui:VisualElement name="executionLogContainer" class="mui-execution-log-container" />
+    </ui:VisualElement>
+</UXML>

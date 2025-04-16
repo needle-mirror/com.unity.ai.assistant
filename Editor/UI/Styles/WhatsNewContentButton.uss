@@ -1,0 +1,21 @@
+.mui-whats-new-button-root {
+    background-color: var(--muse-chat-backgrounds-50);
+    border-radius: 5px;
+    margin-bottom: 16px;
+    padding: 12px;
+}
+
+.mui-whats-new-button-image {
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    align-self: flex-end;
+}
+
+#whatsNewPageHeader {
+    font-size: 16px;
+    -unity-font-style: bold;
+}
+
+#whatsNewPageDescription {
+    white-space: normal;
+}

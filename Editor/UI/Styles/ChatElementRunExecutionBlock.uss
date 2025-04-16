@@ -1,0 +1,43 @@
+.mui-agent-undo-button {
+    min-height: 16px;
+    border-width: 0;
+    display: flex;
+    align-self: center;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.mui-agent-undo-button:disabled {
+    background-color: var(--muse-chat-backgrounds-50);
+}
+
+.execution-block-header {
+    flex-direction: row;
+    justify-content: flex-end;
+    padding-right: 6px;
+    height: 33px;
+}
+
+.execution-label {
+    margin: 1px;
+    -unity-text-align: middle-left;
+    white-space: normal;
+    flex-grow: 1;
+}
+
+.execution-header-label {
+    align-self: center;
+    flex-grow: 1;
+    flex-shrink: 1;
+    font-size: var(--muse-chat-small-font-size);
+    margin: 8px;
+    height: 16px;
+    -unity-text-align: middle-left;
+    -unity-font-style: bold;
+}
+
+.mui-execution-log-divider {
+    width: 1px;
+    height: 12px;
+    background-color: var(--muse-chat-backgrounds-100);
+    margin-left: 30px;
+}

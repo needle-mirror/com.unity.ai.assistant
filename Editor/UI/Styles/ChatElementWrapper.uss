@@ -1,0 +1,9 @@
+.chatelementwrapper__element {
+    margin-bottom: 18px;
+}
+
+#indexDebugText {
+    align-self: center;
+    -unity-text-align: middle-center;
+}
+

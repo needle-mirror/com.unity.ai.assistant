@@ -1,0 +1,238 @@
+.chatelementresponse__element {
+    align-self: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin: 0 12px;
+    max-width: 716px;
+    flex-shrink: 0;
+    flex-grow: 0;
+    width: 96%;
+}
+
+.chatelementresponse__element-root {
+    align-self: center;
+    flex-grow: 1;
+    border-radius: 8px;
+}
+
+.mui-chat-response {
+    -unity-text-align: upper-left;
+}
+
+.mui-chat-response-button {
+    margin: 0;
+    height: 24px;
+    border-width: 0;
+    border-radius: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+#copyButton {
+    margin-left: 0;
+    border-radius: 4px 0 0 4px;
+    margin-right: 1px;
+}
+
+#upVoteButton {
+    margin-left: 0;
+    border-radius: 0;
+}
+
+#downVoteButton {
+    border-radius: 0 4px 4px 0;
+    margin-left: 1px;
+}
+
+.mui-chat-response-button:disabled {
+    display: none;
+}
+
+#sourcesContent {
+    padding-top: 8px;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.mui-chat-sources-foldout {
+    margin-top: 4px;
+    margin-bottom: 4px;
+    padding-top: 8px;
+    border-top-color: var(--muse-chat-backgrounds-200);
+    border-top-width: 1px;
+}
+
+#optionsSection {
+    flex-direction: column;
+    border-top-color: var(--muse-chat-backgrounds-200);
+    border-top-width: 1px;
+    padding-top: 12px;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.mui-control-section-buttons {
+    flex-direction: row;
+}
+
+.mui-feedback-parameters {
+    margin-top: 12px;
+    margin-left: 0;
+    margin-right: 0;
+    padding-bottom: 36px;
+}
+
+.mui-feedback-label {
+    margin-top: 8px;
+    margin-bottom: 2px;
+    margin-left: 2px;
+}
+
+.mui-feedback-label-light {
+    align-self: flex-end;
+    margin-bottom: 2px;
+    margin-left: 2px;
+    color: var(--muse-chat-text-secondary);
+}
+
+.mui-feedback-label-strong {
+    -unity-font-style: bold;
+}
+
+.mui-feedback-label-group {
+    flex-direction: row;
+}
+
+#feedbackFlagCheckbox {
+    margin-top: 8px;
+    margin-bottom: 2px;
+    margin-left: 0;
+}
+
+#feedbackFlagCheckbox .unity-label {
+    position: absolute;
+    margin-left: 16px;
+}
+
+.mui-feedback-comment-foldout-button-row {
+    margin-left: 12px;
+    flex-direction: row;
+}
+
+#feedbackSendButton {
+    height: 18px;
+    min-height: 18px;
+    padding-left: 4px;
+    padding-right: 4px;
+    margin-bottom: 4px;
+}
+
+#feedbackSendButtonImage {
+    margin-top: 0;
+}
+
+.mui-feedback-button-active {
+    background-color: var(--muse-chat-button-active);
+}
+
+.mui-feedback-button-active:hover:enabled {
+    background-color: var(--muse-chat-button-active);
+}
+
+.mui-action-button-active:hover:enabled {
+    background-color: var(--muse-chat-button-active);
+}
+
+.mui-feedback-comment-foldout-container {
+    background-color: var(--muse-chat-backgrounds-200);
+    border-radius: 4px;
+}
+
+#commentFoldout {
+    padding: 4px 0 4px 0;
+}
+
+#commentFoldout Toggle {
+    margin-left: 12px;
+}
+
+#unityAvatar {
+    background-color: var(--muse-chat-backgrounds-200);
+}
+
+#feedbackValueText {
+    white-space: normal;
+    min-height: 72px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    margin-left: 12px;
+    margin-right: 12px;
+}
+
+#feedbackValueText .unity-base-text-field__input {
+    background-color: var(--muse-chat-backgrounds-100);
+    height: 100%;
+}
+
+.mui-feedback-text-scrollroot {
+    margin-top: 1px;
+    max-height: 160px;
+    padding: 1px;
+    border-top-width: 1px;
+    border-color: black;
+}
+
+.mui-chat-response-separatorline {
+    margin: 2px 0 12px 0;
+    background-color: var(--muse-chat-foregrounds-25);
+    width: 100%;
+    height: 1px;
+}
+
+#responseHeading.mui-chat-response-heading {
+    margin: 4px 0 8px 0;
+    -unity-font-style: bold;
+}
+
+#responseHeading.mui-chat-response-heading {
+    margin: 4px 0 8px 0;
+    -unity-font-style: bold;
+}
+
+#responseHeading.mui-chat-response-heading-size-1 {
+    font-size: 16px;
+}
+
+#responseHeading.mui-chat-response-heading-size-2 {
+    font-size: 14px;
+}
+
+#responseHeading.mui-chat-response-heading-size-3 {
+    font-size: 12px;
+}
+
+#responseHeading.mui-chat-response-heading-size-4 {
+    font-size: 12px;
+}
+
+#responseHeading.mui-chat-response-heading-size-5 {
+    font-size: 12px;
+}
+
+#responseHeading.mui-chat-response-heading-size-6 {
+    font-size: 12px;
+}
+
+.mui-chat-response-error-title {
+    flex-direction: row;
+    width: 100%;
+    margin-top: 8px;
+    margin-bottom: 12px;
+}
+
+.mui-chat-response-error-label {
+    -unity-text-align: middle-left;
+    padding-left: 0;
+    padding-right: 0;
+    -unity-font-style: bold;
+}

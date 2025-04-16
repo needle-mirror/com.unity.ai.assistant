@@ -1,0 +1,314 @@
+.assistantview__element-root {
+    flex-grow: 1;
+}
+
+#root-main {
+    flex-grow: 1;
+}
+
+.mui-header {
+    flex-shrink: 0;
+}
+
+.mui-header-row {
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+.mui-header-button {
+    margin: 8px;
+    margin-right: 0;
+    height: 22px;
+    min-height: 22px;
+    min-width: 30px;
+    padding-left: 6px;
+    padding-right: 6px;
+    align-items: center;
+}
+
+.mui-header-label.mui-compact {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mui-header-label {
+    position: absolute;
+    left: 90px;
+    right: 100px;
+    align-self: center;
+    -unity-text-align: middle-center;
+    -unity-font-style: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#historyButton {
+    position: absolute;
+    right: 8px;
+}
+
+.mui-chat-history-open {
+    background-color: var(--muse-chat-button-pressed);
+}
+
+.mui-header-dropdown {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+
+    min-width: 15px;
+    height: 24px;
+}
+
+.mui-chat-content {
+    flex-grow: 1;
+    flex-direction: row;
+}
+
+.mui-footer {
+    flex-shrink: 0;
+    justify-content: center;
+    padding: 12px;
+    flex-direction: column;
+}
+
+#chatContentRoot {
+    background-color: var(--muse-chat-backgrounds-50);
+    flex-grow: 1;
+}
+
+#historyPanelRoot {
+    position: absolute;
+    right: 0;
+    top: 1px;
+    bottom: 1px;
+    border-left-width: 1px;
+    border-left-color: var(--muse-chat-backgrounds-50);
+}
+
+.mui-conversation-panel {
+    flex-grow: 1;
+    margin: 1px;
+}
+
+#inspirationPanelRoot {
+    display: flex;
+    justify-content: center;
+    min-height: 100%;
+}
+
+#chatPanelRoot {
+    flex-grow: 1;
+}
+
+#progressElementContainer {
+    align-self: flex-start;
+    align-items: stretch;
+    justify-content: flex-end;
+    flex-direction: column;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--muse-chat-backgrounds-50);
+    border-top-width: 1px;
+    border-top-color: var(--muse-chat-backgrounds-50);
+}
+
+#chatTextFieldRoot {
+    flex-direction: column;
+    max-width: 700px;
+    width: 100%;
+    align-self: center;
+}
+
+.mui-chat-cmd-ask.is-selected .muse-chat-icon{
+   --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CmdAskOn.png');
+}
+
+.mui-chat-cmd-run.is-selected .muse-chat-icon{
+   --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CmdRunOn.png');
+}
+
+.mui-chat-cmd-code.is-selected .muse-chat-icon{
+   --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CmdCodeOn.png');
+}
+
+.mui-chat-selected-context-notification {
+    max-width: 700px;
+    flex-direction: row;
+    align-self: center;
+    width: 100%;
+    padding-bottom: 8px;
+}
+
+.mui-chat-context-dropzone {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    cursor: arrow;
+}
+
+.mui-chat-context-dropzone-container {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background-color: var(--muse-chat-backgrounds-50);
+    border-width: 1px;
+    border-color: var(--muse-chat-accent-50);
+    border-radius: 8px;
+}
+
+.mui-chat-drop-zone {
+    flex-grow: 1;
+    margin: 4px;
+}
+
+.mui-chat-dropzone-text-title {
+    align-self: center;
+    -unity-font-style: bold;
+    font-size: var(--muse-chat-title-font-size);
+    padding-bottom: 10px;
+}
+
+.mui-chat-dropzone-text {
+    align-self: center;
+    color: var(--muse-chat-text-secondary);
+    font-size: var(--muse-chat-header-font-size);
+}
+
+.mui-chat-selected-context-labels-root{
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.mui-context-selection-text {
+    padding-right: 8px;
+}
+
+#selectionLabel.mui-compact {
+    display: none;
+}
+
+
+.mui-chat-user-context-root {
+    max-width: 700px;
+    width: 100%;
+    flex-direction: row;
+    align-self: center;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.mui-chat-selected-context-root {
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.mui-context-dropdown-toggle {
+    margin-top: 8px;
+}
+
+
+.mui-chat-clear-context-button {
+    align-self: flex-start;
+    height: 18px;
+    border-width: 0;
+    background-color: var(--muse-chat-backgrounds-200);
+    margin-top: 8px;
+}
+
+.mui-chat-clear-context-button:disabled {
+    display: none;
+}
+
+.mui-selected-context-button-open {
+    background-color: var(--muse-chat-button-active);
+}
+
+#root-panel {
+    flex-grow: 1;
+}
+
+.mui-chat-popup-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.mui-chat-input-root {
+    display: flex;
+    flex-direction: column;
+}
+
+.mui-chat-invalid-command {
+    padding: 6px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border-width: 1px;
+    border-color: var(--muse-chat-warning-border);
+    margin-bottom: 10px;
+    border-radius: 3px;
+}
+
+.mui-chat-invalid-command Image {
+    height: 30px;
+    width: 30px;
+    margin-right: 2px;
+}
+
+.mui-chat-input-root {
+    display: flex;
+    flex-direction: column;
+}
+
+.mui-chat-invalid-command {
+    padding: 6px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border-width: 1px;
+    border-color: var(--muse-chat-backgrounds-75);
+    margin-bottom: 10px;
+    border-radius: 3px;
+}
+
+.mui-chat-invalid-command Image {
+    height: 30px;
+    width: 30px;
+    margin-right: 2px;
+}
+
+#popupAnchor {
+    margin-left: 8px;
+}
+
+#session-notifications .banner {
+    border-width: 1px;
+    border-color: var(--muse-chat-backgrounds-50);
+}
+
+#session-notifications {
+    padding: 0 8px 8px 8px;
+}
+
+#session-notifications.empty {
+    padding: 0;
+}
+
+Button.banner-right-action {
+    align-self: flex-end;
+}

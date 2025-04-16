@@ -1,0 +1,223 @@
+.mui-agent-execute-button {
+    min-height: 16px;
+    padding: 2px;
+    border-width: 0;
+    display: flex;
+    align-self: center;
+    flex-grow: 1;
+    flex-shrink: 0;
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 14px;
+}
+
+.mui-action-block-root {
+    font-size: var(--muse-chat-small-font-size);
+    cursor: text;
+    justify-content: center;
+}
+
+.mui-action-block-buttons {
+    flex-direction: row;
+    justify-content: flex-end;
+    padding-right: 6px;
+    height: 33px;
+}
+
+.mui-agent-execute-button .unity-text-element {
+    color: #FFF;
+}
+
+.mui-agent-execute-button:disabled {
+    background-color: var(--muse-chat-button-disabled);
+}
+
+.mui-agent-debug-button  {
+    margin-top: 4px;
+    margin-left: 4px;
+    margin-bottom: 4px;
+    width: 24px;
+    height: 24px;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    align-self: center;
+}
+
+.mui-agent-debug-button:hover {
+    background-color: var(--muse-chat-foregrounds-25);
+}
+
+.mui-agent-debug-button:disabled {
+    display: none;
+}
+
+.mui-agent-code-preview--monospaced-text {
+    padding: 4px;
+    margin: 0;
+    background-color: var(--muse-chat-backgrounds-100);
+    border-radius: 0 0 8px 8px;
+    -unity-font-definition: resource("Fonts/RobotoMono/RobotoMono-Regular SDF.asset");
+    white-space: normal;
+}
+
+.mui-action-block-label {
+    align-self: center;
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin-top: -6px;
+    margin-bottom: 18px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-left;
+}
+
+#actionTitle {
+    font-size: 18px;
+}
+
+.top-line-divider {
+    border-top-color: var(--muse-chat-backgrounds-100);
+    border-top-width: 1px;
+}
+
+.command-detail-foldout {
+}
+
+.command-detail-foldout-footer {
+    height: 4px;
+    background-color: var(--muse-chat-backgrounds-200);
+    border-bottom-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+    margin-bottom: 18px;
+}
+
+#overviewFoldout .unity-toggle {
+    margin-left: 0;
+    margin-right: 0;
+    background-color: var(--muse-chat-backgrounds-200);
+    border-top-right-radius: 4px;
+    border-top-left-radius: 4px;
+    margin-bottom: 0;
+    height: 32px;
+    align-items: center;
+    overflow: visible;
+}
+
+#overviewFoldout .unity-toggle__text {
+    color: var(--muse-chat-text-primary);
+    -unity-font-style: normal;
+}
+
+#overviewFoldout .unity-foldout__text {
+    font-size: var(--muse-chat-header-font-size);
+}
+
+#overviewFoldout #unity-checkmark {
+    display: none;
+}
+
+#previewContainer {
+    min-height: 10px;
+}
+
+.notification-warning-content {
+    align-self: center;
+    margin-top: 1px;
+    background-color: var(--muse-chat-backgrounds-200);
+    padding: 4px;
+    width: 100%;
+}
+
+#warningText {
+    white-space: normal;
+    padding: 6px 8px;
+}
+
+.mui-chat-action-block-button {
+    margin-top: 4px;
+    margin-left: 8px;
+    margin-bottom: 4px;
+    height: 24px;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0;
+    justify-content: center;
+    align-items: center;
+}
+
+.mui-execute-button-container {
+    display: flex;
+    align-self:flex-end;
+    width: 200px;
+}
+
+.mui-execute-button-icon {
+    height: 16px;
+    width: 16px;
+}
+
+.mui-overview-task-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.mui-task-block-buttons {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: flex-end;
+    align-items: center;
+    height: 33px;
+    background-color: var(--muse-chat-backgrounds-200);
+    padding: 7px  8px;
+    border-radius: 3px 3px 0 0;
+}
+
+.mui-task-block-inner {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    flex-grow: 1;
+    flex-shrink: 0;
+    height: 100%;
+    align-items: center;
+}
+
+.mui-task-block-toggle-label {
+    display: flex;
+    flex-grow: 1;
+    flex-shrink: 0;
+    justify-content: flex-start;
+    flex-direction: row;
+    align-content: center;
+}
+
+#taskMessage {
+    -unity-font-style: bold;
+    font-size: 12px;
+    padding-left: 0;
+    align-content: center;
+    align-self: center;
+    align-items: center;
+}
+
+.mui-task-warning-image {
+    height: 16px;
+    width: 16px;
+    margin: 6px 10px 6px 6px;
+}
+
+.mui-execution-log-foldout {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+#runActionTitle {
+    margin-left: 0;
+}
+
+.mui-execution-block-header {
+    justify-content: center;
+    align-items: center;
+}

@@ -1,0 +1,116 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp;
+using Unity.AI.Assistant.CodeAnalyze;
+using Unity.AI.Assistant.Editor.CodeAnalyze;
+using Unity.Muse.Agent.Dynamic;
+using Object = UnityEngine.Object;
+
+namespace Unity.AI.Assistant.Editor.Agent
+{
+    class AgentRunCommand
+    {
+        static readonly string[] k_UnauthorizedNamespaces = { "System.Net", "System.Diagnostics", "System.Runtime.InteropServices" };
+
+        IRunCommand m_ActionInstance;
+
+        string m_Description;
+
+        List<ClassCodeTextDefinition> m_RequiredMonoBehaviours;
+
+        public string Script { get; set; }
+        public CompilationErrors CompilationErrors { get; set; }
+
+        public bool PreviewIsDone { get; set; }
+
+        public bool Unsafe { get; set; }
+
+        public string Description => m_Description;
+
+        public IRunCommand Instance => m_ActionInstance;
+
+        public bool CompilationSuccess => m_ActionInstance != null;
+
+        public IEnumerable<ClassCodeTextDefinition> RequiredMonoBehaviours => m_RequiredMonoBehaviours;
+
+        public readonly List<Object> CommandAttachments;
+
+        public AgentRunCommand(List<Object> contextAttachments)
+        {
+            CommandAttachments = new List<Object>(AssistantInstance.instance.Value.GetValidAttachment(contextAttachments));
+        }
+
+        public void SetInstance(IRunCommand instance, string description)
+        {
+            m_ActionInstance = instance;
+            m_Description = description;
+        }
+
+        public bool Execute(out ExecutionResult executionResult)
+        {
+            executionResult = new ExecutionResult(m_Description);
+
+            if (m_ActionInstance == null)
+                return false;
+
+            executionResult.Start();
+
+            try
+            {
+                m_ActionInstance.Execute(executionResult);
+            }
+            catch (Exception e)
+            {
+                executionResult.LogError(e.ToString());
+            }
+
+            executionResult.End();
+
+            return true;
+        }
+
+        public void BuildPreview(out PreviewBuilder builder)
+        {
+            builder = new PreviewBuilder();
+
+            if (m_ActionInstance == null)
+                return;
+
+            PreviewIsDone = true;
+            m_ActionInstance.BuildPreview(builder);
+        }
+
+        public void SetRequiredMonoBehaviours(List<ClassCodeTextDefinition> requiredMonoBehaviours)
+        {
+            m_RequiredMonoBehaviours = requiredMonoBehaviours;
+        }
+
+        public bool HasUnauthorizedNamespaceUsage()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(Script);
+            return tree.ContainsNamespaces(k_UnauthorizedNamespaces);
+        }
+
+        public bool IsUsingDeprecatedStructure()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(Script);
+            return tree.ContainsInterface("IAgentAction");
+        }
+
+        public IEnumerable<Object> GetAttachments(Type type)
+        {
+            return CommandAttachments.Where(o => type.IsAssignableFrom(o.GetType()));
+        }
+
+        public Object GetAttachmentByNameOrFirstCompatible(string objectName, Type type)
+        {
+            var filtered = GetAttachments(type);
+            if (string.IsNullOrEmpty(objectName))
+                return filtered.FirstOrDefault();
+
+            var objectByName = filtered.FirstOrDefault(a => a.name == objectName);
+            return objectByName;
+        }
+    }
+}

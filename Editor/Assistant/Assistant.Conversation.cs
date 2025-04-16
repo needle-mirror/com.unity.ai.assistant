@@ -1,0 +1,271 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using JetBrains.Annotations;
+using Unity.AI.Assistant.Editor.Data;
+using Unity.AI.Assistant.Editor.ApplicationModels;
+
+namespace Unity.AI.Assistant.Editor
+{
+    internal partial class Assistant
+    {
+        static AssistantContextEntry[] ConvertSelectionContextToInternal(List<SelectedContextMetadataItems> context)
+        {
+            if (context == null || context.Count == 0)
+            {
+                return Array.Empty<AssistantContextEntry>();
+            }
+
+            var result = new AssistantContextEntry[context.Count];
+            for (var i = 0; i < context.Count; i++)
+            {
+                var entry = context[i];
+                if (entry.EntryType == null)
+                {
+                    // Invalid entry
+                    UnityEngine.Debug.LogError("Invalid Selection Context Entry");
+                    continue;
+                }
+
+                var entryType = (AssistantContextType)entry.EntryType;
+                switch (entryType)
+                {
+                    case AssistantContextType.ConsoleMessage:
+                    {
+                        result[i] = new AssistantContextEntry
+                        {
+                            EntryType = AssistantContextType.ConsoleMessage,
+                            Value = entry.Value,
+                            ValueType = entry.ValueType
+                        };
+
+                        break;
+                    }
+
+                    default:
+                    {
+                        result[i] = new()
+                        {
+                            Value = entry.Value,
+                            DisplayValue = entry.DisplayValue,
+                            EntryType = entryType,
+                            ValueType = entry.ValueType,
+                            ValueIndex = entry.ValueIndex ?? 0
+                        };
+
+                        break;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        const int k_MaxInternalConversationTitleLength = 30;
+
+        bool m_ConversationRefreshSuspended;
+
+        /// <summary>
+        /// Indicates that the conversations have been refreshed
+        /// </summary>
+        public event Action<IEnumerable<AssistantConversationInfo>> ConversationsRefreshed;
+
+        /// <summary>
+        /// The callback when a conversation has been loaded
+        /// </summary>
+        public event Action<AssistantConversation> ConversationLoaded;
+
+        /// <summary>
+        /// The callback when a conversation has changed in any way
+        /// TODO: later on we will listen to a change event on the conversation itself, for now this replaces the update queue
+        /// </summary>
+        public event Action<AssistantConversation> ConversationChanged;
+
+        /// <summary>
+        /// Callback when a new conversation has been created
+        /// </summary>
+        public event Action<AssistantConversation> ConversationCreated;
+
+        /// <summary>
+        /// Callback when a conversation has been deleted
+        /// </summary>
+        public event Action<AssistantConversationId> ConversationDeleted;
+
+        /// <summary>
+        /// Callback when a conversation creation has failed
+        /// </summary>
+        public event Action<AssistantConversationId> ConversationCreationFailed;
+
+        public void SuspendConversationRefresh()
+        {
+            m_ConversationRefreshSuspended = true;
+        }
+
+        public void ResumeConversationRefresh()
+        {
+            m_ConversationRefreshSuspended = false;
+        }
+
+        public void NotifyConversationChange(AssistantConversation conversation)
+        {
+            ConversationChanged?.Invoke(conversation);
+        }
+
+        public async Task RefreshConversationsAsync(CancellationToken ct = default)
+        {
+            if (m_ConversationRefreshSuspended)
+                return;
+
+            var tag = UnityDataUtils.GetProjectId();
+
+            var infos = await m_Backend.ConversationRefresh(ct);
+            var conversations = infos.Select(
+                info => new AssistantConversationInfo
+                {
+                    Id = new(info.ConversationId),
+                    Title = info.Title,
+                    LastMessageTimestamp = info.LastMessageTimestamp,
+                    IsContextual = IsContextual(info, tag),
+                    IsFavorite = info.IsFavorite != null && info.IsFavorite.Value
+                });
+
+            OnConversationHistoryReceived(conversations);
+
+            return;
+
+            bool IsContextual(ConversationInfo c, string projectTag)
+            {
+                if (c.Tags == null)
+                {
+                    return false;
+                }
+
+                var projectId = c.Tags.FirstOrDefault(tag => tag.StartsWith(AssistantConstants.ProjectIdTagPrefix));
+                return projectId is null || projectId == projectTag;
+            }
+        }
+
+        public async Task ConversationLoad(AssistantConversationId conversationId, CancellationToken ct = default)
+        {
+            if(!conversationId.IsValid)
+                throw new ArgumentException("Invalid conversation id");
+
+            var clientConversation = await m_Backend.ConversationLoad(conversationId.Value, ct);
+            var conversation = ConvertConversation(clientConversation);
+
+            if (!m_ConversationCache.TryAdd(conversationId, conversation))
+            {
+                m_ConversationCache[conversationId] = conversation;
+            }
+
+            ConversationLoaded?.Invoke(conversation);
+        }
+
+        public void ConversationFavoriteToggle(AssistantConversationId conversationId, bool isFavorite)
+        {
+            if(!conversationId.IsValid)
+                throw new ArgumentException("Invalid conversation id");
+
+            m_Backend.ConversationFavoriteToggle(conversationId.Value, isFavorite);
+        }
+
+        public async Task ConversationRename(AssistantConversationId conversationId, [NotNull] string newName, CancellationToken ct = default)
+        {
+            if (!conversationId.IsValid)
+            {
+                return;
+            }
+
+            await m_Backend.ConversationRename(conversationId.Value, newName, ct);
+            await RefreshConversationsAsync(ct);
+        }
+
+        public async Task ConversationDeleteAsync(AssistantConversationId conversationId, CancellationToken ct = default)
+        {
+            if (!conversationId.IsValid)
+            {
+                return;
+            }
+            await m_Backend.ConversationDelete(conversationId.Value, ct);
+            ConversationDeleted?.Invoke(conversationId);
+        }
+
+        /// <summary>
+        /// Finds and returns the message updater for the given conversation ID.
+        /// </summary>
+        internal IStreamStatusHook GetStreamForConversation(AssistantConversationId conversationId)
+        {
+            for (var i = 0; i < k_MessageUpdaters.Count; i++)
+            {
+                var updater = k_MessageUpdaters[i];
+                if (updater.ConversationId == conversationId.Value)
+                {
+                    return updater;
+                }
+            }
+
+            return null;
+        }
+
+        bool IsConversationInProgress(AssistantConversationId conversationId)
+        {
+            if (HasInternalIdUpdaters())
+            {
+                // If there is an updater with an internal ID, we are musing, but can't be sure for which conversation,
+                return true;
+            }
+
+            var stream = GetStreamForConversation(conversationId);
+            if (stream == null)
+            {
+                // If there is no updater, we are not musing.
+                return false;
+            }
+
+            if (stream.CurrentState == StreamState.InProgress)
+            {
+                // If the message is streaming in set musing to true.
+                return true;
+            }
+
+            return false;
+        }
+
+        void OnConversationHistoryReceived(IEnumerable<AssistantConversationInfo> historyData)
+        {
+            ConversationsRefreshed?.Invoke(historyData);
+        }
+
+        AssistantConversation ConvertConversation(ClientConversation remoteConversation)
+        {
+            var conversationId = new AssistantConversationId(remoteConversation.Id);
+            AssistantConversation localConversation = new()
+            {
+                Id = conversationId,
+                Title = remoteConversation.Title
+            };
+
+            for (var i = 0; i < remoteConversation.History.Count; i++)
+            {
+                var fragment = remoteConversation.History[i];
+                var message = new AssistantMessage
+                {
+                    Id = new(conversationId, fragment.Id, AssistantMessageIdType.External),
+                    IsComplete = true,
+                    Role = fragment.Role,
+                    Author = fragment.Author,
+                    Content = fragment.Content,
+                    Timestamp = fragment.Timestamp,
+                    Context = ConvertSelectionContextToInternal(fragment.SelectedContextMetadata),
+                    MessageIndex = i
+                };
+
+                localConversation.Messages.Add(message);
+            }
+
+            return localConversation;
+        }
+    }
+}

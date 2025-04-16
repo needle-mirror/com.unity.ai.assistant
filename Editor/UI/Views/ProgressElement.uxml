@@ -1,0 +1,11 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:VisualElement class="mui-progress-root">
+        <ui:VisualElement class="mui-progress-label-root">
+            <ui:Label name="assistantProgressMode" text="Asking ... " class="mui-chat-label mui-progress-text"/>
+            <ui:Label name="assistantProgressMessage" text="#STATUS#" class="mui-chat-label mui-progress-text"/>
+        </ui:VisualElement>
+        <ui:VisualElement class="mui-progress-bar-root">
+            <ui:ProgressBar name="assistantProgressBar" class="mui-progress-bar" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</UXML>

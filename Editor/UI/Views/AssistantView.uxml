@@ -1,0 +1,68 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements"
+         xmlns:chat="Unity.AI.Assistant.Editor.SessionBanner"
+         xmlns="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="root-panel">
+        <ui:VisualElement name="root-main">
+            <ui:VisualElement name="headerRoot" class="mui-header -muse-chat-panel">
+                <ui:VisualElement name="headerRow" class="mui-header-row">
+                    <ui:Label name="conversationNameLabel" class="mui-chat-label mui-header-label" text="Conversation Name" picking-mode="ignore"/>
+                    <ui:Button name="newChatButton" class="mui-action-button mui-header-button">
+                        <ui:Image class="mui-action-button-image-large" name="newChatButtonImage"/>
+                        <ui:Label class="mui-action-button-label-header" text="Chat"/>
+                    </ui:Button>
+                    <ui:Button name="historyButton" class="mui-action-button mui-header-button">
+                        <ui:Image class="mui-action-button-image-large mui-icon-menu"/>
+                        <ui:Label class="mui-action-button-label-header" text="History"/>
+                    </ui:Button>
+                </ui:VisualElement>
+                <ui:VisualElement name="session-notifications-area">
+                    <chat:SessionBanner name="session-notifications" picking-mode="Ignore"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+
+            <ui:VisualElement name="chatContentRoot" class="mui-chat-content">
+                <ui:VisualElement class="mui-conversation-panel">
+                    <ui:VisualElement name="inspirationPanelRoot">
+                    </ui:VisualElement>
+
+                    <ui:VisualElement name="chatPanelRoot">
+                    </ui:VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement name="historyPanelRoot">
+                </ui:VisualElement>
+
+                <ui:VisualElement name="progressElementContainer" picking-mode="Ignore">
+                </ui:VisualElement>
+
+            </ui:VisualElement>
+
+            <ui:VisualElement name="footerRoot" class="mui-footer -muse-chat-panel">
+
+                <ui:VisualElement name="chatTextFieldRoot" class="mui-chat-input-root">
+                    <ui:VisualElement name="popupAnchor"/>
+                    <VisualElement name="invalidCommandWarning" class="mui-chat-invalid-command">
+                        <Image name="warningIcon" class="mui-action-button-image mui-icon-warn-large" />
+                        <Label text="This is not a valid command. Try /run or /code" />
+                    </VisualElement>
+                </ui:VisualElement>
+
+                <ui:VisualElement name="contextRoot" class="mui-chat-user-context-root">
+                    <VisualElement name="dropdownToggle" class="mui-context-dropdown-toggle">
+                        <Label name="dropdownToggleLabel" text="Attached items"/>
+                        <Image name="contextDropdownIcon" class="mui-icon-caret-down"/>
+                    </VisualElement>
+                    <ui:VisualElement name="userSelectedContextRoot" class="mui-chat-selected-context-root">
+                    </ui:VisualElement>
+                    <ui:Button name="clearContextButton" text="Clear all" class="mui-chat-clear-context-button" />
+                </ui:VisualElement>
+
+                <ui:VisualElement name="chatDropZone" class="mui-chat-context-dropzone" picking-mode="Ignore">
+                </ui:VisualElement>
+
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <ui:VisualElement name="chatModalPopupRoot" class="mui-chat-popup-container" picking-mode="Ignore"/>
+    </ui:VisualElement>
+</ui:UXML>

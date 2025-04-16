@@ -1,0 +1,30 @@
+---
+uid: assistant-intro
+---
+
+# About Assistant
+
+Assistant is a generative artificial intelligence (AI) tool integrated into the Unity Editor to help you automate tasks, generate code, and access project-specific information.
+
+Assistant supports three modes of operation for handling queries and tasks:
+
+* [**/ask**](xref:ask-overview) mode: provides answers, references documentation, or retrieves project-specific details without changing your project files.
+* [**/run**](xref:run-overview) mode: automates repetitive tasks by generating functional scripts that can execute changes directly in the Unity Editor.
+* [**/code**](xref:code-overview) mode: generates and reviews customizable C# code snippets that interact with the Unity API.
+
+For best results, use Assistant with Unity 6 or later.
+
+Use the following topics to get started with using Assistant.
+
+| Topic | Description |
+| ----- | ----------- |
+| [Assistant interface](xref:assistant-interface) | Understand the main Assistant window and how to use it. |
+| [Get started with Assistant](xref:get-started) | Learn about Assistant's three different modes of operation. |
+| [Install Assistant with the Package Manager](xref:install-assistant) | Use the Package Manager to install Assistant. |
+| [Best practices for using Assistant](xref:assistant-best) | Use the best practice tips to become an advanced user. |
+
+## Additional resources
+
+* [Use /ask mode](xref:ask-overview)
+* [Use /run mode](xref:run-overview)
+* [Use /code mode](xref:code-overview)

@@ -1,0 +1,11 @@
+<UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xmlns="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:VisualElement class="mui-popup-shadow" picking-mode="Ignore">
+    </ui:VisualElement>
+
+    <ui:VisualElement name="popupRoot" class="mui-routes-popup-root">
+        <ui:VisualElement name="popupEntriesRoot" />
+        <VisualElement name="noResultsEntry" class="mui-routes-popup-no-results">
+            <Label text="No results" />
+        </VisualElement>
+    </ui:VisualElement>
+</UXML>
