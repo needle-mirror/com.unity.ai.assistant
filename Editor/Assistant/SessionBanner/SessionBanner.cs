@@ -10,7 +10,7 @@ namespace Unity.AI.Assistant.Editor.SessionBanner
     /// Acts as a state machine where `CurrentView` return the view that should currently be showed.
     /// </summary>
     [UxmlElement]
-    partial class SessionBanner : SessionStatusBanner
+    partial class SessionBanner : AssistantSessionStatusBanner
     {
         public SessionBanner()
         {

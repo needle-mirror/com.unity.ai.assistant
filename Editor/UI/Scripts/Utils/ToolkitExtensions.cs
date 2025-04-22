@@ -16,7 +16,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Utils
             if (!AssistantInstance.instance.Value.SessionStatusTrackingEnabled)
                 return;
 
-            element.AddManipulator(new SessionStatusTracker());
+            element.AddManipulator(new AssistantSessionStatusTracker());
             element.AddManipulator(new ServerCompatibilityTracker());
         }
     }
