@@ -13,7 +13,7 @@
 }
 
 .mui-chat-response-plugin-block-button-label{
-    color: var(--muse-chat-text-secondary);
+    color: var(--muse-chat-text-primary);
     flex-grow: 1;
     white-space: normal;
 

@@ -28,3 +28,11 @@
     position: absolute;
     bottom: 12px;
 }
+
+#conversationRoot #unity-content-container {
+    padding-top: 18px;
+}
+
+#conversationRoot ChatElementWrapper #unity-content-container {
+    padding-top: 0;
+}

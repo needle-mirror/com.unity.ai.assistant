@@ -37,6 +37,8 @@ To interact with Assistant in **/run** mode, follow these steps:
 1. Enter your request in the text field. For example, `Duplicate this cube 10 times and position them randomly`.
 1. Press **Enter** on your keyboard or select the send icon.
 
+   You can also [Enable and use the Ctrl+Enter (macOS: ⌘Return) Preferences option](xref:preferences) to send your prompt to Assistant.
+
    Assistant displays the following information:
    * Summary of the task to be performed. You can modify the parameters before the command is run. 
    * Command logic or the code script.
@@ -55,3 +57,4 @@ The **Undo History** button appears next to the results. It lets you view and re
 
 * [Assistant interface](xref:assistant-interface)
 * [Best practices for using Assistant](xref:assistant-best)
+* [Enable and use the Ctrl+Enter (macOS: ⌘Return) Preferences option](xref:preferences)

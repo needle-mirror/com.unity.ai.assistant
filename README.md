@@ -1,8 +1,8 @@
-# About Muse Chat
+# About Assistant
 
-Muse Editor is a tool that offers an AI assistant for answering any questions within the Unity platform.
+Unity AI Assistant is a tool that offers help using AI for answering any questions within the Unity Editor.
 
-# Installing Muse Chat
+# Installing Assistant
 
 To install this package, follow the instructions in the [Package Manager documentation](https://docs.unity3d.com/Packages/com.unity.package-manager-ui@latest/index.html).
 
@@ -12,4 +12,4 @@ The documentation can be found [here](https://docs.unity3d.com/Packages/com.unit
 
 # Requirements
 
-This version of the package is compatible with Unity Editor 2022.3 and later.
+This version of the package is compatible with Unity Editor 6000.2 and later.

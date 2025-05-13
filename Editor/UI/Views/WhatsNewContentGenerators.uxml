@@ -46,7 +46,7 @@
             <ui:Label text="Generate sprites using a variety of AI model styles for specific assets, like props, characters, or icons. Or, train a custom model based on your own images to get new assets that match your unique style. Refinements are integrated into the Sprite Editor and include upscale, recolor, pixelate, and remove background."
                       class="mui-whats-new-page-text"/>
             <ui:Button name="generateSpriteButton" class="mui-whats-new-page-action-button">
-                <ui:Label picking-mode="ignore" class="mui-chat-label" text="Generate Sprite (TODO)"/>
+                <ui:Label picking-mode="ignore" class="mui-chat-label" text="Generate Sprite"/>
                 <ui:Image picking-mode="ignore" class="mui-action-button-image-large mui-icon-arrow-square-in mui-whats-new-page-action-button-image"/>
             </ui:Button>
         </ui:VisualElement>

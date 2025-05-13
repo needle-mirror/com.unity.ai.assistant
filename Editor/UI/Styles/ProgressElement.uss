@@ -10,7 +10,7 @@
 
 .mui-progress-root {
     flex-grow: 1;
-    padding: 12px;
+    padding: 6px 12px 12px 12px;
 }
 
 .mui-progress-text {
@@ -44,11 +44,11 @@
 }
 
 .mui-progress-bar .unity-progress-bar__progress {
-    background-color: var(--muse-chat-accent-100);
+    background-color: var(--muse-chat-accent-50);
     border-radius: 2px;
     border-width: 1px;
     margin: 0;
-    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Slider.png');
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/Slider.png');
     background-position-x: left 0;
     background-repeat: repeat;
     background-size: cover;

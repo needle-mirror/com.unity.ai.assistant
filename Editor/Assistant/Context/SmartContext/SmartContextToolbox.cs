@@ -10,8 +10,6 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
 {
     partial class SmartContextToolbox : FunctionToolbox
     {
-        internal static int SmartContextLimit { get; set; }
-
         /// <summary>
         ///     Create a toolbox.
         ///     The Toolbox will use mthods returned by the contextProviderSource to build a list of available tools.
@@ -27,11 +25,9 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
         /// </summary>
         /// <param name="name">Name of the tool function.</param>
         /// <param name="args">Arguments to pass to the tool function.</param>
-        /// <param name="maxContextLength">Context character limit</param>
         /// <param name="output">Output from the tool function</param>
-        public bool TryRunToolByName(string name, string[] args, int maxContextLength, out IContextSelection output)
+        public bool TryRunToolByName(string name, string[] args, out IContextSelection output)
         {
-            SmartContextLimit = maxContextLength;
             try
             {
                 if (TryGetSelectorAndConvertArgs(name, args, out var tool, out var convertedArgs))
@@ -51,9 +47,8 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
             return false;
         }
 
-        public bool TryRunToolByID(string id, string[] args, int maxContextLength, out IContextSelection output)
+        public bool TryRunToolByID(string id, string[] args, out IContextSelection output)
         {
-            SmartContextLimit = maxContextLength;
             try
             {
                 if (TryGetSelectorIdAndConvertArgs(id, args, out var tool, out var convertedArgs))
@@ -73,10 +68,9 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
             return false;
         }
 
-        public async Task<(bool, IContextSelection)> TryRunToolByIDAsync(string id, string[] args, int maxContextLength)
+        public async Task<(bool, IContextSelection)> TryRunToolByIDAsync(string id, string[] args)
         {
             IContextSelection output = default;
-            SmartContextLimit = maxContextLength;
             try
             {
                 if (TryGetSelectorIdAndConvertArgs(id, args, out var tool, out var convertedArgs))

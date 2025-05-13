@@ -1,6 +1,7 @@
 @import url("AssistantConversationPanel.uss");
 @import url("AssistantInspirationEntry.uss");
 @import url("AssistantInspirationPanel.uss");
+@import url("AssistantSettingsPage.uss");
 @import url("AssistantShared.uss");
 @import url("AssistantView.uss");
 @import url("AssistantTextField.uss");

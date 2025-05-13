@@ -83,6 +83,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Utils
 
             if (!string.IsNullOrEmpty(m_CurrentIconClass))
             {
+                // Remove the old icon
                 m_Image.RemoveFromClassList(m_CurrentIconClass);
             }
 
@@ -91,12 +92,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Utils
                 return;
             }
 
-            m_OverrideIconClass = className;
-            if (!string.IsNullOrEmpty(m_CurrentIconClass))
-            {
-                // Remove the old icon
-                m_Image.RemoveFromClassList(fullClassName);
-            }
+            m_OverrideIconClass = fullClassName;
 
             m_Image.AddToClassList(fullClassName);
         }

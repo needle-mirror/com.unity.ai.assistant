@@ -13,8 +13,6 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Tools
 
         internal static JObject Compile(string code)
         {
-            Debug.Log("Calling Compile Tool");
-
             var assembly = new DynamicAssemblyBuilder("Unity.Muse.CodeGen")
                 .CompileAndLoadAssembly(code, out var compilationErrors, out string localFixedCode);
 

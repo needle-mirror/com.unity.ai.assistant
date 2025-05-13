@@ -1,6 +1,6 @@
 using Unity.AI.Assistant.Bridge.Editor;
 using Unity.AI.Assistant.UI.Editor.Scripts.Utils;
-using Unity.Muse.Agent.Dynamic;
+using Unity.AI.Assistant.Agent.Dynamic.Extension;
 using UnityEngine;
 using UnityEngine.UIElements;
 

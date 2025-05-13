@@ -1,3 +1,5 @@
+using Unity.AI.Assistant.Editor;
+
 namespace Unity.AI.Assistant.UI.Editor.Scripts
 {
     internal static class AssistantUIConstants
@@ -11,9 +13,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
         internal const string StyleExtension = ".uss";
 
         internal const string ResourceFolderName = "Resources";
-        internal const string PackageName = "com.unity.ai.assistant";
+
         internal const string PackageRoot = "";
-        internal const string BasePath = "Packages/" + PackageName + PackageRoot + "/";
+        internal const string BasePath = "Packages/" + AssistantConstants.PackageName + PackageRoot + "/";
         internal const string UIEditorPath = "Editor/UI/";
 
         internal const string AssetFolder = "Assets/";

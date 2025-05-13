@@ -31,10 +31,12 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         VisualElement m_InitialSelection;
         VisualElement m_NoResultsContainer;
         Label m_SearchStringDisplay;
+        Label m_Instruction1Message;
+        Label m_Instruction2Message;
 
         TabView m_SelectionTabView;
         readonly List<SelectionPopupTab> k_AllTabs = new();
-        EditorSelectionTab m_SelectionTab;
+        List<EditorSelectionTab> m_EditorSelectionTabs;
 
         double m_LastConsoleCheckTime;
         readonly float k_ConsoleCheckInterval = 0.2f;
@@ -117,7 +119,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
             Search();
 
-            if (m_SelectedTab == m_SelectionTab)
+            if (m_EditorSelectionTabs.Contains(m_SelectedTab))
             {
                 return;
             }
@@ -183,7 +185,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 }
             }
 
-            var consoleItemsCount = ConsoleUtils.GetSelectedConsoleLogs(m_LastUpdatedLogReferences);
+            var consoleItemsCount = ConsoleUtils.GetConsoleLogs(m_LastUpdatedLogReferences);
 
             popupTab.SetNumberOfResults(popupTab.TabSearchResults.Count, consoleItemsCount);
         }
@@ -238,17 +240,29 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_SelectedTab = selectedTab;
         }
 
-        void OnTabSelected(SelectionPopupTab tab, string filter)
+        void OnSearchTabSelected(SelectionPopupTab tab, string filter)
         {
+            m_SearchField.SetEnabled(true);
+            m_SearchField.tooltip = string.Empty;
+
+            m_Instruction1Message.text = tab.Instruction1Message;
+            m_Instruction2Message.text = tab.Instruction2Message;
+
             SetSelectedTab(tab);
             m_TabFilter = filter;
             ScheduleSearchRefresh();
         }
 
-        void OnSelectionTabSelected()
+        void OnSelectionTabSelected(EditorSelectionTab tab)
         {
-            SetSelectedTab(m_SelectionTab);
-            if (m_SelectionTab.IsSelected)
+            m_SearchField.SetEnabled(false);
+            m_SearchField.tooltip = "Searching and filtering are not available for Console and Selection.";
+
+            m_Instruction1Message.text = tab.Instruction1Message;
+            m_Instruction2Message.text = tab.Instruction2Message;
+
+            SetSelectedTab(tab);
+            if (tab.IsSelected)
             {
                 ScheduleSelectionRefresh();
                 return;
@@ -262,35 +276,45 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             var typeList = TypeCache.GetTypesDerivedFrom<SearchableTab>();
             foreach (var type in typeList)
             {
-                var tab = Activator.CreateInstance(type) as SearchableTab;
-                if (tab != null)
+                if (Activator.CreateInstance(type) is SearchableTab tab)
                 {
-                    tab.selected += _ => OnTabSelected(tab, tab.Filter);
+                    tab.selected += _ => OnSearchTabSelected(tab, tab.Filter);
                     tab.tabHeader.AddToClassList(k_PopupTabClass);
                     searchableTabs.Add(tab);
                 }
             }
 
             searchableTabs.Sort((a, b) => a.Order - b.Order);
-
             foreach (var tab in searchableTabs)
             {
                 tabView.Add(tab);
                 k_AllTabs.Add(tab);
             }
 
+            m_EditorSelectionTabs = new List<EditorSelectionTab>();
+            var selectionTypeList = TypeCache.GetTypesDerivedFrom<EditorSelectionTab>();
+            foreach (var type in selectionTypeList)
+            {
+                if (Activator.CreateInstance(type) is EditorSelectionTab tab)
+                {
+                    tab.selected += _ => OnSelectionTabSelected(tab);
+                    tab.tabHeader.AddToClassList(k_PopupTabClass);
+                    m_EditorSelectionTabs.Add(tab);
+
+                    tab.tabHeader.AddToClassList("mui-selection-popup-selected-tab");
+                    tab.tabHeader.AddToClassList(k_PopupTabClass);
+                }
+            }
+
+            m_EditorSelectionTabs.Sort((a, b) => a.Order - b.Order);
+            foreach (var tab in m_EditorSelectionTabs)
+            {
+                k_AllTabs.Add(tab);
+                tabView.Add(tab);
+            }
+
             SetSelectedTab(k_AllTabs[0]);
-
-            m_SelectionTab = new EditorSelectionTab();
-
-            m_SelectionTab.tabHeader.AddToClassList("mui-selection-popup-selected-tab");
-            m_SelectionTab.tabHeader.AddToClassList(k_PopupTabClass);
             RefreshSelectionCount();
-
-            m_SelectionTab.selected += _ => OnSelectionTabSelected();
-            k_AllTabs.Add(m_SelectionTab);
-
-            tabView.Add(m_SelectionTab);
         }
 
         protected override void InitializeView(TemplateContainer view)
@@ -303,6 +327,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_AdaptiveListViewContainer.style.display = DisplayStyle.None;
             m_NoResultsContainer = view.Q<VisualElement>("noResultsMessage");
             m_SearchStringDisplay = view.Q<Label>("noResultsSearchDisplay");
+            m_Instruction1Message = view.Q<Label>("instruction1Message");
+            m_Instruction2Message = view.Q<Label>("instruction2Message");
             m_InitialSelection = view.Q<VisualElement>("initialSelectionPopupMessage");
             InitializeTabs(m_SelectionTabView);
             ShowNoResultsText(false);
@@ -399,7 +425,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         void AddLogsToListView()
         {
-            ConsoleUtils.GetSelectedConsoleLogs(m_LastUpdatedLogReferences);
+            ConsoleUtils.GetConsoleLogs(m_LastUpdatedLogReferences);
 
             m_ListView.BeginUpdate();
             // Add console log entries
@@ -421,13 +447,27 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         {
             m_ListView.ClearData();
 
-            AddLogsToListView();
-
-            // Add selected objects
-            ValidateObjectSelection();
-            if (Selection.objects.Length > 0)
+            if (m_SelectedTab is EditorSelectionTab tab)
             {
-                AddObjectsToListView(Selection.objects.ToList());
+                switch (tab.Type)
+                {
+                    case EditorSelectionTab.SelectionType.Console:
+                    {
+                        AddLogsToListView();
+                        break;
+                    }
+                    case EditorSelectionTab.SelectionType.UnityObject:
+                    {
+                        // Add selected objects
+                        ValidateObjectSelection();
+                        if (Selection.objects.Length > 0)
+                        {
+                            AddObjectsToListView(Selection.objects.ToList());
+                        }
+                        break;
+                    }
+
+                }
             }
 
             RefreshSelectionCount();
@@ -438,24 +478,39 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             if (obj == null || obj is DefaultAsset)
                 return false;
 
-            return true;
+            var objType = obj.GetType();
+
+            return AssetDatabase.Contains(obj) ||
+                   typeof(Component).IsAssignableFrom(objType) ||
+                   typeof(GameObject).IsAssignableFrom(objType) ||
+                   typeof(Transform).IsAssignableFrom(objType);
         }
 
         void RefreshSelectionCount()
         {
-            var selectedCount = 0;
+            foreach (var tab in m_EditorSelectionTabs)
+            {
+                int resultCount = 0;
+                switch (tab.Type)
+                {
+                    case EditorSelectionTab.SelectionType.Console:
+                    {
+                        var logs = new List<LogData>();
+                        resultCount = ConsoleUtils.GetConsoleLogs(logs);
+                        break;
+                    }
+                    case EditorSelectionTab.SelectionType.UnityObject:
+                    {
+                        resultCount = Selection.objects.Count(IsSupportedAsset);
+                        break;
+                    }
+                }
 
-            var logs = new List<LogData>();
-            var logsCount = ConsoleUtils.GetSelectedConsoleLogs(logs);
+                tab.SetNumberOfResults(resultCount);
 
-            foreach (var obj in Selection.objects)
-                if (IsSupportedAsset(obj))
-                    selectedCount++;
-
-            m_SelectionTab.SetNumberOfResults(selectedCount + logsCount);
-
-            if (m_SelectionTab.IsSelected)
-                ShowResultsWindow(selectedCount + logsCount != 0);
+                if (tab.IsSelected)
+                    ShowResultsWindow(resultCount != 0);
+            }
         }
 
         internal void PingObject(Object obj)
@@ -523,7 +578,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 return;
 
             List<LogData> logs = new();
-            ConsoleUtils.GetSelectedConsoleLogs(logs);
+            ConsoleUtils.GetConsoleLogs(logs);
 
             if (m_LastUpdatedLogReferences.Count != logs.Count
                 || m_LastUpdatedLogReferences.Any(log => !ConsoleUtils.HasEqualLogEntry(logs, log))

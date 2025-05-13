@@ -6,8 +6,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
 {
     class ChatElementCommandCodeBlock : CommandDisplayTemplate
     {
-        const string k_FailMessage = "Something went wrong.\nThe generated script was not able to compile in your project. Try to correct any errors, or generate it again.";
+        const string k_FailMessage = "The generated script was not able to compile in your project. Try to correct any errors, or generate it again.";
 
+        VisualElement m_WarningBlock;
         VisualElement m_WarningContainer;
         Label m_WarningText;
 
@@ -28,11 +29,13 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             var codeBlockRoot = view.Q<VisualElement>("commandCodeBlockRoot");
             codeBlockRoot.Add(m_CodeElement);
 
-            m_WarningContainer = view.Q<VisualElement>("commandCodeWarningContainer");
-            m_WarningContainer.SetDisplay(false);
+            m_WarningBlock = view.Q<VisualElement>("warningBlock");
+            m_WarningBlock.SetDisplay(false);
+
+            m_WarningContainer = view.Q<VisualElement>("warningContainer");
             m_WarningContainer.style.marginBottom = 10;
 
-            m_WarningText = view.Q<Label>("commandCodeWarningText");
+            m_WarningText = view.Q<Label>("warningText");
         }
 
         public override void Display()
@@ -54,7 +57,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
                     {
                         FailCode(k_FailMessage);
                         m_CodeElement.SetCode(ContentGroups[0].Content);
-                        m_CodeElement.SetActions(true, false, false, false);
+                        m_CodeElement.SetActions(true, true, true, false);
                         break;
                     }
                 }
@@ -69,7 +72,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
         protected void SetWarningText(string text)
         {
             m_WarningText.text = text;
-            m_WarningContainer.SetDisplay(!string.IsNullOrWhiteSpace(text));
+            m_WarningBlock.SetDisplay(!string.IsNullOrWhiteSpace(text));
+            m_WarningText.selection.isSelectable = true;
         }
 
         protected override bool ValidateInternal(int index, out string logs)

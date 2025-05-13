@@ -1,6 +1,6 @@
 using System;
 
-namespace Unity.Muse.Agent.Dynamic
+namespace Unity.AI.Assistant.Agent.Dynamic.Extension
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
 #if CODE_LIBRARY_INSTALLED

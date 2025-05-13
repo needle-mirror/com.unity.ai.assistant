@@ -78,6 +78,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             }
 
             if (element.Message.Content == message.Content &&
+                element.Message.Feedback.Equals(message.Feedback) &&
                 ArrayUtils.ArrayEquals(element.Message.Context, message.Context) &&
                 element.Message.IsComplete == message.IsComplete)   // complete flag removes last word when false.
             {

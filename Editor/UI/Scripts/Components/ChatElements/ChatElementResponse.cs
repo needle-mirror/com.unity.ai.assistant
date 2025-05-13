@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using Unity.AI.Assistant.Editor;
 using Unity.AI.Assistant.Editor.Analytics;
@@ -27,6 +28,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
 
         static Texture2D k_UnityAvatarImage;
 
+        string m_TempBASST266FixSourceAttribution = string.Empty;
+        Label m_SourcesAttribution;
         Foldout m_SourcesFoldout;
         VisualElement m_SourcesContent;
 
@@ -103,10 +106,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             if (message.Role == MessageModelRole.Error)
             {
                 m_ErrorTitle.SetDisplay(true);
-                m_ErrorTitleLabel.text = ErrorTranslator.GetErrorTitle();
-
-                // Override message text for errors to make it more user-friendly:
-                message.Content = ErrorTranslator.GetErrorMessage(message.ErrorCode, message.ErrorText, message.Content, false);
+                m_ErrorTitleLabel.text = ErrorHandlingUtility.GetErrorTitle();
             }
 
             if (m_MessageId != message.Id)
@@ -119,6 +119,29 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
 
             m_MessageId = message.Id;
 
+            // https://jira.unity3d.com/browse/BASST-266 is an important bug that should be solved by the server. Our
+            // open-beta requires it though, and the server side solution should be designed correctly. So, as temporary
+            // fix, we will strip the attribution on the frontend and put it in the correct place.
+
+            // This solution is extremely hardcoded, and assumes the `<sub>Powered by` will be present on the line of
+            // the attribution. It will strip this line out, and forward it to the sources visualizer so that it can
+            // render the line instead.
+            StringBuilder messageWithoutSourceAttribution = new();
+            string sourceAttribution = string.Empty;
+
+            foreach (string line in message.Content.Split("\n"))
+            {
+                if (line.Contains("<sub>Powered by"))
+                {
+                    sourceAttribution = line;
+                    continue;
+                }
+
+                messageWithoutSourceAttribution.Append($"{line}\n");
+            }
+
+            m_TempBASST266FixSourceAttribution = sourceAttribution;
+            message.Content = messageWithoutSourceAttribution.ToString();
             base.SetData(message);
 
             m_FeedbackMode = FeedbackEditMode.None;
@@ -134,8 +157,10 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             SetupFeedbackParameters();
             RefreshFeedbackParameters();
 
-            Context.API.FeedbackLoaded += OnFeedbackLoaded;
-            Context.API.LoadFeedback(Id);
+            if (message.Feedback != null)
+            {
+                SetFeedback(message.Id, message.Feedback);
+            }
 
             // Cancel any active animations:
             if (m_ScheduledAnim != null)
@@ -225,6 +250,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
 
             m_TextFieldRoot = view.Q<VisualElement>("textFieldRoot");
 
+            m_SourcesAttribution = view.Q<Label>("sourcesAttribution");
             m_SourcesFoldout = view.Q<Foldout>("sourcesFoldout");
 
             m_SourcesContent = view.Q<VisualElement>("sourcesContent");
@@ -251,7 +277,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
 
             m_FeedbackText = m_FeedbackParamSection.Q<TextField>("feedbackValueText");
             m_FeedbackText.multiline = true;
-            m_FeedbackText.maxLength = AssistantConstants.MaxFeedbackMessageLength;
+            m_FeedbackText.maxLength = AssistantMessageSizeConstraints.FeedbackLimit;
             m_FeedbackText.RegisterValueChangedCallback(_ => CheckFeedbackState());
 
             m_FeedbackText.RegisterCallback<FocusInEvent>(_ => SetFeedbackTextFocused(true));
@@ -433,6 +459,14 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             m_SourcesFoldout.style.display = DisplayStyle.Flex;
             m_SourcesContent.Clear();
 
+            // This exists to solve https://jira.unity3d.com/browse/BASST-266 quickly. This should not be the final
+            // solution. The source block is extracted from the chat stream as it streamed and sets
+            // m_TempBASST266FixSourceAttribution. If not empty, it should be displayed in the sources block.
+            var showAttribution = !string.IsNullOrEmpty(m_TempBASST266FixSourceAttribution);
+            m_SourcesAttribution.SetDisplay(showAttribution);
+            if (showAttribution)
+                m_SourcesAttribution.text = m_TempBASST266FixSourceAttribution;
+
             for (var index = 0; index < SourceBlocks.Count; index++)
             {
                 var sourceBlock = SourceBlocks[index];
@@ -494,12 +528,10 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             }
         }
 
-        void OnFeedbackLoaded(AssistantMessageId assistantMessageId, FeedbackData? feedbackData)
+        void SetFeedback(AssistantMessageId assistantMessageId, FeedbackData? feedbackData)
         {
             if (assistantMessageId != m_MessageId)
                 return;
-
-            Context.API.FeedbackLoaded -= OnFeedbackLoaded;
 
             if (feedbackData == null)
                 return;

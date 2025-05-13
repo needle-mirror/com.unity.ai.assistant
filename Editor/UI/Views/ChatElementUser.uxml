@@ -6,6 +6,7 @@
                     <ui:Image class="mui-chat-avatar" name="userIcon"/>
                 </ui:VisualElement>
                 <ui:Label text="User Name" name="userName" class="mui-chat-label mui-chat-username" />
+                <ui:Label text="" name="userCommandLabel" class="mui-chat-label mui-user-command-label"/>
             </ui:VisualElement>
             <ui:VisualElement class="mui-chat-element-text-area">
                 <ui:VisualElement name="userMessageTextFieldRoot">

@@ -263,7 +263,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         void UpdateSelectedContextWarning(MouseEnterEvent evt = null)
         {
-            m_ChatInput.ToggleContextLimitWarning(Context.API.GetAttachedContextLength() > AssistantSettings.PromptContextLimit);
+            m_ChatInput.ToggleContextLimitWarning(Context.API.GetAttachedContextLength() > AssistantMessageSizeConstraints.ContextLimit);
         }
 
         internal void ClearContext(PointerUpEvent evt)

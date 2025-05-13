@@ -21,15 +21,18 @@
             </ui:VisualElement>
 
             <ui:VisualElement name="chatContentRoot" class="mui-chat-content">
-                <ui:VisualElement class="mui-conversation-panel">
-                    <ui:VisualElement name="inspirationPanelRoot">
+                <ui:VisualElement class="mui-chat-content-inner">
+                    <ui:VisualElement class="mui-conversation-panel">
+                        <ui:VisualElement name="inspirationPanelRoot">
+                        </ui:VisualElement>
+
+                        <ui:VisualElement name="chatPanelRoot">
+                        </ui:VisualElement>
                     </ui:VisualElement>
 
-                    <ui:VisualElement name="chatPanelRoot">
+                    <ui:VisualElement name="historyPanelRoot">
                     </ui:VisualElement>
-                </ui:VisualElement>
 
-                <ui:VisualElement name="historyPanelRoot">
                 </ui:VisualElement>
 
                 <ui:VisualElement name="progressElementContainer" picking-mode="Ignore">

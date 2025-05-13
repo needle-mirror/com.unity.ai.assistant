@@ -48,6 +48,10 @@
     display: none;
 }
 
+#sourcesAttribution {
+    display: none;
+}
+
 #sourcesContent {
     padding-top: 8px;
     flex-direction: row;
@@ -66,7 +70,7 @@
     flex-direction: column;
     border-top-color: var(--muse-chat-backgrounds-200);
     border-top-width: 1px;
-    padding-top: 12px;
+    padding-top: 18px;
     padding-left: 0;
     padding-right: 0;
 }
@@ -76,10 +80,9 @@
 }
 
 .mui-feedback-parameters {
-    margin-top: 12px;
+    margin-top: 18px;
     margin-left: 0;
     margin-right: 0;
-    padding-bottom: 36px;
 }
 
 .mui-feedback-label {
@@ -190,12 +193,7 @@
 }
 
 #responseHeading.mui-chat-response-heading {
-    margin: 4px 0 8px 0;
-    -unity-font-style: bold;
-}
-
-#responseHeading.mui-chat-response-heading {
-    margin: 4px 0 8px 0;
+    margin: 0 0 12px 0;
     -unity-font-style: bold;
 }
 

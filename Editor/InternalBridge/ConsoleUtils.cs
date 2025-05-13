@@ -80,6 +80,24 @@ namespace Unity.AI.Assistant.Bridge.Editor
             return resultCount;
         }
 
+        internal static int GetConsoleLogs(List<LogData> results)
+        {
+            results.Clear();
+
+            int entryCount = LogEntries.GetCount();
+            int resultCount = 0;
+
+            for (int i = 0; i < entryCount; i++)
+            {
+                if (LogEntries.GetEntryInternal(i, s_Entry))
+                {
+                    results.Add(LogEntryToInternal(s_Entry));
+                    resultCount++;
+                }
+            }
+            return resultCount;
+        }
+
         internal static bool FindLogEntry(List<LogData> entries, LogData entry)
         {
             foreach (var l in entries)

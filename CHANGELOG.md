@@ -3,6 +3,17 @@ All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+
+## [1.0.0-pre.4] - 2025-05-13
+- Update AI-Toolkit to 1.0.0.-pre.7
+- Added console tab attachments
+- Updated to beta backend urls
+- Fixed source attribution placement
+- General usability fixes
+- Fixed access token refresh issue
+- Fixed bugs related to API alignment
+- Assistant can now be used when the editor is paused
+
 ## [1.0.0-pre.3] - 2025-04-22
 
 ### Changed

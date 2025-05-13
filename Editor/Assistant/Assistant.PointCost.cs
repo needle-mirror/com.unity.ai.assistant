@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Unity.AI.Assistant.Editor.Backend.Socket.ErrorHandling;
 using Unity.AI.Assistant.Editor.Commands;
 using Unity.AI.Assistant.Editor.Data;
 
@@ -47,7 +48,13 @@ namespace Unity.AI.Assistant.Editor
                 return;
             }
 
-            var points = await m_Backend.PointCostRequest(requestId.ConversationId.Value, data.ContextItemCount == 0 ? null : data.ContextItemCount, data.Prompt, ct);
+            var pointsResult = await m_Backend.PointCostRequest(await GetCredentialsContext(ct), requestId.ConversationId.Value, data.ContextItemCount == 0 ? null : data.ContextItemCount, data.Prompt, ct);
+
+            // TODO: Failing silently on points failure. This might need a QOL pass to express this correctly to user.
+            if(pointsResult.Status != BackendResult.ResultStatus.Success)
+                ErrorHandlingUtility.InternalLogBackendResult(pointsResult);
+
+            int points = pointsResult.Status == BackendResult.ResultStatus.Success ? pointsResult.Value : 0;
             k_CommandPointCostCache[promptCommand] = points;
             PointCostReceived?.Invoke(requestId, points);
         }

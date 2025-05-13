@@ -50,6 +50,7 @@
         </ui:VisualElement>
 
         <ui:VisualElement name="page5" class="mui-whats-new-page-section">
+            <ui:VisualElement name="page5Video" class="mui-whats-new-page-video-element"/>
             <ui:Label text="Preview features are free for AI customers" class="mui-whats-new-page-header"/>
             <ui:Label text="Preview features like /run and /code are free to use as long as your organization owner has enabled AI and you have a positive points balance. Points are included with Pro, Enterprise, and Industry subscriptions or can be purchased in separate bundles."
                       class="mui-whats-new-page-text"/>

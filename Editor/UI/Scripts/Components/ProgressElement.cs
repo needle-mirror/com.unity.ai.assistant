@@ -100,9 +100,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
             m_ProgressBarOverlay = view.Q(className: "unity-progress-bar__progress");
 
-            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
-            RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
-
             Context.Blackboard.ActiveConversationChanged += OnActiveConversationChanged;
             Context.API.APIStateChanged += OnAPIStateChanged;
         }
@@ -121,7 +118,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         void OnAPIStateChanged()
         {
-            if (Context.Blackboard.IsAPIWorking && !Context.Blackboard.IsAPIStreaming || Context.Blackboard.IsAPICanceling)
+            if (Context.Blackboard.IsAPIWorking || Context.Blackboard.IsAPICanceling)
             {
                 if (!m_Running)
                 {
@@ -166,15 +163,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_DetailMessage.text = message;
         }
 
-        void OnDetachFromPanel(DetachFromPanelEvent evt)
-        {
-            Stop();
-        }
-
-        void OnAttachToPanel(AttachToPanelEvent evt)
-        {
-        }
-
         void UpdateProgress()
         {
             UpdateMessage();
@@ -190,15 +178,11 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 return 0;
             }
 
-            var startTime = conversation.StartTime;
             // Init the start time if needed:
-            if (startTime < 1)
-            {
-                startTime = EditorApplication.timeSinceStartup;
-                conversation.StartTime = startTime;
-            }
+            if (conversation.StartTime < 1)
+                conversation.StartTime = EditorApplication.timeSinceStartup;
 
-            var deltaTime = EditorApplication.timeSinceStartup - startTime;
+            var deltaTime = EditorApplication.timeSinceStartup - conversation.StartTime;
 
             return (float)(deltaTime / k_ProgressTime) * 100;
         }

@@ -1,5 +1,6 @@
 * [About Assistant](xref:assistant-intro)
    * [Assistant interface](xref:assistant-interface)
+       * [Enable and use the Ctrl+Enter (macOS: ⌘Return) Preferences option](xref:preferences)
    * [Install Assistant with the Package Manager](xref:install-assistant)
 * [Get started with Assistant](xref:get-started)
    * [Use /ask mode](xref:ask-overview)

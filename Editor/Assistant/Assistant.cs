@@ -8,6 +8,7 @@ using Unity.AI.Assistant.Editor.Context.SmartContext;
 using Unity.AI.Assistant.Editor.Data;
 using Unity.AI.Assistant.Editor.ApplicationModels;
 using Unity.AI.Assistant.Editor.Backend;
+using Unity.AI.Assistant.Editor.Backend.Socket.ErrorHandling;
 using Unity.AI.Assistant.Editor.FunctionCalling;
 using Unity.AI.Assistant.Editor.Plugins;
 using Unity.AI.Assistant.Editor.Utils;
@@ -46,6 +47,13 @@ namespace Unity.AI.Assistant.Editor
         internal bool SkipChatCall = false; // Used for benchmarking to skip the actual chat call and only call smart context.
 #endif
 
+        async Task<CredentialsContext> GetCredentialsContext(CancellationToken ct = default)
+        {
+            var orgId = await GetOrganizationIdAsync(ct);
+
+            return new(GetAccessToken(), orgId);
+        }
+
         public event Action<AssistantMessageId, FeedbackData?> FeedbackLoaded;
 
         public bool SessionStatusTrackingEnabled => m_Backend == null || m_Backend.SessionStatusTrackingEnabled;
@@ -67,11 +75,10 @@ namespace Unity.AI.Assistant.Editor
             ServerCompatibility.ServerCompatibility.SetBackend(backend);
         }
 
-        AssistantMessage AddInternalMessage(AssistantConversation conversation, string text, string role = null, bool musing = true, bool sendUpdate = true, string author = null)
+        AssistantMessage AddInternalMessage(AssistantConversation conversation, string text, string role = null, bool musing = true, bool sendUpdate = true)
         {
             var message = new AssistantMessage
             {
-                Author = author,
                 Id = AssistantMessageId.GetNextInternalId(conversation.Id),
                 IsComplete = true,
                 Content = text,
@@ -110,28 +117,6 @@ namespace Unity.AI.Assistant.Editor
         }
 
         /// <summary>
-        /// Refreshes the access token if we receive any "unauthorized" errors.
-        /// </summary>
-        /// <param name="errorCode">The error code received from server</param>
-        /// <param name="errorText">The error text received from server, will be overwritten for "unauthorized" errors</param>
-        private static bool CheckAndRefreshInvalidAccessToken(IApiResponse response)
-        {
-            if (response.StatusCode == HttpStatusCode.Unauthorized && response.ErrorText.Contains("unauthorized"))
-            {
-                // Editor access token can expire after a long time, we need to force a refresh
-                if (Time.realtimeSinceStartup - s_LastRefreshTokenTime > 1f)
-                {
-                    CloudProjectSettings.RefreshAccessToken(_ => { });
-
-                    s_LastRefreshTokenTime = Time.realtimeSinceStartup;
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        /// <summary>
         /// Checks if there are message updaters with an internal conversation id.
         /// </summary>
         /// <returns>True if there is an updater with an internal ID.</returns>
@@ -149,7 +134,7 @@ namespace Unity.AI.Assistant.Editor
             return false;
         }
 
-        public Task SendFeedback(AssistantMessageId messageId, bool flagMessage, string feedbackText, bool upVote)
+        public async Task SendFeedback(AssistantMessageId messageId, bool flagMessage, string feedbackText, bool upVote)
         {
             var feedback = new MessageFeedback
             {
@@ -160,34 +145,33 @@ namespace Unity.AI.Assistant.Editor
                 Sentiment = upVote ? Sentiment.Positive : Sentiment.Negative
             };
 
-            return m_Backend.SendFeedback(messageId.ConversationId.Value, feedback);
+            // Failing to send feedback is non-critical. UX for failures here can be improved in a QOL pass if necessary.
+            BackendResult result = await m_Backend.SendFeedback(await GetCredentialsContext(), messageId.ConversationId.Value, feedback);
+
+            if(result.Status != BackendResult.ResultStatus.Success)
+                ErrorHandlingUtility.InternalLogBackendResult(result);
         }
 
         public async Task<FeedbackData?> LoadFeedback(AssistantMessageId messageId, CancellationToken ct = default)
         {
-            var result =  await m_Backend.LoadFeedback(messageId, ct);
-
-            FeedbackLoaded?.Invoke(messageId, result);
-
-            return result;
-        }
-
-        /// <summary>
-        /// Analyzes the <see cref="IApiResponse"/> for errors and returns true if error is found
-        /// </summary>
-        /// <param name="response">The IApiResponse to analyze</param>
-        /// <returns>True if error is detected</returns>
-        bool TryHandleApiResponseAsError(IApiResponse response)
-        {
-            int statusCode = (int)response.StatusCode;
-
-            if(statusCode > 299)
+            if (!messageId.ConversationId.IsValid || messageId.Type != AssistantMessageIdType.External)
             {
-                CheckAndRefreshInvalidAccessToken(response);
-                return true;
+                // Whatever we are asking for is not valid to be asked for
+                return null;
             }
 
-            return false;
+            var result =  await m_Backend.LoadFeedback(await GetCredentialsContext(ct), messageId, ct);
+
+            if (result.Status != BackendResult.ResultStatus.Success)
+            {
+                // if feedback fails to load, silently fail
+                ErrorHandlingUtility.InternalLogBackendResult(result);
+                return null;
+            }
+
+            FeedbackLoaded?.Invoke(messageId, result.Value);
+
+            return result.Value;
         }
     }
 }

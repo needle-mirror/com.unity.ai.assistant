@@ -16,7 +16,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
-[assembly: InternalsVisibleTo("Unity.Muse.Chat.Editor.Tests")]
+[assembly: InternalsVisibleTo("Unity.AI.Assistant.Tests")]
 
 namespace Unity.AI.Assistant.Editor
 {

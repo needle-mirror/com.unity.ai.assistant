@@ -1,10 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using Unity.AI.Assistant.UI.Editor.Scripts.Utils;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEngine.Video;
 
 namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew
 {
@@ -107,7 +104,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew
             }
 
             m_NextButton.text = m_CurrentPageIndex == k_Pages.Count - 1 ? k_BackToStartText : "Next";
-            m_BackButton.text = m_CurrentPageIndex == 0 ? k_BackToStartText : "Back";
+            m_BackButton.text = m_CurrentPageIndex == 0 ? k_BackToStartText : "Previous";
             m_PageControlLabel.text = $"{m_CurrentPageIndex + 1} / {k_Pages.Count}";
         }
 
@@ -117,7 +114,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew
             {
                 return;
             }
-            
+
             var targetPage = k_Pages[m_CurrentPageIndex];
 
             if (!k_PageVideos.TryGetValue(targetPage, out var videoFileName))

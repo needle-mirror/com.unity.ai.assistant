@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Unity.AI.Assistant.Editor.CodeAnalyze;
 using Unity.AI.Assistant.Editor.Utils;
-using Unity.Muse.Agent.Dynamic;
+using Unity.AI.Assistant.Agent.Dynamic.Extension;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -17,8 +17,8 @@ namespace Unity.AI.Assistant.Editor.Agent
 {
     class RunCommandInterpreter
     {
-        internal const string k_DynamicAssemblyName = "Unity.Muse.Agent.Dynamic";
-        internal const string k_DynamicCommandNamespace = "Unity.Muse.Agent.Dynamic";
+        internal const string k_DynamicAssemblyName = "Unity.AI.Assistant.Agent.Dynamic.Extension";
+        internal const string k_DynamicCommandNamespace = "Unity.AI.Assistant.Agent.Dynamic.Extension";
         internal const string k_DynamicCommandClassName = "CommandScript";
 
         internal static readonly Regex k_CsxMarkupRegex = new("```csx(.*?)```", RegexOptions.Compiled | RegexOptions.Singleline);

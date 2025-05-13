@@ -1,0 +1,11 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:VisualElement class="assistant-settings-page">
+        <ui:Label text="Assistant" name="assistantSettingsHeader" />
+        <ui:VisualElement class="assistant-settings-content">
+            <ui:VisualElement class="assistant-settings-horizontal-layout">
+                <ui:Label name="promptModifierLabel" text="Use Ctrl+Return to send a prompt" class="assistant-settings-content-label"/>
+                <ui:Toggle name="promptModifierToggle" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

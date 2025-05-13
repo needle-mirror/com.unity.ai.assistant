@@ -4,7 +4,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Unity.AI.Assistant.CodeAnalyze;
 using Unity.AI.Assistant.Editor.CodeAnalyze;
-using Unity.Muse.Agent.Dynamic;
+using Unity.AI.Assistant.Agent.Dynamic.Extension;
+using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace Unity.AI.Assistant.Editor.Agent
@@ -100,7 +101,22 @@ namespace Unity.AI.Assistant.Editor.Agent
 
         public IEnumerable<Object> GetAttachments(Type type)
         {
-            return CommandAttachments.Where(o => type.IsAssignableFrom(o.GetType()));
+            var isComponentType = typeof(Component).IsAssignableFrom(type);
+
+            foreach (var obj in CommandAttachments)
+            {
+                if (isComponentType && obj is GameObject go)
+                {
+                    var comp = go.GetComponent(type);
+                    if (comp != null)
+                        yield return comp;
+                }
+                else
+                {
+                    if (type.IsAssignableFrom(obj.GetType()))
+                        yield return obj;
+                }
+            }
         }
 
         public Object GetAttachmentByNameOrFirstCompatible(string objectName, Type type)

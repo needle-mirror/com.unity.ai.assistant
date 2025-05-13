@@ -29,7 +29,7 @@
     flex-grow: 1;
     flex-shrink: 1;
     font-size: var(--muse-chat-small-font-size);
-    margin: 8px;
+    margin: 0 8px;
     height: 16px;
     -unity-text-align: middle-left;
     -unity-font-style: bold;

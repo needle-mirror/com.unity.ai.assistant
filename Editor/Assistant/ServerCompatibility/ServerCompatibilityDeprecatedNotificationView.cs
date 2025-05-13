@@ -11,7 +11,7 @@ namespace Unity.AI.Assistant.Editor.ServerCompatibility
                 ServerCompatibilityText.DeprecatedMessage,
                 new LabelLink(
                     ServerCompatibilityText.DeprecatedMessageLink,
-                    () => UnityEditor.PackageManager.UI.Window.Open("com.unity.ai.assistant"))
+                    () => UnityEditor.PackageManager.UI.Window.Open(AssistantConstants.PackageName))
             )
         {
             var dismissButton = new Button(() =>

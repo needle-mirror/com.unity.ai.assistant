@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Unity.AI.Assistant.Editor.ApplicationModels;
+using Unity.AI.Assistant.Editor.Backend.Socket.ErrorHandling;
 using Unity.AI.Assistant.Editor.Backend.Socket.Protocol;
 using Unity.AI.Assistant.Editor.Backend.Socket.Workflows;
 using Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat;
@@ -23,361 +24,544 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket
 {
     class AssistantWebSocketBackend : IAssistantBackend
     {
-        public Dictionary<string, object> Configuration { get; } = new();
-
-        string GetAccessToken()
-        {
-            if (!Configuration.TryGetValue("access_token", out object value) || value is not string s)
-                return CloudProjectSettings.accessToken;
-
-            return s;
-        }
-
-        string GetOrganizationId()
-        {
-            if (!Configuration.TryGetValue("organization_id", out object value) || value is not string s)
-                return CloudProjectSettings.organizationKey;
-
-            return s;
-        }
-
-
         // Below this line are functions separate from the old interface, that allow managing the Chat Workflow in
         // a new way, instead of trying to force it into the old way. This was how the old hacky version was created,
         // but it id not suitable for a production system.
-
-        // The real implementation is hidden hear for now so that an IAssistantBackend can still be registered to the
-        // Assistant. In the end though, the above interface should be changed to reflect the code below.
-        internal static Dictionary<string, ChatWorkflow> m_ChatWorkflows = new();
 
         // This line here is again for speed. It lets me set the websocket factory for testing purposes.
         internal static WebSocketFactory s_WebSocketFactoryForNextRequest;
 
         private readonly Dictionary<AssistantMessageId, FeedbackData?> k_FeedbackCache = new();
 
-        /// <summary>
-        /// Try to get the workflow associated with the given conversationId.
-        /// </summary>
-        /// <param name="conversationId"></param>
-        /// <param name="workflow"></param>
-        /// <returns></returns>
-        public bool TryGetWorkflow(string conversationId, out ChatWorkflow workflow)
-        {
-            if (conversationId == null)
-            {
-                workflow = null;
-                return false;
-            }
+        internal ChatWorkflow m_ActiveWorkflow;
 
-            return m_ChatWorkflows.TryGetValue(conversationId, out workflow);
+        /// <summary>
+        /// Retrieves the workflow being used for the most current conversation
+        /// </summary>
+        public ChatWorkflow ActiveWorkflow
+        {
+            get { return m_ActiveWorkflow; }
         }
 
         /// <summary>
         /// Gets an existing workflow, or creates a new one and calls the Start() function on it.
         /// </summary>
+        /// <param name="caller"></param>
         /// <param name="conversationId"></param>
+        /// <param name="credentialsContext"></param>
         /// <returns></returns>
-        public ChatWorkflow GetOrCreateWorkflow(IFunctionCaller caller, string conversationId = null)
+        public ChatWorkflow GetOrCreateWorkflow(
+            CredentialsContext credentialsContext,
+            IFunctionCaller caller,
+            AssistantConversationId conversationId = default)
         {
             ChatWorkflow workflow = null;
 
-            if (conversationId != null)
+            if (conversationId.IsValid && m_ActiveWorkflow != null && m_ActiveWorkflow.ConversationId == conversationId.Value)
             {
-                if(!m_ChatWorkflows.TryGetValue(conversationId, out workflow))
-                    workflow = new(conversationId, s_WebSocketFactoryForNextRequest, caller);
+                workflow = m_ActiveWorkflow;
             }
             else
-                workflow = new(websocketFactory: s_WebSocketFactoryForNextRequest, functionCaller: caller);
+            {
+                // If there is an existing active workflow, destroy it!
+                if (m_ActiveWorkflow != null)
+                {
+                    InternalLog.Log("Disconnecting existing workflow for new workflow.");
+                    m_ActiveWorkflow.LocalDisconnect();
+                }
+                workflow = conversationId.IsValid ? new(conversationId.Value, s_WebSocketFactoryForNextRequest, caller) : new(websocketFactory: s_WebSocketFactoryForNextRequest, functionCaller: caller);
+                m_ActiveWorkflow = workflow;
+            }
 
             s_WebSocketFactoryForNextRequest = null;
 
             workflow.OnClose -= HandleOnClose;
             workflow.OnClose += HandleOnClose;
 
-            workflow.OnConversationId -= HandleOnConversationId;
-            workflow.OnConversationId += HandleOnConversationId;
-
             if (workflow.WorkflowState == State.NotStarted)
             {
                 workflow.Start(
                     AssistantEnvironment.instance.WebSocketApiUrl,
-                    GetAccessToken(),
-                    GetOrganizationId()).WithExceptionLogging();
+                    credentialsContext).WithExceptionLogging();
             }
-
 
             return workflow;
 
             void HandleOnClose(CloseReason reason)
             {
-                if(workflow.ConversationId != null)
-                    m_ChatWorkflows.Remove(workflow.ConversationId);
+                if (m_ActiveWorkflow == workflow)
+                    m_ActiveWorkflow = null;
 
-                if(reason.Reason == CloseReason.ReasonType.CouldNotConnect)
-                    Debug.LogError(reason.Info);
-            }
-
-            void HandleOnConversationId(string cid)
-            {
-                m_ChatWorkflows[cid] = workflow;
             }
         }
 
-        /*
-         * This section is the actual implementation of the interface
-         */
-        IAiAssistantApi m_Api;
+        // Needed for testing:
+        private IAiAssistantApi m_ApiOverride;
 
-        static readonly TimeSpan k_CancellationTimeout = TimeSpan.FromSeconds(30);
-
-        static CancellationToken GetTimeoutToken(CancellationToken token) =>
-            CancellationTokenSource.CreateLinkedTokenSource(
-                    token, new CancellationTokenSource(k_CancellationTimeout).Token)
-                .Token;
-
-        internal static Configuration GetDefaultConfig(Func<string> getAccessToken)
+        internal AssistantWebSocketBackend(IAiAssistantApi api = null)
         {
-            Configuration config = new() { BasePath = AssistantEnvironment.instance.ApiUrl };
-            SetDynamicAccessToken(config,true, getAccessToken);
-            return config;
+            m_ApiOverride = api;
         }
 
-        static void SetDynamicAccessToken(Configuration @this, bool active, Func<string> getAccessToken)
+        internal IAiAssistantApi GetApi(CredentialsContext credentialsContext)
         {
-            if (@this == null)
-                throw new ArgumentNullException(nameof(@this));
-
-            if (active)
-                @this.DynamicHeaders["Authorization"] = () => $"Bearer {getAccessToken()}";
-            else
-                @this.DynamicHeaders.Remove("Authorization");
-        }
-
-        internal AssistantWebSocketBackend(Configuration config = null, IAiAssistantApi api = null)
-        {
-            config ??= GetDefaultConfig(GetAccessToken);
-            m_Api = api ?? new AiAssistantApi(config);
-        }
-
-        public bool SessionStatusTrackingEnabled => true;
-        public async Task<IEnumerable<ConversationInfo>> ConversationRefresh(CancellationToken ct = default)
-        {
-            ct.ThrowIfCancellationRequested();
-
-            var convosBuilder = m_Api
-                .GetConversationInfoV1RequestBuilderWithAnalytics(GetOrganizationId())
-                .SetLimit(AssistantConstants.MaxConversationHistory);
-
-            var response = await convosBuilder.BuildAndSendAsync(ct);
-
-            // TODO: REST Error Handling
-            var data = response.Data;
-
-            return data.Select(c => new ConversationInfo()
+            if (m_ApiOverride != null)
             {
-                ConversationId = c.ConversationId.ToString(),
-                IsFavorite = c.IsFavorite,
-                LastMessageTimestamp = c.LastMessageTimestamp,
-                Title = c.Title
-            });
-        }
+                return m_ApiOverride;
+            }
 
-        public async Task<string> ConversationGenerateTitle(string conversationId, CancellationToken ct = default)
-        {
-            ct.ThrowIfCancellationRequested();
-
-            var convosBuilder = m_Api
-                .PutAssistantConversationInfoGenerateTitleUsingConversationIdV1BuilderWithAnalytics(GetOrganizationId(), Guid.Parse(conversationId));
-
-            var response = await convosBuilder.BuildAndSendAsync(ct);
-
-            // TODO: REST Error Handling
-            ConversationTitleResponseV1 data = response.Data;
-            return data.Title;
-        }
-
-        public async Task<ClientConversation> ConversationLoad(string conversationUid, CancellationToken ct = default)
-        {
-            ct.ThrowIfCancellationRequested();
-
-            var response = await m_Api
-                .GetAssistantConversationUsingConversationIdV1RequestBuilderWithAnalytics(GetOrganizationId(),Guid.Parse(conversationUid))
-                .BuildAndSendAsync(ct);
-
-            // TODO: REST Error Handling
-
-            var data = response.Data;
-
-            return new ClientConversation()
+            Configuration config = new()
             {
-                Owners = data.Owners,
-                Title = data.Title,
-                Context = "", // TODO: Get the backend to return the context
-                History = data.History.Select(h =>
+                BasePath = AssistantEnvironment.instance.ApiUrl,
+                DynamicHeaders =
                 {
-                    return new ConversationFragment("", h.Markdown, h.Role.ToString())
-                    {
-                        ContextId = "", // No more context id
-                        Id = h.Id.ToString(),
-                        Preferred = false, // Where is prefered
-                        RequestId = "", // where is request id
-                        SelectedContextMetadata = h.AttachedContextMetadata?.Select(a => new SelectedContextMetadataItems()
-                        {
-                            DisplayValue = a.DisplayValue,
-                            EntryType = a.EntryType,
-                            Value = a.Value,
-                            ValueIndex = a.ValueIndex,
-                            ValueType = a.ValueType
-                        }).ToList(), // where is select context metadata
-                        Tags = new(),
-                        Timestamp = h.Timestamp
-                    };
-                }).ToList(),
-                Id = data.Id.ToString(),
-                IsFavorite = data.IsFavorite,
-                Tags = new() // no more tags
+                    ["Authorization"] = () => $"Bearer {credentialsContext.AccessToken}"
+                }
+            };
+
+            return new AiAssistantApi(config)
+            {
+                CredentialsContext = credentialsContext
             };
         }
 
-        public async Task ConversationFavoriteToggle(string conversationUid, bool isFavorite, CancellationToken ct = default)
+        #region IAssistantBackend
+
+        public bool SessionStatusTrackingEnabled => true;
+        public async Task<BackendResult<IEnumerable<ConversationInfo>>> ConversationRefresh(CredentialsContext credentialsContext, CancellationToken ct = default)
         {
-            ct.ThrowIfCancellationRequested();
-            var response = await m_Api.PatchAssistantConversationInfoUsingConversationIdV1RequestBuilderWithAnalytics(GetOrganizationId(), Guid.Parse(conversationUid),
-                new ConversationInfoUpdateV1 { IsFavorite = isFavorite}).
-                BuildAndSendAsync(ct);
-        }
-
-        public async Task ConversationRename(string conversationUid, string newName, CancellationToken ct = default)
-        {
-            ct.ThrowIfCancellationRequested();
-
-            if (string.IsNullOrWhiteSpace(newName))
-                throw new ArgumentNullException(nameof(newName));
-
-            var response = await m_Api
-                .PatchAssistantConversationInfoUsingConversationIdV1RequestBuilderWithAnalytics(GetOrganizationId(), Guid.Parse(conversationUid),
-                new ConversationInfoUpdateV1 { Title = newName }).
-                BuildAndSendAsync(ct);
-        }
-
-        public async Task ConversationDelete(string conversationUid, CancellationToken ct = default)
-        {
-            ct.ThrowIfCancellationRequested();
-
-            var response = await m_Api
-                .DeleteAssistantConversationUsingConversationIdV1RequestBuilderWithAnalytics(GetOrganizationId(),Guid.Parse(conversationUid))
-                .BuildAndSendAsync(ct);
-
-            if (!string.IsNullOrWhiteSpace(response.ErrorText))
+            if (ct.IsCancellationRequested)
+                return BackendResult<IEnumerable<ConversationInfo>>.FailOnCancellation();
+            try
             {
-                throw new Exception(response.ErrorText);
+                var convosBuilder = GetApi(credentialsContext)
+                    .GetConversationInfoV1RequestBuilderWithAnalytics()
+                    .SetLimit(AssistantConstants.MaxConversationHistory);
+
+                var response = await convosBuilder.BuildAndSendAsync(ct);
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    CheckApiResponseForTokenRefreshIssue(response);
+                    return BackendResult<IEnumerable<ConversationInfo>>.FailOnServerResponse(
+                        new(ErrorHandlingUtility.GetErrorMessageFromHttpResult(
+                            (int)response.StatusCode,
+                            response.RawContent,
+                            GetServerErrorMessage("refreshing conversations")), FormatApiResponse(response)));
+                }
+
+                List<ConversationInfoV1> data = response.Data;
+
+                var cis = data.Select(c => new ConversationInfo()
+                {
+                    ConversationId = c.ConversationId.ToString(),
+                    IsFavorite = c.IsFavorite,
+                    LastMessageTimestamp = c.LastMessageTimestamp,
+                    Title = c.Title
+                });
+
+                return BackendResult<IEnumerable<ConversationInfo>>.Success(cis);
+            }
+            catch (Exception e)
+            {
+                return BackendResult<IEnumerable<ConversationInfo>>.FailOnException(GetExceptionErrorMessage("refreshing conversations"), e);
             }
         }
 
-        public async Task<IEnumerable<Inspiration>> InspirationRefresh(CancellationToken ct = default)
+        public async Task<BackendResult<string>> ConversationGenerateTitle(CredentialsContext credentialsContext,
+            string conversationId,
+            CancellationToken ct = default)
         {
-            ct.ThrowIfCancellationRequested();
-            var response = await m_Api.
-                GetAssistantInspirationV1RequestBuilderWithAnalytics(GetOrganizationId()).
-                BuildAndSendAsync(ct);
+            if (ct.IsCancellationRequested)
+                return BackendResult<string>.FailOnCancellation();
 
-            // Just return response.Data when legacy routes are removed and everything is using Protocol Models
-            if (response.StatusCode != HttpStatusCode.OK)
+            try
             {
-                // TODO: Error Handling for inspirations
-                return Array.Empty<Inspiration>();
+                var convosBuilder = GetApi(credentialsContext)
+                    .PutAssistantConversationInfoGenerateTitleUsingConversationIdV1BuilderWithAnalytics(
+                        Guid.Parse(conversationId)
+                    );
+
+                var response = await convosBuilder.BuildAndSendAsync(ct);
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    CheckApiResponseForTokenRefreshIssue(response);
+                    return BackendResult<string>.FailOnServerResponse(new( ErrorHandlingUtility.GetErrorMessageFromHttpResult(
+                        (int)response.StatusCode,
+                        response.RawContent,
+                        GetServerErrorMessage("generating title")), FormatApiResponse(response)));
+                }
+
+                ConversationTitleResponseV1 data = response.Data;
+                return BackendResult<string>.Success(data.Title);
             }
-
-            if(response.Data == null)
-                return Array.Empty<Inspiration>();
-
-            return response.Data.Select(i => new Inspiration()
+            catch (Exception e)
             {
-                Description = i.Description,
-                Id = i.Id.ToString(),
-                Mode = (Inspiration.ModeEnum)(i.Mode),
-                Value = i.Value
-            });
+                return BackendResult<string>.FailOnException(GetExceptionErrorMessage("generating title"), e);
+            }
         }
 
-        public async Task<int> PointCostRequest(string conversationUid, int? contextItems, string prompt, CancellationToken ct = default)
+        public async Task<BackendResult<ClientConversation>> ConversationLoad(CredentialsContext credentialsContext,
+            string conversationUid,
+            CancellationToken ct = default)
         {
-            ct.ThrowIfCancellationRequested();
+            if (ct.IsCancellationRequested)
+                return BackendResult<ClientConversation>.FailOnCancellation();
 
-            var orgID = GetOrganizationId();
+            try
+            {
+                var response = await GetApi(credentialsContext)
+                    .GetAssistantConversationUsingConversationIdV1RequestBuilderWithAnalytics(
+                        Guid.Parse(conversationUid)
+                    )
+                    .BuildAndSendAsync(ct);
 
-            var response = await m_Api.
-                GetAssistantMessagePointsV1RequestBuilderWithAnalytics(orgID).
-                SetConversationId(conversationUid).
-                SetContextItems(contextItems).
-                SetPrompt(prompt).
-                BuildAndSendAsync(ct);
+                var data = response.Data;
 
-            return response.Data.MessagePoints.GetInt();
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    CheckApiResponseForTokenRefreshIssue(response);
+                    return BackendResult<ClientConversation>.FailOnServerResponse(new( ErrorHandlingUtility.GetErrorMessageFromHttpResult(
+                        (int)response.StatusCode,
+                        response.RawContent,
+                        GetServerErrorMessage("loading conversation")), FormatApiResponse(response)));
+                }
+
+                ClientConversation cliConvo = new ClientConversation()
+                {
+                    Owners = data.Owners,
+                    Title = data.Title,
+                    Context = "", // TODO: Get the backend to return the context
+                    History = data.History.Select(h =>
+                    {
+                        return new ConversationFragment("", h.Markdown, h.Role.ToString())
+                        {
+                            ContextId = "", // No more context id
+                            Id = h.Id.ToString(),
+                            Preferred = false, // Where is prefered
+                            RequestId = "", // where is request id
+                            SelectedContextMetadata = h.AttachedContextMetadata?.Select(a =>
+                                new SelectedContextMetadataItems()
+                                {
+                                    DisplayValue = a.DisplayValue,
+                                    EntryType = a.EntryType,
+                                    Value = a.Value,
+                                    ValueIndex = a.ValueIndex,
+                                    ValueType = a.ValueType
+                                }).ToList(), // where is select context metadata
+                            Tags = new(),
+                            Timestamp = h.Timestamp
+                        };
+                    }).ToList(),
+                    Id = data.Id.ToString(),
+                    IsFavorite = data.IsFavorite,
+                    Tags = new() // no more tags
+                };
+
+                return BackendResult<ClientConversation>.Success(cliConvo);
+            }
+            catch
+                (Exception e)
+            {
+                return BackendResult<ClientConversation>.FailOnException(GetExceptionErrorMessage("loading conversation"), e);
+            }
         }
 
-        public async Task SendFeedback(string conversationUid, MessageFeedback feedback, CancellationToken ct = default)
+        public async Task<BackendResult> ConversationFavoriteToggle(CredentialsContext credentialsContext,
+            string conversationUid,
+            bool isFavorite,
+            CancellationToken ct = default)
         {
-            ct.ThrowIfCancellationRequested();
-
-            var orgID = GetOrganizationId();
-
-            var response = await m_Api.PostAssistantFeedbackV1RequestBuilderWithAnalytics(
-                orgID,
-                new FeedbackCreationV1(
-                    (CategoryV1)feedback.Type,
-                    Guid.Parse(conversationUid),
-                    feedback.Message,
-                    Guid.Parse(feedback.MessageId.FragmentId),
-                    (SentimentV1)feedback.Sentiment
-                )
-            )
-            .BuildAndSendAsync(ct);
-
-            if (response.StatusCode == HttpStatusCode.Created)
+            if (ct.IsCancellationRequested)
+                return BackendResult<IEnumerable<Inspiration>>.FailOnCancellation();
+            try
             {
+                var response = await GetApi(credentialsContext)
+                    .PatchAssistantConversationInfoUsingConversationIdV1RequestBuilderWithAnalytics(
+                        Guid.Parse(conversationUid),
+                        new ConversationInfoUpdateV1 { IsFavorite = isFavorite, }
+                    ).BuildAndSendAsync(ct);
+
+                if (response.StatusCode != HttpStatusCode.NoContent)
+                {
+                    CheckApiResponseForTokenRefreshIssue(response);
+                    return BackendResult.FailOnServerResponse(new( ErrorHandlingUtility.GetErrorMessageFromHttpResult(
+                        (int)response.StatusCode,
+                        response.RawContent,
+                        GetServerErrorMessage("toggling favorite")), FormatApiResponse(response)));
+                }
+
+                return BackendResult.Success();
+            }
+            catch (Exception e)
+            {
+                return BackendResult.FailOnException(GetExceptionErrorMessage("toggling favorite"), e);
+            }
+        }
+
+        public async Task<BackendResult> ConversationRename(
+            CredentialsContext credentialsContext,
+            string conversationUid,
+            string newName,
+            CancellationToken ct = default)
+        {
+            if (ct.IsCancellationRequested)
+                return BackendResult.FailOnCancellation();
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(newName))
+                    throw new ArgumentNullException(nameof(newName));
+
+                var response = await GetApi(credentialsContext)
+                    .PatchAssistantConversationInfoUsingConversationIdV1RequestBuilderWithAnalytics(
+                        Guid.Parse(conversationUid),
+                        new ConversationInfoUpdateV1 { Title = newName }
+                    ).BuildAndSendAsync(ct);
+
+                if (response.StatusCode != HttpStatusCode.NoContent)
+                {
+                    CheckApiResponseForTokenRefreshIssue(response);
+                    return BackendResult.FailOnServerResponse(new( ErrorHandlingUtility.GetErrorMessageFromHttpResult(
+                        (int)response.StatusCode,
+                        response.RawContent,
+                        GetServerErrorMessage("renaming conversation")), FormatApiResponse(response)));
+                }
+
+                return BackendResult.Success();
+            }
+            catch (Exception e)
+            {
+                return BackendResult.FailOnException(GetExceptionErrorMessage("renaming conversation"), e);
+            }
+        }
+
+        public async Task<BackendResult> ConversationDelete(CredentialsContext credentialsContext, string conversationUid, CancellationToken ct = default)
+        {
+            if (ct.IsCancellationRequested)
+                return BackendResult.FailOnCancellation();
+
+            try
+            {
+                var conversationId = Guid.Parse(conversationUid);
+                var responseBuilder = GetApi(credentialsContext)
+                    .DeleteAssistantConversationUsingConversationIdV1RequestBuilderWithAnalytics(
+                        conversationId);
+                var response = await responseBuilder.BuildAndSendAsync(ct);
+
+                if (response.StatusCode != HttpStatusCode.NoContent)
+                {
+                    CheckApiResponseForTokenRefreshIssue(response);
+                    return BackendResult.FailOnServerResponse(new(ErrorHandlingUtility.GetErrorMessageFromHttpResult(
+                        (int)response.StatusCode,
+                        response.RawContent,
+                        GetServerErrorMessage("deleting a conversation")), FormatApiResponse(response)));
+                }
+
+                return BackendResult.Success();
+            }
+            catch (Exception e)
+            {
+                return BackendResult.FailOnException(GetExceptionErrorMessage("deleting a conversation"), e);
+            }
+        }
+
+        public async Task<BackendResult<IEnumerable<Inspiration>>> InspirationRefresh(CredentialsContext credentialsContext, CancellationToken ct = default)
+        {
+            if (ct.IsCancellationRequested)
+                return BackendResult<IEnumerable<Inspiration>>.FailOnCancellation();
+
+            try
+            {
+                var response = await GetApi(credentialsContext).GetAssistantInspirationV1RequestBuilderWithAnalytics()
+                    .BuildAndSendAsync(ct);
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    CheckApiResponseForTokenRefreshIssue(response);
+                    return BackendResult<IEnumerable<Inspiration>>.FailOnServerResponse(new( ErrorHandlingUtility.GetErrorMessageFromHttpResult(
+                        (int)response.StatusCode,
+                        response.RawContent,
+                        GetServerErrorMessage("refreshing inspirations")), FormatApiResponse(response)));
+                }
+
+                if (response.Data == null)
+                    return BackendResult<IEnumerable<Inspiration>>.Success(new List<Inspiration>());
+
+                var data = response.Data.Select(i => new Inspiration()
+                {
+                    Description = i.Description,
+                    Id = i.Id.ToString(),
+                    Mode = (Inspiration.ModeEnum)(i.Mode),
+                    Value = i.Value
+                });
+
+                return BackendResult<IEnumerable<Inspiration>>.Success(data);
+            }
+            catch (Exception e)
+            {
+                return BackendResult<IEnumerable<Inspiration>>.FailOnException(GetExceptionErrorMessage("refreshing inspirations"), e);
+            }
+        }
+
+        public async Task<BackendResult<int>> PointCostRequest(CredentialsContext credentialsContext, string conversationUid, int? contextItems, string prompt,
+            CancellationToken ct = default)
+        {
+            if (ct.IsCancellationRequested)
+                return BackendResult<int>.FailOnCancellation();
+
+            try
+            {
+                var response = await GetApi(credentialsContext).GetAssistantMessagePointsV1RequestBuilderWithAnalytics()
+                    .SetConversationId(conversationUid).SetContextItems(contextItems).SetPrompt(prompt)
+                    .BuildAndSendAsync(ct);
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    CheckApiResponseForTokenRefreshIssue(response);
+                    return BackendResult<int>.FailOnServerResponse(new( ErrorHandlingUtility.GetErrorMessageFromHttpResult(
+                        (int)response.StatusCode,
+                        response.RawContent,
+                        GetServerErrorMessage("getting point cost")), FormatApiResponse(response)));
+                }
+
+                return BackendResult<int>.Success(response.Data.MessagePoints.GetInt());
+            }
+            catch (Exception e)
+            {
+                return BackendResult<int>.FailOnException(GetExceptionErrorMessage("getting point cost"), e);
+            }
+        }
+
+        public async Task<BackendResult> SendFeedback(CredentialsContext credentialsContext,
+            string conversationUid,
+            MessageFeedback feedback,
+            CancellationToken ct = default)
+        {
+            if (ct.IsCancellationRequested)
+                return BackendResult<List<VersionSupportInfo>>.FailOnCancellation();
+
+            try
+            {
+                var response = await GetApi(credentialsContext).PostAssistantFeedbackV1RequestBuilderWithAnalytics(
+                        new FeedbackCreationV1(
+                            (CategoryV1)feedback.Type,
+                            Guid.Parse(conversationUid),
+                            feedback.Message,
+                            Guid.Parse(feedback.MessageId.FragmentId),
+                            (SentimentV1)feedback.Sentiment
+                        )
+                    )
+                    .BuildAndSendAsync(ct);
+
+                if (response.StatusCode != HttpStatusCode.NoContent)
+                {
+                    CheckApiResponseForTokenRefreshIssue(response);
+                    return BackendResult.FailOnServerResponse(new( ErrorHandlingUtility.GetErrorMessageFromHttpResult(
+                        (int)response.StatusCode,
+                        response.RawContent,
+                        GetServerErrorMessage("sending feedback")), FormatApiResponse(response)));
+                }
+
                 var feedbackData = new FeedbackData(feedback.Sentiment, feedback.Message);
                 k_FeedbackCache[feedback.MessageId] = feedbackData;
+                return BackendResult.Success();
+            }
+            catch (Exception e)
+            {
+                return BackendResult<List<VersionSupportInfo>>.FailOnException(GetExceptionErrorMessage("sending feedback"), e);
             }
         }
 
-        public async Task<FeedbackData?> LoadFeedback(AssistantMessageId messageId, CancellationToken ct = default)
+        public async Task<BackendResult<FeedbackData?>> LoadFeedback(CredentialsContext credentialsContext, AssistantMessageId messageId, CancellationToken ct = default)
         {
             if (k_FeedbackCache.TryGetValue(messageId, out var cachedData))
             {
-                return cachedData;
+                return BackendResult<FeedbackData?>.Success(cachedData);
             }
 
-            ct.ThrowIfCancellationRequested();
+            if (ct.IsCancellationRequested)
+                return BackendResult<FeedbackData?>.FailOnCancellation();
 
-            var response = await m_Api.GetAssistantFeedbackUsingConversationIdAndMessageIdV1RequestBuilderWithAnalytics(
-                    GetOrganizationId(),
-                    messageId.ConversationId.Value,
-                    messageId.FragmentId
-            )
-            .BuildAndSendAsync(ct);
+            try
+            {
+                var response = await GetApi(credentialsContext)
+                    .GetAssistantFeedbackUsingConversationIdAndMessageIdV1RequestBuilderWithAnalytics(
+                        messageId.ConversationId.Value,
+                        messageId.FragmentId
+                    )
+                    .BuildAndSendAsync(ct);
 
-            var feedbackData = response.Data != null ?
-                new FeedbackData((Sentiment)response.Data.Sentiment, response.Data.Details) : (FeedbackData?)null;
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    CheckApiResponseForTokenRefreshIssue(response);
+                    return BackendResult<FeedbackData?>.FailOnServerResponse(new( ErrorHandlingUtility.GetErrorMessageFromHttpResult(
+                        (int)response.StatusCode,
+                        response.RawContent,
+                        GetServerErrorMessage("loading feedback")), FormatApiResponse(response)));
+                }
 
-            k_FeedbackCache[messageId] = feedbackData;
+                var feedbackData = response.Data != null
+                    ? new FeedbackData((Sentiment)response.Data.Sentiment, response.Data.Details)
+                    : (FeedbackData?)null;
 
-            return feedbackData;
+                k_FeedbackCache[messageId] = feedbackData;
+
+                return BackendResult<FeedbackData?>.Success(feedbackData);
+            }
+            catch (Exception e)
+            {
+                return BackendResult<FeedbackData?>.FailOnException(GetExceptionErrorMessage("loading feedback"), e);
+            }
         }
 
-        public async Task<List<VersionSupportInfo>> GetVersionSupportInfo(string version, CancellationToken ct = default)
+        /// <inheritdoc />
+        public async Task<BackendResult<List<VersionSupportInfo>>> GetVersionSupportInfo(CredentialsContext credentialsContext, CancellationToken ct = default)
         {
-            ct.ThrowIfCancellationRequested();
+            if (ct.IsCancellationRequested)
+                return BackendResult<List<VersionSupportInfo>>.FailOnCancellation();
 
-            var response = await m_Api.
-                GetVersionsBuilder().
-                BuildAndSendAsync(ct);
-
-            return response.Data.Select(v => new VersionSupportInfo()
+            try
             {
-                RoutePrefix = v.RoutePrefix,
-                SupportStatus = (VersionSupportInfo.SupportStatusEnum)v.SupportStatus
-            }).ToList();
+                ApiResponse<List<Ai.Assistant.Protocol.Model.VersionSupportInfo>> response = null;
+                response = await GetApi(credentialsContext).GetVersionsBuilder().BuildAndSendAsync(ct);
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    CheckApiResponseForTokenRefreshIssue(response);
+                    return BackendResult<List<VersionSupportInfo>>.FailOnServerResponse(new( ErrorHandlingUtility.GetErrorMessageFromHttpResult(
+                        (int)response.StatusCode,
+                        response.RawContent,
+                        GetServerErrorMessage("getting version info")), FormatApiResponse(response)));
+                }
+
+                List<VersionSupportInfo> list = response.Data.Select(v => new VersionSupportInfo()
+                {
+                    RoutePrefix = v.RoutePrefix,
+                    SupportStatus = (VersionSupportInfo.SupportStatusEnum)v.SupportStatus
+                }).ToList();
+
+                return BackendResult<List<VersionSupportInfo>>.Success(list);
+            }
+            catch (Exception e)
+            {
+                return BackendResult<List<VersionSupportInfo>>.FailOnException(GetExceptionErrorMessage("getting version info"), e);
+            }
+        }
+
+        #endregion
+
+        string GetServerErrorMessage(string action) => $"There was an issue {action} from the server.";
+        string GetExceptionErrorMessage(string action) => $"There was an unexpected error when {action}. {ErrorHandlingUtility.ErrorMessageNotNetworkedSuffix}";
+        string FormatApiResponse<T>(ApiResponse<T> response) => $"ApiResponse [Status Code: {(int)response.StatusCode} {response.StatusCode}, Content: {response.RawContent}, Data:{response.Data}]";
+
+        void CheckApiResponseForTokenRefreshIssue<T>(ApiResponse<T> response)
+        {
+            // According to the backend team, when we have a failure due to an expired token, a 401 Unauthorized is
+            // reported to the frontend. If this happens we can force a refresh.
+            if(response.StatusCode == HttpStatusCode.Unauthorized)
+                AccessTokenRefreshUtility.IndicateRefreshMayBeRequired();
         }
     }
 }

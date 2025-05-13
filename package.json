@@ -1,26 +1,26 @@
 {
   "name": "com.unity.ai.assistant",
-  "displayName": "AI Assistant",
-  "version": "1.0.0-pre.3",
+  "displayName": "Assistant",
+  "version": "1.0.0-pre.4",
   "unity": "6000.2",
-  "description": "With AI Assistant, you can easily enhance your Unity skills and boost productivity by generating project-specific information, coding solutions, and resolutions to issues such as console errors.",
+  "description": "Use AI for project-aware information retrieval, troubleshooting, code generation, assistance, and scene editing.\n\nAsk\nSolve hard problems or get ideas for your project. Assistant provides you with relevant answers based on the context of your project.\n\nRun\nAutomate actions in the Editor to tackle repetitive tasks and streamline workflows. Use natural language to scatter objects across terrain, adjust lighting, rename assets, restructure project files, and more.\n\nCode\nReduce the time and effort required to structure gameplay mechanics by using Assistant to create pre-compiled scripts.",
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "3.2.1",
     "com.unity.modules.unitywebrequest": "1.0.0",
     "com.unity.serialization": "3.1.1",
-    "com.unity.ai.toolkit": "1.0.0-pre.4"
+    "com.unity.ai.toolkit": "1.0.0-pre.7"
   },
   "unityRelease": "0a9",
   "_upm": {
-    "changelog": "### Changed\n- update AI-Toolkit to 1.0.0.-pre.4"
+    "changelog": "- Update AI-Toolkit to 1.0.0.-pre.7\n- Added console tab attachments\n- Updated to beta backend urls\n- Fixed source attribution placement\n- General usability fixes\n- Fixed access token refresh issue\n- Fixed bugs related to API alignment\n- Assistant can now be used when the editor is paused"
   },
   "upmCi": {
-    "footprint": "9f09b2af0fe93b3a3578c7ba0ef87acf819b1604"
+    "footprint": "73949499841a801b2a8ffe603e8f75b015424119"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.ai.assistant@1.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/muse-editor.git",
     "type": "git",
-    "revision": "646469f04f7428013299e57e0a3779b8796126a3"
+    "revision": "38187406cc9e54ce84ce469ab23f58fd7d56ee41"
   }
 }

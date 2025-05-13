@@ -6,7 +6,6 @@ namespace Unity.AI.Assistant.Editor.Data
     class AcknowledgePromptInfo
     {
         public string Id;
-        public string Author;
         public string Content;
         public AssistantContextEntry[] Context;
     }

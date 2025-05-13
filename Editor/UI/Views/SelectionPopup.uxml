@@ -12,8 +12,8 @@
                 <Label text="No results found for"/>
                 <Label name="noResultsSearchDisplay" class="mui-selection-popup-search-string" />
             </VisualElement>
-            <Label class="mui-selection-popup-search-message mui-selection-popup-light" text="Search sources inside of Unity and attach them your prompt for additional context." />
-            <Label class="mui-selection-popup-light" text="Or drag and drop them directly below."/>
+            <Label name="instruction1Message" class="mui-selection-popup-search-message mui-selection-popup-light" text="Search sources inside of Unity and attach them your prompt for additional context." />
+            <Label name="instruction2Message" class="mui-selection-popup-search-message mui-selection-popup-light" text="Or drag and drop them directly below."/>
         </VisualElement>
 
         <ui:VisualElement name="adaptiveListViewContainer" class="mui-selection-popup-adaptive-list-view-container"/>

@@ -28,8 +28,6 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
         /// </summary>
         internal abstract class HierarchyMapEntry<T> where T : IParentable<T>
         {
-            internal static int SmartContextLimit { get; set; }
-
             internal static int EstimatedSerializedLength { get; set; }
 
             internal static void Reset()
@@ -166,7 +164,7 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
 
                     // Check how long the resulting string would be and remove children if it's too long:
                     Serialize(sb, 0);
-                    if (sb.Length > 0 && sb.Length > SmartContextLimit)
+                    if (sb.Length > 0 && sb.Length > AssistantMessageSizeConstraints.ContextLimit)
                     {
                         var prunedChildren = false;
                         Prune(ref prunedChildren, 1, GetDepth(0));
@@ -468,8 +466,6 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
                 "To search for a component on any gameObject a '*' wildcard instead of an object name works, e.g. the parameter '*|type:Light' searches all Light components without checking object names.")]
             params string[] gameObjectNameFilters)
         {
-            GameObjectHierarchyMapEntry.SmartContextLimit = SmartContextToolbox.SmartContextLimit;
-
             // Store all objects in a tree structure first, then serialize it:
             var hierarchyMap = new GameObjectHierarchyMapEntry();
 
@@ -682,7 +678,7 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
                 hierarchyMap.Insert(new GameObjectInfo(obj, default, suffix));
 
                 if (GameObjectHierarchyMapEntry.EstimatedSerializedLength >
-                    GameObjectHierarchyMapEntry.SmartContextLimit)
+                    AssistantMessageSizeConstraints.ContextLimit)
                 {
                     break;
                 }

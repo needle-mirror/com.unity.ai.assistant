@@ -8,6 +8,10 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
         public string Info;
         public Exception Exception;
 
+        public override string ToString() => Exception == null
+            ? $"CloseReason [Reason: {Reason}, Info:{Info}]"
+            : $"CloseReason [Reason: {Reason}, Info:{Info}, Exception:{Exception}]";
+
         public enum ReasonType
         {
             /// <summary>
@@ -50,6 +54,11 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
             /// The server sent a disconnection packet and has disconnected the websocket
             /// </summary>
             ServerDisconnected,
+
+            /// <summary>
+            /// The client canceled the operation
+            /// </summary>
+            ClientCanceled
         }
     }
 }

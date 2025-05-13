@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Unity.AI.Assistant.Editor.ApplicationModels;
+using Unity.AI.Assistant.Editor.Backend.Socket.ErrorHandling;
 using Unity.AI.Assistant.Editor.Data;
 
 namespace Unity.AI.Assistant.Editor
@@ -16,8 +18,17 @@ namespace Unity.AI.Assistant.Editor
 
         public async Task RefreshInspirations(CancellationToken ct = default)
         {
-            var inspirations = await m_Backend.InspirationRefresh(ct);
-            InspirationsRefreshed?.Invoke(inspirations.Select(inspiration => inspiration.ToInternal()));
+            BackendResult<IEnumerable<Inspiration>> inspirations = await m_Backend.InspirationRefresh(await GetCredentialsContext(ct), ct);
+
+            if (inspirations.Status != BackendResult.ResultStatus.Success)
+            {
+                // Inspiration can fail silently. It's better just not to display them than spam error messages
+                ErrorHandlingUtility.InternalLogBackendResult(inspirations);
+                InspirationsRefreshed?.Invoke(Array.Empty<AssistantInspiration>());
+                return;
+            }
+
+            InspirationsRefreshed?.Invoke(inspirations.Value.Select(inspiration => inspiration.ToInternal()));
         }
 
         // TODO: For times sake, we are pushing fixing routes for internal tools until later. Inspiration create and update fall into this category

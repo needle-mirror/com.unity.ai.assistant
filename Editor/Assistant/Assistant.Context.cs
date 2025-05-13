@@ -41,7 +41,7 @@ namespace Unity.AI.Assistant.Editor
 
                     contextBuilder.InjectContext(objectContext,true);
 
-                    if (stopAtLimit && contextBuilder.PredictedLength > AssistantSettings.PromptContextLimit)
+                    if (stopAtLimit && contextBuilder.PredictedLength > AssistantMessageSizeConstraints.ContextLimit)
                     {
                         break;
                     }
@@ -57,7 +57,7 @@ namespace Unity.AI.Assistant.Editor
                     consoleContext.SetTarget(currentLog);
                     contextBuilder.InjectContext(consoleContext, true);
 
-                    if (stopAtLimit && contextBuilder.PredictedLength > AssistantSettings.PromptContextLimit)
+                    if (stopAtLimit && contextBuilder.PredictedLength > AssistantMessageSizeConstraints.ContextLimit)
                     {
                         break;
                     }
@@ -65,12 +65,8 @@ namespace Unity.AI.Assistant.Editor
             }
         }
 
-        internal Task<EditorContextReport> GetContextModel(AssistantConversationId conversationId, int maxLength, AssistantPrompt prompt,
-            CancellationToken cancellationToken)
+        internal EditorContextReport GetContextModel(int maxLength, AssistantPrompt prompt)
         {
-            if(!conversationId.IsValid)
-                throw new ArgumentException("Invalid conversation id");
-
             // Initialize all context, if any context has changed, add it all
             var contextBuilder = new ContextBuilder();
             GetAttachedContextString(prompt, ref contextBuilder);
@@ -79,7 +75,7 @@ namespace Unity.AI.Assistant.Editor
 
             InternalLog.Log($"Final Context ({contextBuilder.PredictedLength} character):\n\n {finalContext.ToJson()}");
 
-            return Task.FromResult(finalContext);
+            return finalContext;
         }
 
         internal List<Object> GetValidAttachment(List<Object> contextAttachments)

@@ -180,10 +180,12 @@
 .mui-execution-block-header {
     width: 100%;
     flex-direction: row;
+    height: 18px;
 }
 
 #executionDisplayToggle {
     display: flex;
     justify-content: center;
     align-items: center;
+    height: 18px;
 }

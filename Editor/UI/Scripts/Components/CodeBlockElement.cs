@@ -13,7 +13,7 @@ using Unity.AI.Assistant.Editor.Analytics;
 using Unity.AI.Assistant.Editor.CodeAnalyze;
 using Unity.AI.Assistant.UI.Editor.Scripts.Data;
 using Unity.AI.Assistant.UI.Editor.Scripts.Utils;
-using Unity.Muse.Agent.Dynamic;
+using Unity.AI.Assistant.Agent.Dynamic.Extension;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -56,7 +56,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         bool m_AnalyticsEnabled;
 
         string m_Code;
-        private bool m_ReformatCode;
+        bool m_ReformatCode;
 
         string m_TempEditedFilePath;
 
@@ -270,7 +270,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 d.ResponseMessage = m_Code;
             });
 
-            string file = EditorUtility.SaveFilePanel("Save Code", Application.dataPath, "code", "cs");
+            string defaultName = CodeExportUtils.ExtractClassName(m_Code) ?? "Code";
+
+            string file = EditorUtility.SaveFilePanel("Save Code", Application.dataPath, defaultName, "cs");
             if (string.IsNullOrEmpty(file))
             {
                 return;

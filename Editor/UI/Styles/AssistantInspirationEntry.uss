@@ -20,6 +20,12 @@
     border-color: var(--muse-chat-backgrounds-200);
 }
 
+#inspirationEntryButtonLabel {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    flex-shrink: 1;
+}
+
 #inspirationEntryButton:hover {
     background-color: var(--muse-chat-backgrounds-200);
 }

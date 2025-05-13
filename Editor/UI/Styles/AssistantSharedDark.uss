@@ -49,31 +49,19 @@
 }
 
 .mui-icon-history {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ClockCounterClockwise.png');
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/UndoHistory.png');
 }
 
 .mui-icon-copy {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CopySimple.png');
-}
-
-.mui-icon-cmd-run {
-    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CmdRun.png');
-}
-
-.mui-icon-cmd-ask {
-    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CmdAsk.png');
-}
-
-.mui-icon-cmd-code {
-    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CmdCode.png');
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Copy.png');
 }
 
 .mui-icon-save {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/SaveAs.png');
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/SaveAs.png');
 }
 
 .mui-icon-edit {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Edit.png');
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Code.png');
 }
 
 .mui-icon-delete {
@@ -81,52 +69,36 @@
 }
 
 .mui-icon-upvote {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ThumbsUp.png');
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ThumbsUp.png');
 }
 
 .mui-icon-downvote {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ThumbsDown.png');
-}
-
-.mui-icon-cancel {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/XSquare.png')
-}
-
-.mui-icon-stop {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/StopCircle.png');
-}
-
-.mui-icon-submit {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/PaperPlaneRight.png');
-}
-
-.mui-icon-submit-white {
-    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/PaperPlaneRight.png');
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ThumbsDown.png');
 }
 
 .mui-icon-tick {
-    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/tick.png');
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CompletedTask.png');
 }
 
 .mui-icon-star-filled-white {
-    --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/StarFilledWhite.png");
+    background-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Favorites.png");
 }
 
 .mui-icon-star-filled-grey {
-    --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/StarFilledWhite.png");
-    --unity-image-tint-color: rgba(100, 100, 100, 0.2);
+    --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Favorites.png");
+    --unity-image-tint-color: var(--muse-chat-text-secondary);
 }
 
 .mui-icon-close-s-trimmed {
-    --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Close_S_Trimmed.png");
+    background-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Close_S_Trimmed.png");
 }
 
 .mui-icon-close {
-    --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Close.png");
+    background-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Close.png");
 }
 
 .mui-icon-arrow-square-in {
-    --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/arrow-square-in.png");
+    background-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ArrowSquareIn.png");
 }
 
 .mui-icon-undo {
@@ -134,15 +106,15 @@
 }
 
 .mui-icon-error {
-    background-image: resource('d_console.erroricon');
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Error.png');
 }
 
 .mui-icon-warn {
-    background-image: resource('d_console.warnicon');
+    background-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Warning.png");
 }
 
 .mui-icon-warn-large {
-    --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Warning.png");
+    background-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Warning.png");
 }
 
 .mui-icon-info {
@@ -158,19 +130,19 @@
 }
 
 .mui-icon-pick {
-    --unity-image: resource('d_pick.png');
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Target.png');
 }
 
 .mui-icon-shortcut {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Shortcut.png');
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Shortcuts.png');
 }
 
 .mui-icon-arrow-up {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ArrowUp.png');
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ArrowUp.png');
 }
 
 .mui-icon-arrow-down {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ArrowDown.png');
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ArrowDown.png');
 }
 
 .mui-icon-prefab {
@@ -186,7 +158,7 @@
 }
 
 .mui-icon-arrows-counter-clockwise {
-    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ArrowsCounterClockwise.png');
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Refresh.png');
 }
 
 .mui-icon-plus {
@@ -194,7 +166,7 @@
 }
 
 .mui-icon-menu {
-    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Menu.png');
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/List.png');
 }
 
 .mui-icon-arrow-up {
@@ -210,7 +182,7 @@
 }
 
 .mui-icon-stop-square {
-    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/StopSquare.png');
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Stop.png');
 }
 
 .mui-icon-arrows-in {

@@ -1,5 +1,7 @@
+using System;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat;
 
 namespace Unity.AI.Assistant.Editor.FunctionCalling
 {
@@ -17,7 +19,7 @@ namespace Unity.AI.Assistant.Editor.FunctionCalling
         /// <param name="functionId">The key used to look up the function</param>
         /// <param name="functionParameters">The JSON Object that contains the functions parameters</param>
         /// <returns></returns>
-        Task<CallResult> CallByLLM(string functionId, JObject functionParameters);
+        void CallByLLM(ChatWorkflow workFlow, string functionId, JObject functionParameters, Guid callId);
 
         // TODO: The difference in signatures between CallByLLM and CallPlugin is strange. Plugins don't return, but should really be callable in the same way. This is a point in the code that could do with some thought. Despite this, it's still better to have both be part of this interface, so that the function calling system is centralized.
         /// <summary>

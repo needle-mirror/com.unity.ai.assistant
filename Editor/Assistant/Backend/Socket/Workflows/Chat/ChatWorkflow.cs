@@ -5,20 +5,16 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Unity.AI.Assistant.Editor.ApplicationModels;
 using Unity.AI.Assistant.Editor.Backend.Socket.Communication;
 using Unity.AI.Assistant.Editor.Backend.Socket.Protocol;
 using Unity.AI.Assistant.Editor.Backend.Socket.Protocol.Models.FromClient;
 using Unity.AI.Assistant.Editor.Backend.Socket.Protocol.Models.FromServer;
-using Unity.AI.Assistant.Editor.Backend.Socket.Tools;
 using Unity.AI.Assistant.Editor.Backend.Socket.Utilities;
 using Unity.AI.Assistant.Editor.Data;
 using Unity.AI.Assistant.Editor.FunctionCalling;
 using Unity.AI.Assistant.Editor.Utils;
-using UnityEditor;
-using UnityEngine;
 
 namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
 {
@@ -46,7 +42,22 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
         /// The current state that the workflow is in. This effects the messages that are valid for the workflow to
         /// send.
         /// </summary>
-        public State WorkflowState { get; private set; } = State.NotStarted;
+        public State WorkflowState
+        {
+            get => m_WorkflowState;
+            private set
+            {
+                if (m_WorkflowState != value)
+                    OnWorkflowStateChanged?.Invoke(value);
+
+                m_WorkflowState = value;
+            }
+        }
+
+        /// <summary>
+        /// If the workflow is in the <see cref="State.Closed"/> state, indicates the reason for the closure.
+        /// </summary>
+        public CloseReason CloseReason { get; private set; }
 
         /// <summary>
         /// Invoked when a chat response is sent by the server. The workflow tracks the entire message as it streams in.
@@ -60,7 +71,6 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
         /// </summary>
         public event Action<AcknowledgePromptInfo> OnAcknowledgeChat;
 
-
         /// <summary>
         /// Invoked when the <see cref="DiscussionInitializationV1"/> is received. Provides the conversation id provided
         /// by the server.
@@ -73,6 +83,16 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
         /// </summary>
         public event Action<CloseReason> OnClose;
 
+        /// <summary>
+        /// True, when the workflow has sent a message at least once
+        /// </summary>
+        public bool MessagesSent { get; private set; } = false;
+
+        /// <summary>
+        /// Invoked when the workflow's state changes
+        /// </summary>
+        public event Action<State> OnWorkflowStateChanged;
+
         WebSocketFactory m_WebSocketFactory;
         IOrchestrationWebSocket m_WebSocket;
         IFunctionCaller m_FunctionCaller;
@@ -84,6 +104,7 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
         CancellationTokenSource m_ChatRequestCancellationTokenSource;
 
         float m_ChatTimeoutMilliseconds;
+        State m_WorkflowState = State.NotStarted;
 
         public ChatWorkflow(string conversationId = null, WebSocketFactory websocketFactory = null, IFunctionCaller functionCaller = null)
         {
@@ -101,24 +122,13 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
         /// <param name="bearerToken">The bearer token to use when opening the webSocket. If null</param>
         /// <param name="orgId">The org</param>
         /// <exception cref="InvalidOperationException">Workflows can only be started once</exception>
-        public async Task Start(string uri, string bearerToken, string orgId)
+        public async Task Start(string uri, CredentialsContext credentialsContext)
         {
             if (WorkflowState != State.NotStarted)
                 throw new InvalidOperationException("The workflow has already been started");
             WorkflowState = State.AwaitingDiscussionInitialization;
 
-            Dictionary<string, string> headers = new()
-            {
-                { "Authorization", $"Bearer {bearerToken}" },
-                { "org-id", "20067061194790" },
-                { "project-id", ProtocolUtility.GetProjectId() },
-                { "analytics-session-id", ProtocolUtility.GetAnalyticsSessionId() },
-                { "analytics-session-count", ProtocolUtility.GetAnalyticsSessionCount().ToString() },
-                { "analytics-user-id", ProtocolUtility.GetAnalyticsUserId() },
-                { "version-editor", ProtocolUtility.GetEditorVersion() },
-                { "version-package", ProtocolUtility.GetPackageVersion() },
-                { "version-api-specification", ProtocolUtility.GetApiVersion() }
-            };
+            var headers = credentialsContext.Headers;
 
             Dictionary<string, string> queryParams = new();
             if(!string.IsNullOrEmpty(ConversationId))
@@ -129,15 +139,18 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
             m_WebSocket.OnMessageReceived += ProcessReceiveResult;
 
             // Attempt to connect to the websocket and close immediately if this fails
+            m_ChatRequestCancellationTokenSource = new();
+            var cancelToken = m_ChatRequestCancellationTokenSource.Token;
             IOrchestrationWebSocket.Options options = new() { Headers = headers, QueryParameters = queryParams };
-            var result = await m_WebSocket.Connect(options);
+            var result = await m_WebSocket.Connect(options, cancelToken);
 
             if (!result.IsConnectedSuccessfully)
             {
+                AccessTokenRefreshUtility.IndicateRefreshMayBeRequired();
                 m_WebSocket.Dispose();
                 OnClose?.Invoke(new CloseReason()
                 {
-                    Reason = CloseReason.ReasonType.CouldNotConnect,
+                    Reason = cancelToken.IsCancellationRequested ? CloseReason.ReasonType.ClientCanceled : CloseReason.ReasonType.CouldNotConnect,
                     Info = $"Failed to connect to websocket: uri: {options.ConstructUri(uri)}, headers: {headers.Aggregate(new StringBuilder() , (builder, next) => builder.Append($"{next.Key}: {next.Value}, "))}"
                 });
 
@@ -147,19 +160,18 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
             }
 
             CancellationTokenSource discussionInitTimeout = new(TimeSpan.FromMilliseconds(DiscussionInitializationTimeoutMillis));
+
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             WaitForDiscussionInit().WithExceptionLogging();
+#pragma warning restore CS4014
 
             async Task WaitForDiscussionInit()
             {
-                while (!(WorkflowState == State.Idle ||
-                       WorkflowState == State.ProcessingStream ||
-                       WorkflowState == State.AwaitingChatAcknowledgement ||
-                       WorkflowState == State.AwaitingChatResponse ||
-                       WorkflowState == State.Closed))
+                while (!CheckWorkflowIsOneOfStates(State.Idle, State.AwaitingChatAcknowledgement, State.AwaitingChatResponse, State.ProcessingStream, State.Closed))
                 {
                     if (discussionInitTimeout.IsCancellationRequested)
                     {
-                        DisconnectFromServer(new CloseReason()
+                        await DisconnectFromServer(new CloseReason
                         {
                             Reason = CloseReason.ReasonType.DiscussionInitializationTimeout,
                         }).WithExceptionLogging();
@@ -167,7 +179,7 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
                         return;
                     }
 
-                    await Task.Yield();
+                    await DelayUtility.ReasonableResponsiveDelay();
                 }
             }
         }
@@ -199,6 +211,12 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
                 return;
             }
 
+            if (m_ChatRequestCancellationTokenSource.IsCancellationRequested)
+            {
+                InternalLog.LogWarning("Skipping message - cancellation requested.");
+                DisconnectBecauseMessageSentAtWrongTime();
+                return;
+            }
             var message = result.DeserializedData;
             switch (WorkflowState)
             {
@@ -217,7 +235,7 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
                     Action action = result.DeserializedData switch
                     {
                         CapabilitiesRequestV1 cr => () => HandleCapabilitiesRequestV1(cr).WithExceptionLogging(),
-                        FunctionCallRequestV1 fcr => () => HandleFunctionCallRequestV1(fcr).WithExceptionLogging(),
+                        FunctionCallRequestV1 fcr => () => HandleFunctionCallRequestV1(fcr),
                         _ => DisconnectBecauseMessageSentAtWrongTime
                     };
 
@@ -230,7 +248,7 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
                     Action action = result.DeserializedData switch
                     {
                         CapabilitiesRequestV1 cr => () => HandleCapabilitiesRequestV1(cr).WithExceptionLogging(),
-                        FunctionCallRequestV1 fcr => () => HandleFunctionCallRequestV1(fcr).WithExceptionLogging(),
+                        FunctionCallRequestV1 fcr => () => HandleFunctionCallRequestV1(fcr),
                         ChatAcknowledgmentV1 ca => () => HandleChatAcknowledgmentV1(ca).WithExceptionLogging(),
                         _ => DisconnectBecauseMessageSentAtWrongTime
                     };
@@ -244,7 +262,7 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
                     Action action = result.DeserializedData switch
                     {
                         CapabilitiesRequestV1 cr => () => HandleCapabilitiesRequestV1(cr).WithExceptionLogging(),
-                        FunctionCallRequestV1 fcr => () => HandleFunctionCallRequestV1(fcr).WithExceptionLogging(),
+                        FunctionCallRequestV1 fcr => () => HandleFunctionCallRequestV1(fcr),
                         ChatResponseV1 crf => () => HandleChatResponseFragmentV1(crf),
                         _ => DisconnectBecauseMessageSentAtWrongTime
                     };
@@ -268,7 +286,7 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
                 DisconnectFromServer(new CloseReason()
                 {
                     Reason = CloseReason.ReasonType.ServerSentMessageAtWrongTime,
-                    Info = $"State: {WorkflowState}, Model: {result.RawData}"
+                    Info = $"State: {WorkflowState}, Model: {result.RawData}, Cancellation: {m_ChatRequestCancellationTokenSource?.IsCancellationRequested}"
                 }).WithExceptionLogging();
             }
 
@@ -277,7 +295,8 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
                 DisconnectFromServer(new CloseReason()
                 {
                     Reason = CloseReason.ReasonType.ServerSentUnknownMessage,
-                    Info = result.RawData,
+                    Info = $"The ChatWorkflow received unknown message. Raw data: {result.RawData}\nThe " +
+                           $"workflow was in the state: {WorkflowState}",
                     Exception = result.Exception
                 }).WithExceptionLogging();
             }
@@ -308,12 +327,13 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
         /// <param name="ct"></param>
         /// <exception cref="InvalidOperationException">Thrown if a chat request is made when the workflow is not in the <see cref="State.AwaitingChatResponse"/> state</exception>
         /// <returns></returns>
-        public async Task<IStreamStatusHook> SendChatRequest(string prompt, EditorContextReport context,
+        public async Task<IStreamStatusHook> SendChatRequest(string prompt, List<ChatRequestV1.AttachedContextModel> context,
             CancellationToken ct)
         {
-            if (WorkflowState != State.Idle)
-                throw new InvalidOperationException("A chat request cannot be made unless the workflow is idle");
+            if (!CheckWorkflowIsOneOfStates(State.Idle))
+                throw new InvalidOperationException("A chat request cannot be made unless the workflow is idle or in the initial connection handshake");
 
+            MessagesSent = true;
             // Currently, the server returns fragments, but the UX expects a cumulative response.
             m_ActiveStreamStringBuilder.Clear();
 
@@ -322,21 +342,24 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
             await m_WebSocket.Send(new ChatRequestV1
             {
                 Markdown = prompt,
-                AttachedContext = OrchestrationDataUtilities.FromEditorContextReport(context)
+                AttachedContext = context
             }, ct);
 
-            // Setup a task that will cancel the chat request if the user asks for it
             m_ChatRequestCancellationTokenSource = new();
-            Cancel().WithExceptionLogging();
 
-            // Setup a task that will cancel the workflow if the time to first response token is too long
-            Timeout().WithExceptionLogging();
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            // Setup a parallel task that will cancel the chat request if the user asks for it
+            ParallelCancel().WithExceptionLogging();
+
+            // Setup a parallel task that will cancel the workflow if the time to first response token is too long
+            ParallelTimeout().WithExceptionLogging();
+#pragma warning restore CS4014
 
             // TODO: IStreamStatusHook is still part of integrating with the legacy system. This will likely change into something more websocket appropriate
             m_ActiveStreamStatusHook = new(ConversationId);
             return m_ActiveStreamStatusHook;
 
-            async Task Timeout()
+            async Task ParallelTimeout()
             {
                 CancellationTokenSource timeoutCancellation = new(TimeSpan.FromMilliseconds(m_ChatTimeoutMilliseconds));
                 CancellationTokenSource cancel = CancellationTokenSource.CreateLinkedTokenSource(
@@ -346,7 +369,7 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
                 );
 
                 while (!cancel.IsCancellationRequested && WorkflowState != State.ProcessingStream)
-                    await Task.Yield();
+                    await DelayUtility.ReasonableResponsiveDelay();
 
                 // check to see if cancellation was internal (meaning that it was not the timeout, just return)
                 if(m_InternalCancellationTokenSource.Token.IsCancellationRequested)
@@ -358,14 +381,14 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
 
                 // if a timeout occurs, this is a reason to disconnect
                 if (timeoutCancellation.IsCancellationRequested)
-                    DisconnectFromServer(new CloseReason()
+                    await DisconnectFromServer(new CloseReason()
                     {
                         Reason = CloseReason.ReasonType.ChatResponseTimeout,
                         Info = $"Timeout: {m_ChatTimeoutMilliseconds}"
                     }).WithExceptionLogging();
             }
 
-            async Task Cancel()
+            async Task ParallelCancel()
             {
                 CancellationTokenSource cancel = CancellationTokenSource.CreateLinkedTokenSource(
                     m_InternalCancellationTokenSource.Token,
@@ -373,7 +396,7 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
                 );
 
                 while (!cancel.IsCancellationRequested)
-                    await Task.Yield();
+                    await DelayUtility.ReasonableResponsiveDelay();
 
                 // check to see if cancellation was internal (something else happened and waiting for cancellation
                 // isn't necessary anymore)
@@ -384,7 +407,6 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
                 if (m_ChatRequestCancellationTokenSource.IsCancellationRequested)
                 {
                     await m_WebSocket.Send(new CancelChatRequestV1(), m_InternalCancellationTokenSource.Token);
-                    WorkflowState = State.Idle;
                 }
             }
         }
@@ -396,17 +418,20 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
         /// </summary>
         public void CancelCurrentChatRequest()
         {
-            if(!CheckWorkflowIsOneOfStates(State.AwaitingChatAcknowledgement, State.AwaitingChatResponse, State.ProcessingStream))
+            if (!CheckWorkflowIsOneOfStates(State.AwaitingDiscussionInitialization, State.AwaitingChatAcknowledgement, State.AwaitingChatResponse, State.ProcessingStream))
                 return;
+
+            WorkflowState = State.Canceling;
 
             // This should never happen. It's possible that this should be an exception, but let us be permissive until
             // it's a problem.
-            if(m_ChatRequestCancellationTokenSource == null)
+            if (m_ChatRequestCancellationTokenSource == null)
                 return;
 
             m_ChatRequestCancellationTokenSource.Cancel();
         }
 
+        // TODO: AwaitDiscussionInitialization should not return a bool. It is trying to give information that can be determined by checking the state of the ChatWorkflow. This bool is redundant, and confusing because it seems like we should react to it. But what we should react to is changes in ChatWorkflow state, which can be determined by checking state immediately after this function is returned.
         /// <summary>
         /// Waits for the <see cref="DiscussionInitializationV1"/> to be received by the workflow.
         /// </summary>
@@ -419,10 +444,13 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
                 if(m_InternalCancellationTokenSource.IsCancellationRequested)
                     return false;
 
-                await Task.Yield();
+                if (m_ChatRequestCancellationTokenSource.IsCancellationRequested)
+                    return false;
+
+                await DelayUtility.ReasonableResponsiveDelay();
             }
 
-            return true;
+            return !m_InternalCancellationTokenSource.IsCancellationRequested;
         }
 
         void HandleDiscussionInitializationV1(DiscussionInitializationV1 message)
@@ -432,7 +460,7 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
 
             m_ChatTimeoutMilliseconds = message.ChatTimeoutSeconds * 1000;
 
-            AssistantSettings.PromptContextLimit = message.MaxMessageSize;
+            AssistantMessageSizeConstraints.SetMessageSizeLimit(message.MaxMessageSize);
             WorkflowState = State.Idle;
         }
 
@@ -441,7 +469,18 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
             AcknowledgePromptInfo info = new()
             {
                 Id = ca.MessageId,
-                // TODO: The protocol is being updated to fill in the rest of this information
+                Content = ca.Markdown,
+                Context = ca.AttachedContextMetadata.Select(c =>
+                {
+                    return new AssistantContextEntry()
+                    {
+                        DisplayValue = c.DisplayValue,
+                        EntryType = (AssistantContextType)c.EntryType,
+                        Value = c.Value,
+                        ValueIndex = c.ValueIndex,
+                        ValueType = c.ValueType
+                    };
+                }).ToArray()
             };
 
             WorkflowState = State.AwaitingChatResponse;
@@ -449,24 +488,27 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
             await Task.CompletedTask;
         }
 
-        async Task HandleFunctionCallRequestV1(FunctionCallRequestV1 message)
+        void HandleFunctionCallRequestV1(FunctionCallRequestV1 message)
         {
             if (m_FunctionCaller == null)
             {
                 InternalLog.LogError($"ChatWorkflow instance does not have a {m_FunctionCaller} set. The recieved" +
-                                         $"FunctionCallRequestV1 cannot be handled");
+                                     $"FunctionCallRequestV1 cannot be handled");
                 return;
             }
 
-            IFunctionCaller.CallResult result = await m_FunctionCaller.CallByLLM(message.FunctionId, message.FunctionParameters);
+            m_FunctionCaller.CallByLLM(this, message.FunctionId, message.FunctionParameters, message.CallId);
+        }
 
-            JToken finalResult = result.IsFunctionCallSucceeded
+        public void SendFunctionCallResponse(IFunctionCaller.CallResult result, Guid callId)
+        {
+            var finalResult = result.IsFunctionCallSucceeded
                 ? result.Result
                 : OrchestrationUtilities.GetFunctionCallFailureValue();
 
-            await m_WebSocket.Send(new FunctionCallResponseV1
+            m_WebSocket.Send(new FunctionCallResponseV1
             {
-                CallId = message.CallId,
+                CallId = callId,
                 FunctionResult = finalResult,
                 Success = result.IsFunctionCallSucceeded
             }, m_InternalCancellationTokenSource.Token);
@@ -474,19 +516,27 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
 
         async Task HandleCapabilitiesRequestV1(CapabilitiesRequestV1 message)
         {
+            var launchButtons = OrchestrationUtilities.GetPlugins();
+
+            var buttons = launchButtons.Functions.Count > 0
+                ? new List<CapabilitiesResponseV1.LaunchButtonObject>() { launchButtons }
+                : new();
+
             await m_WebSocket.Send(new CapabilitiesResponseV1()
             {
                 Functions = OrchestrationUtilities.GetFunctions(),
-                Outputs = new List<CapabilitiesResponseV1.LaunchButtonObject>
-                {
-                    OrchestrationUtilities.GetPlugins()
-                }
+                Outputs = buttons
             }, default);
         }
 
         void HandleChatResponseFragmentV1(ChatResponseV1 message)
         {
             m_ActiveStreamStringBuilder.Append(message.Markdown);
+
+            if (message.LastMessage)
+                WorkflowState = State.Idle;
+            else
+                WorkflowState = State.ProcessingStream;
 
             OnChatResponse?.Invoke(new ChatResponseFragment()
             {
@@ -496,11 +546,6 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
             });
 
             m_ActiveStreamStatusHook.ProcessStatusFromResponse(message, m_ActiveStreamStringBuilder.ToString());
-
-            if (message.LastMessage)
-                WorkflowState = State.Idle;
-            else
-                WorkflowState = State.ProcessingStream;
         }
 
         void HandleServerDisconnect(ServerDisconnectV1 serverDisconnect)
@@ -522,8 +567,16 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
             DisconnectFromServer(reason).WithExceptionLogging();
         }
 
+        internal void LocalDisconnect()
+        {
+            CloseReason reason = new() { Reason = CloseReason.ReasonType.ClientCanceled, Info = "Happy Path" };
+            DisconnectFromServer(reason).WithExceptionLogging();
+        }
+
         async Task DisconnectFromServer(CloseReason reason)
         {
+            CloseReason = reason;
+
             // Since the client is disconnecting, do not catch the close event. Instead, handle it here.
             m_WebSocket.OnClose -= HandleWebsocketClosed;
             m_WebSocket.OnMessageReceived -= ProcessReceiveResult;
@@ -536,7 +589,6 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
                 case CloseReason.ReasonType.UnderlyingWebSocketWasClosed:
                     break;
                 case CloseReason.ReasonType.ChatResponseTimeout:
-                    // TODO: Verify how to communicate a timeout to the server
                     var timeoutMessage = new ClientDisconnectV1
                     {
                         DisconnectReason = ClientDisconnectV1.DisconnectReasonOneOf.FromTimeoutModel(
@@ -546,7 +598,6 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
                     await m_WebSocket.Send(timeoutMessage, default);
                     break;
                 case CloseReason.ReasonType.ServerSentUnknownMessage:
-                    // TODO: Verify how to communicate a timeout to the server
                     var unknownMessage = new ClientDisconnectV1
                     {
                         DisconnectReason = ClientDisconnectV1.DisconnectReasonOneOf.FromInvalidMessageModel(
@@ -559,7 +610,6 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
                     await m_WebSocket.Send(unknownMessage, default);
                     break;
                 case CloseReason.ReasonType.ServerSentMessageAtWrongTime:
-                    // TODO: Verify how to communicate a timeout to the server
                     var wrongTimeMessage = new ClientDisconnectV1
                     {
                         DisconnectReason = ClientDisconnectV1.DisconnectReasonOneOf.FromInvalidMessageOrderModel(
@@ -569,7 +619,6 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
                     await m_WebSocket.Send(wrongTimeMessage, default);
                     break;
                 case CloseReason.ReasonType.DiscussionInitializationTimeout:
-                    // TODO: Verify how to communicate a timeout to the server
                     var disInitMessage = new ClientDisconnectV1
                     {
                         DisconnectReason = ClientDisconnectV1.DisconnectReasonOneOf.FromTimeoutModel(
@@ -588,6 +637,18 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
 
             // Signal closure
             OnClose?.Invoke(reason);
+        }
+
+        // Todo - hook this up to the actual server response when we get one
+        internal void HandleCancellationResponse()
+        {
+            if (m_WorkflowState == State.Canceling)
+                m_WorkflowState = State.Idle;
+            else
+            {
+                CloseReason reason = new() { Reason = CloseReason.ReasonType.ServerSentMessageAtWrongTime, Info = "Server acknowledged a cancel when a cancellation was not expected." };
+                DisconnectFromServer(reason).WithExceptionLogging();
+            }
         }
 
         public void Dispose()

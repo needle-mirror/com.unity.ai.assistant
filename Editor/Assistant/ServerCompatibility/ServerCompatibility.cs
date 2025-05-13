@@ -3,6 +3,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Unity.AI.Assistant.Editor.ApplicationModels;
 using Unity.AI.Assistant.Editor.Backend;
+using Unity.AI.Assistant.Editor.Backend.Socket.ErrorHandling;
+using Unity.AI.Assistant.Editor.Data;
+using Unity.AI.Assistant.Editor.Utils;
 using Unity.AI.Toolkit.Accounts.Services;
 
 namespace Unity.AI.Assistant.Editor.ServerCompatibility
@@ -64,8 +67,18 @@ namespace Unity.AI.Assistant.Editor.ServerCompatibility
                     return;
 
                 // At this point, a cache was not used. A webrequest needs to be made and the resulting status cached
-                var versionInfo = await s_AssistantBackend.GetVersionSupportInfo(k_Version);
+                var result = await s_AssistantBackend.GetVersionSupportInfo(CredentialsContext.Default());
 
+                // On failure, simply ignore. We don't want to spam notifications because of internet connect issues.
+                if (result.Status != BackendResult.ResultStatus.Success)
+                {
+                    ErrorHandlingUtility.InternalLogBackendResult(result);
+                    UserSessionState.instance.CompatibilityStatus = CompatibilityStatus.Unknown;
+                    OnCompatibilityChanged?.Invoke(Status);
+                    return;
+                }
+
+                var versionInfo =result.Value;
                 if (versionInfo != null)
                 {
                     var relevantVersion = versionInfo

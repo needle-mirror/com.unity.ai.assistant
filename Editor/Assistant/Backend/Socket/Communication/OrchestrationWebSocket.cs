@@ -56,31 +56,38 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Communication
         /// Attempts to start the WebSocket against the provided URL.
         /// </summary>
         /// <param name="args">A formatted string of url args that are web compatible. <example>conversation_id=123
+        /// <param name="ct">Cancellation token for the connection act</param>
         /// </example></param>
-        public async Task<ConnectResult> Connect(IOrchestrationWebSocket.Options options)
+        public async Task<ConnectResult> Connect(IOrchestrationWebSocket.Options options, CancellationToken ct)
         {
             m_CachedOptions = options;
 
             options.ApplyHeaders(m_WebSocket);
             Uri uri = new(options.ConstructUri(k_Uri));
 
-            var cancelToken = m_InternalCancellation.Token;
+            var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(m_InternalCancellation.Token, ct);
+
+            var connectCancelToken = linkedTokenSource.Token;
             try
             {
-                await m_WebSocket.ConnectAsync(uri, cancelToken);
+                await m_WebSocket.ConnectAsync(uri, connectCancelToken);
             }
             catch (Exception e)
             {
                 return new ConnectResult{ IsConnectedSuccessfully = false, Exception = e};
             }
 
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            var cancelToken = m_InternalCancellation.Token;
             if (m_SingleThreadExecution)
                 ReceiveMessages(cancelToken).WithExceptionLogging();
+
             else
-                Task.Run(() => ReceiveMessages(cancelToken)).WithExceptionLogging();
+                Task.Run(() => ReceiveMessages(cancelToken), cancelToken).WithExceptionLogging();
 
             ProcessMessages(cancelToken).WithExceptionLogging();
             PollWebSocketClosed(cancelToken).WithExceptionLogging();
+#pragma warning restore CS4014
 
             return new ConnectResult{ IsConnectedSuccessfully = true };
         }
@@ -131,7 +138,15 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Communication
                 WebSocketReceiveResult result;
                 do
                 {
-                    result = await m_WebSocket.ReceiveAsync(buffer, token);
+                    try
+                    {
+                        result = await m_WebSocket.ReceiveAsync(buffer, token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // Websocket gets destroyed mid receive too fast sometimes
+                        return;
+                    }
 
                     if (token.IsCancellationRequested)
                         return;
@@ -179,7 +194,7 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Communication
                     OnMessageReceived?.Invoke(model);
                 }
 
-                await Task.Yield();
+                await DelayUtility.ReasonableResponsiveDelay();
             }
         }
 
@@ -190,7 +205,7 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Communication
                 if(token.IsCancellationRequested)
                     return;
 
-                await Task.Yield();
+                await DelayUtility.ReasonableResponsiveDelay();
             }
 
             OnClose?.Invoke(m_WebSocket.CloseStatus);

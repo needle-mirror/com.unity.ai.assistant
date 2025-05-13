@@ -100,14 +100,14 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
                             componentsResult += prefix + payload + "\n";
 
                             // If the context is going to get too big, exit early and try again with downsized payload:
-                            if (componentsResult.Length > SmartContextToolbox.SmartContextLimit &&
+                            if (componentsResult.Length > AssistantMessageSizeConstraints.ContextLimit &&
                                 fullOrDownsizedPayLoad == 0)
                             {
                                 break;
                             }
                         }
 
-                        if (componentsResult.Length <= SmartContextToolbox.SmartContextLimit ||
+                        if (componentsResult.Length <= AssistantMessageSizeConstraints.ContextLimit ||
                             fullOrDownsizedPayLoad == 1)
                         {
                             return new SmartContextToolbox.ExtractedContext
@@ -140,7 +140,7 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
             }
 
             var result = prefix + objectPayload;
-            if (result.Length <= SmartContextToolbox.SmartContextLimit)
+            if (result.Length <= AssistantMessageSizeConstraints.ContextLimit)
             {
                 return new SmartContextToolbox.ExtractedContext
                 {

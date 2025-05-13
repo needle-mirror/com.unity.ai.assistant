@@ -11,11 +11,11 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew.Pages
 
             view.SetupButton("openAssistantButton", OnOpenAssistant);
 
-            RegisterPage(view.Q<VisualElement>("page1"), "Video 3 - Replace with Attached Object");
-            RegisterPage(view.Q<VisualElement>("page2"), "Video 4 - Mesh to Sphere Colliders");
-            RegisterPage(view.Q<VisualElement>("page3"), "Video 4 - Mesh to Sphere Colliders");
-            RegisterPage(view.Q<VisualElement>("page4"), "Video 4 - Mesh to Sphere Colliders");
-            RegisterPage(view.Q<VisualElement>("page5"));
+            RegisterPage(view.Q<VisualElement>("page1"), "1 - SlashCommand");
+            RegisterPage(view.Q<VisualElement>("page2"), "2 - TroubleshootingConsole");
+            RegisterPage(view.Q<VisualElement>("page3"), "3 - RunCommands");
+            RegisterPage(view.Q<VisualElement>("page4"), "4 - ModifyScript");
+            RegisterPage(view.Q<VisualElement>("page5"), "5 - PointsCost");
         }
 
         public override string Title => "Assistant";

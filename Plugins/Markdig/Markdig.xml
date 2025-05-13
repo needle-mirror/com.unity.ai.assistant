@@ -110,7 +110,7 @@
         </member>
         <member name="F:Markdig.Extensions.AutoIdentifiers.AutoIdentifierOptions.None">
             <summary>
-            No options: does not apply any additional formatting and/or transformations.  
+            No options: does not apply any additional formatting and/or transformations.
             </summary>
         </member>
         <member name="F:Markdig.Extensions.AutoIdentifiers.AutoIdentifierOptions.Default">
@@ -270,7 +270,7 @@
         </member>
         <member name="T:Markdig.Extensions.DefinitionLists.DefinitionItem">
             <summary>
-            A definition item contains zero to multiple <see cref="T:Markdig.Extensions.DefinitionLists.DefinitionTerm"/> 
+            A definition item contains zero to multiple <see cref="T:Markdig.Extensions.DefinitionLists.DefinitionTerm"/>
             and definitions (any <see cref="T:Markdig.Syntax.Block"/>)
             </summary>
             <seealso cref="T:Markdig.Syntax.ContainerBlock" />
@@ -740,7 +740,7 @@
         </member>
         <member name="T:Markdig.Extensions.JiraLinks.JiraLinkExtension">
             <summary>
-            Simple inline parser extension for Markdig to find, and 
+            Simple inline parser extension for Markdig to find, and
             automatically add links to JIRA issue numbers.
             </summary>
         </member>
@@ -939,7 +939,7 @@
         </member>
         <member name="T:Markdig.Extensions.SelfPipeline.SelfPipelineExtension">
             <summary>
-            Extension to enable SelfPipeline, to configure a Markdown parsing/convertion to HTML automatically 
+            Extension to enable SelfPipeline, to configure a Markdown parsing/convertion to HTML automatically
             from an embedded special tag in the input text <code>&lt;!--markdig:extensions--&gt;</code> where extensions is a string
             that specifies the extensions to use for the pipeline as exposed by <see cref="M:Markdig.MarkdownExtensions.Configure(Markdig.MarkdownPipelineBuilder,System.String)"/> extension method
             on the <see cref="T:Markdig.MarkdownPipelineBuilder"/>. This extension will invalidate all other extensions and will override them.
@@ -1180,7 +1180,7 @@
              <summary>
              Defines whether table should be normalized to the amount of columns as defined in the table header.
              <c>false</c> by default
-            
+
              If <c>true</c>, this will insert empty cells in rows with fewer tables than the header row and remove cells
              that are exceeding the header column count.
              If <c>false</c>, this will use the row with the most columns to determine how many cells should be inserted
@@ -1808,7 +1808,7 @@
         </member>
         <member name="T:Markdig.Helpers.ICharIterator">
             <summary>
-            Provides a common interface for iterating characters 
+            Provides a common interface for iterating characters
             over a <see cref="T:Markdig.Helpers.StringSlice"/> or <see cref="T:Markdig.Helpers.StringLineGroup"/>.
             </summary>
         </member>
@@ -5306,7 +5306,7 @@
         </member>
         <member name="P:Markdig.Syntax.IFencedBlock.Info">
             <summary>
-            Gets or sets the language parsed after the first line of 
+            Gets or sets the language parsed after the first line of
             the fenced code block. May be null.
             </summary>
         </member>
@@ -5812,7 +5812,7 @@
         </member>
         <member name="T:Markdig.Syntax.Inlines.LinkInline.GetUrlDelegate">
             <summary>
-            A delegate to use if it is setup on this instance to allow late binding 
+            A delegate to use if it is setup on this instance to allow late binding
             of a Url.
             </summary>
             <returns></returns>
@@ -5916,7 +5916,7 @@
         </member>
         <member name="P:Markdig.Syntax.Inlines.LinkInline.GetDynamicUrl">
             <summary>
-            Gets or sets the GetDynamicUrl delegate. If this property is set, 
+            Gets or sets the GetDynamicUrl delegate. If this property is set,
             it is used instead of <see cref="P:Markdig.Syntax.Inlines.LinkInline.Url"/> to get the Url from this instance.
             </summary>
         </member>
@@ -6486,7 +6486,7 @@
         </member>
         <member name="P:Markdig.Syntax.SourceSpan.Start">
             <summary>
-            Gets or sets the starting character position from the original text source. 
+            Gets or sets the starting character position from the original text source.
             Note that for inline elements, this is only valid if <see cref="M:Markdig.MarkdownExtensions.UsePreciseSourceLocation(Markdig.MarkdownPipelineBuilder)"/> is setup on the pipeline.
             </summary>
         </member>

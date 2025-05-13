@@ -8,7 +8,7 @@ namespace Unity.AI.Assistant.Editor.ServerCompatibility
                 ServerCompatibilityText.NotSupportedMessage,
                 new LabelLink(
                     ServerCompatibilityText.NotSupportedMessageLink,
-                    () => UnityEditor.PackageManager.UI.Window.Open("com.unity.ai.assistant"))
+                    () => UnityEditor.PackageManager.UI.Window.Open(AssistantConstants.PackageName))
             ) { }
     }
 }

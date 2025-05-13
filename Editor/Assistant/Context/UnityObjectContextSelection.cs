@@ -23,7 +23,7 @@ namespace Unity.AI.Assistant.Editor.Context
         public bool IncludeFileContents = true;
 
         // The serialized json string will be limited to this length:
-        public int SerializationLimit = AssistantSettings.PromptContextLimit;
+        public int SerializationLimit = AssistantMessageSizeConstraints.ContextLimit;
 
         public void SetTarget(Object target)
         {

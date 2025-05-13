@@ -7,6 +7,11 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
     abstract class SelectionPopupTab: Tab
     {
         public abstract string DefaultLabel { get; }
+
+        public abstract string Instruction1Message { get; }
+
+        public abstract string Instruction2Message { get; }
+
         internal bool IsSelected { get; set; }
         internal List<Object> TabSearchResults { get; set; }
         private readonly Label k_NumberOfResultsLabel;

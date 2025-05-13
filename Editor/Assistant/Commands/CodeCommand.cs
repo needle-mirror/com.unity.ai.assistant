@@ -12,6 +12,6 @@ namespace Unity.AI.Assistant.Editor.Commands
         public override string Tooltip => "Generating code is experimental and may not be reliable or consistent. We recommend using it only for testing.";
         public override string Icon => "mui-icon-cmd-code";
 
-        public override bool ShowInList => AssistantSettings.BetaFeaturesEnabled;
+        public override bool ShowInList => true;
     }
 }

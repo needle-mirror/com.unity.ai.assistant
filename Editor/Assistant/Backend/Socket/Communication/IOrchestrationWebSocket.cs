@@ -33,7 +33,7 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Communication
 
         event Action<ReceiveResult> OnMessageReceived;
         event Action<WebSocketCloseStatus?> OnClose;
-        Task<ConnectResult> Connect(Options args);
+        Task<ConnectResult> Connect(Options args, CancellationToken ct);
         Task<SendResult> Send(IModel model, CancellationToken ct);
     }
 }

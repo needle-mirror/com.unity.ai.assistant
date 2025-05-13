@@ -1,8 +1,10 @@
+using System.Linq;
 using Unity.AI.Assistant.Editor.Data;
 using Unity.AI.Assistant.Editor.Utils;
 using Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements;
 using Unity.AI.Assistant.UI.Editor.Scripts.Data;
 using Unity.AI.Assistant.UI.Editor.Scripts.Utils;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
@@ -17,6 +19,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         Button m_ScrollToBottomButton;
 
         int m_ErrorCount;
+
+        ResponseFeedbackQueue m_FeedbackQueue;
 
         public AssistantConversationPanel()
             : base(AssistantUIConstants.UIModulePath)
@@ -46,6 +50,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
             Context.API.ConversationChanged += OnConversationChanged;
 
+            m_FeedbackQueue = new ResponseFeedbackQueue(Context);
+            m_FeedbackQueue.LoadedFeedback += OnFeedbackLoaded;
+
             UpdateVisibility();
         }
 
@@ -63,6 +70,15 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 }
             }
 
+            for (var i = conversation.Messages.Count-1; i >= 0; i--)
+            {
+                var msg = conversation.Messages[i];
+                if (msg.Role == MessageModelRole.Assistant)
+                {
+                    m_FeedbackQueue.QueueRefresh(msg.Id, i);
+                }
+            }
+
             m_ConversationList.EndUpdate();
             UpdateVisibility();
         }
@@ -70,6 +86,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         public void ClearConversation()
         {
             m_ConversationList.ClearData();
+            m_FeedbackQueue.Clear();
 
             UpdateVisibility();
         }
@@ -92,6 +109,17 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 return;
             }
 
+            // If there are more messages present in the conversation than visuals displayed, remove visuals from the
+            // end of the m_ConversationList one by one
+            if (conversation.Messages.Count < m_ConversationList.Data.Count)
+            {
+                for (int i = m_ConversationList.Data.Count - 1; i >= conversation.Messages.Count; i--)
+                    m_ConversationList.RemoveData(i);
+            }
+
+            // Compare the conversation content against the display:
+            // - Add new messages
+            // - Update messages that got changed
             bool scrollToEndRequired = false;
             for (var messageIndex = 0; messageIndex < conversation.Messages.Count; messageIndex++)
             {
@@ -151,6 +179,24 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         void UpdateOverlayButtons()
         {
             m_ScrollToBottomButton.SetDisplay(m_ConversationList.CanScrollDown);
+        }
+
+        void OnFeedbackLoaded(AssistantMessageId id, int index, FeedbackData? feedback)
+        {
+            if (m_ConversationList.Data.Count > index)
+            {
+                var message = m_ConversationList.Data[index];
+
+                if (message.Id != id)
+                {
+                    Debug.LogError($"Feedback ID {id} does not match message ID {message.Id}");
+                    return;
+                }
+
+                message.Feedback = feedback;
+
+                m_ConversationList.UpdateData(index, message);
+            }
         }
     }
 }

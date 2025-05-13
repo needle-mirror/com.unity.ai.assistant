@@ -30,11 +30,9 @@ namespace Unity.AI.Assistant.Editor.Context.CommandContext
         /// </summary>
         /// <param name="name">Name of the tool function.</param>
         /// <param name="args">Arguments to pass to the tool function.</param>
-        /// <param name="maxContextLength">Context character limit</param>
         /// <param name="output">Output from the tool function</param>
-        public bool TryRunToolByName(string name, string[] args, int maxContextLength, out IContextSelection output)
+        public bool TryRunToolByName(string name, string[] args, out IContextSelection output)
         {
-            SmartContextLimit = maxContextLength;
             try
             {
                 if (TryGetSelectorAndConvertArgs(name, args, out var tool, out var convertedArgs))

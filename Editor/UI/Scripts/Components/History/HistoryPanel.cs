@@ -178,6 +178,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.History
                 return;
             }
 
+            Context.API.CancelPrompt();
+
             var conversationInfo = (ConversationModel)data;
             m_SelectedConversation = conversationInfo.Id;
 
@@ -189,7 +191,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.History
                 d.ConversationId = m_SelectedConversation.Value;
                 d.ConversationTitle = conversationInfo.Title;
             });
-
             EntrySelected?.Invoke();
         }
 

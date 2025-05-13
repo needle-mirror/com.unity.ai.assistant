@@ -6,7 +6,6 @@ using Unity.AI.Assistant.Editor.Analytics;
 using Unity.AI.Assistant.Editor.Commands;
 using Unity.AI.Assistant.Editor.Context;
 using Unity.AI.Assistant.Editor.Data;
-using Unity.AI.Assistant.Editor.ServerCompatibility;
 using Unity.AI.Assistant.Editor.Utils;
 using Unity.AI.Assistant.UI.Editor.Scripts.Components.History;
 using Unity.AI.Assistant.UI.Editor.Scripts.Components.Inspiration;
@@ -48,6 +47,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         AssistantInspirationPanel m_InspirationPanel;
 
         HistoryPanel m_HistoryPanel;
+        VisualElement m_HistorySearchBarRoot;
+        Rect m_HistoryPanelWorldBounds;
+        float m_SearchBarOffset;
 
         VisualElement m_HeaderRow;
         VisualElement m_FooterRoot;
@@ -152,8 +154,12 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_HistoryPanel = new HistoryPanel();
             m_HistoryPanel.Initialize(Context);
             m_HistoryPanelRoot.Add(m_HistoryPanel);
+            RegisterCallback<ClickEvent>(CheckHistoryPanelClick);
+            m_HistoryPanel.RegisterCallback<GeometryChangedEvent>(evt => OnHistoryPanelGeometryChanged(evt.newRect, evt.oldRect));
             m_HistoryPanelRoot.style.display = AssistantUISessionState.instance.IsHistoryOpen ? DisplayStyle.Flex : DisplayStyle.None;
             m_HistoryPanel.EntrySelected += OnHistoryEntrySelected;
+
+            m_HistorySearchBarRoot = view.Q<VisualElement>("historySearchBarRoot");
 
             m_ProgressElementRoot = view.Q<VisualElement>("progressElementContainer");
             m_ProgressElement = new ProgressElement();
@@ -241,6 +247,25 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             EditorApplication.delayCall += () => RestoreState();
         }
 
+        void OnHistoryPanelGeometryChanged(Rect geometry, Rect previousGeometry)
+        {
+            m_SearchBarOffset = m_HistorySearchBarRoot.worldBound.height;
+        }
+
+        void CheckHistoryPanelClick(ClickEvent e)
+        {
+            var clickPosition = e.localPosition;
+            var historyPanelWorldBound = m_HistoryPanel.worldBound;
+            var offsetWorldBoundPosition = new Vector2(historyPanelWorldBound.position.x, historyPanelWorldBound.position.y - m_SearchBarOffset);
+            var offsetHistoryPanelWorldBound = new Rect(offsetWorldBoundPosition, m_HistoryPanel.worldBound.size);
+            var clickWithinHistoryPanel = offsetHistoryPanelWorldBound.Contains(clickPosition);
+            var clickOfHistoryButton = e.target == m_HistoryButton;
+            if (!clickWithinHistoryPanel && AssistantUISessionState.instance.IsHistoryOpen && !clickOfHistoryButton)
+            {
+                SetHistoryDisplay(false);
+            }
+        }
+
         void OnConversationPanelClicked(MouseUpEvent evt)
         {
             SetHistoryDisplay(false);
@@ -318,6 +343,10 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         void OnConversationReload(AssistantConversationId conversationId)
         {
+            // If this conversation is not active, we don't display it
+            if (Context.Blackboard.ActiveConversationId != conversationId)
+                return;
+
             ClearChat();
             SetInspirationVisible(false);
 
@@ -382,9 +411,11 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         void OnNewChatClicked(PointerUpEvent evt)
         {
+            Context.API.CancelPrompt();
             Context.Blackboard.ClearActiveConversation();
             ClearChat();
             m_ProgressElement.Stop();
+            Context.API.Reset();
 
             m_NewChatButton.EnableInClassList(AssistantUIConstants.ActiveActionButtonClass, true);
             m_NewChatButtonImage.SetOverrideIconClass("checkmark");

@@ -27,7 +27,7 @@
 }
 
 .mui-chat-element-text-area {
-    margin-top: 4px;
+    margin-top: 0;
 }
 
 .mui-um-edit-mode-active .mui-chat-element-text-area {
@@ -37,7 +37,7 @@
 .mui-chat-element-avatar-area {
     flex-direction: row;
     align-items: center;
-    margin-bottom: 4px;
+    margin-bottom: 12px;
 }
 
 .mui-chat-message-content {
@@ -50,5 +50,5 @@
     border-top-color: var(--muse-chat-backgrounds-50);
     padding: 4px 4px 0 4px;
     flex-direction: row;
-    margin-top: 4px;
+    margin-top: 0;
 }

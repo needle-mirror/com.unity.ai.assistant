@@ -1,0 +1,33 @@
+.assistant-settings-page {
+    margin-top: 1px;
+    margin-left: 9px;
+}
+
+#assistantSettingsHeader {
+    -unity-font-definition: resource("UIPackageResources/Fonts/Inter/Inter-Regular SDF.asset");
+    -unity-font-style: bold;
+    font-size: 19px;
+}
+
+.assistant-settings-content {
+    margin-top: 6px;
+    margin-left: 4px;
+}
+
+.assistant-settings-content-label {
+    -unity-font-definition: resource("UIPackageResources/Fonts/Inter/Inter-Regular SDF.asset");
+}
+
+.assistant-settings-horizontal-layout {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 5px;
+}
+
+#promptModifierLabel {
+    width: 220px;
+}
+
+#promptModifierToggle {
+    margin-left: 10px;
+}

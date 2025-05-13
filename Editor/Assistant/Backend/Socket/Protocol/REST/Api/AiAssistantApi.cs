@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Unity.AI.Assistant.Editor.Data;
 using Unity.Collections;
 using Unity.Ai.Assistant.Protocol.Client;
 using UnityEngine.Networking;
@@ -74,6 +75,7 @@ namespace Unity.Ai.Assistant.Protocol.Api
         /// </summary>
         public IPutAssistantConversationInfoGenerateTitleUsingConversationIdV1RequestBuilder PutAssistantConversationInfoGenerateTitleUsingConversationIdV1Builder(int analyticsSessionCount, string analyticsSessionId, string analyticsUserId, Guid conversationId, string orgId, string projectId, string versionApiSpecification, string versionEditor, string versionPackage);
 
+        public CredentialsContext CredentialsContext { get; }
     }
 
     internal interface IDeleteAssistantConversationUsingConversationIdV1RequestBuilder
@@ -2035,6 +2037,8 @@ namespace Unity.Ai.Assistant.Protocol.Api
     {
         IReadableConfiguration m_Configuration;
         IClient m_Client;
+
+        public CredentialsContext CredentialsContext { get; set; }
 
         public IClient Client => m_Client;
 

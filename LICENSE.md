@@ -1,4 +1,4 @@
-AI Assistant copyright © 2025 Unity Technologies.
+com.unity.ai.assistant copyright © 2025 Unity Technologies.
 
 This software is subject to, and made available under, the Unity Terms of Service (see https://unity.com/legal). Your use of this software constitutes your acceptance of such terms.
 

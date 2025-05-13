@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Unity.Muse.Agent.Dynamic
+namespace Unity.AI.Assistant.Agent.Dynamic.Extension
 {
 #if CODE_LIBRARY_INSTALLED
     public

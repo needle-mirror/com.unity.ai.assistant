@@ -4,8 +4,10 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Unity.AI.Assistant.Editor.Backend.Socket.Tools;
 using Unity.AI.Assistant.Editor.Backend.Socket.Utilities;
+using Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat;
 using Unity.AI.Assistant.Editor.Plugins;
 using Unity.AI.Assistant.Editor.Utils;
+using UnityEngine;
 
 namespace Unity.AI.Assistant.Editor.FunctionCalling
 {
@@ -26,19 +28,25 @@ namespace Unity.AI.Assistant.Editor.FunctionCalling
         }
 
         /// <inheritdoc />
-        public async Task<IFunctionCaller.CallResult> CallByLLM(string functionId, JObject parameters)
+        public void CallByLLM(ChatWorkflow workFlow, string functionId, JObject parameters, Guid callId)
         {
-            // Attempt to call as a registered function, if a registered function will the call does not exist, assume
-            // that the function is a smart context function instead.
-            if (m_RegisteredCallsByLLM.TryGetValue(functionId, out Func<JObject, Task<JToken>> call))
-                return await CallBasicFunction(call, parameters);
+            TaskUtils.DispatchToMainThread(async () =>
+            {
+                IFunctionCaller.CallResult result;
 
-            // Attempt to call as a smart context function, if this does not exist, then the function has not been
-            // located by the system and cannot be called
-            if (SystemToolboxes.SmartContextToolbox.ContainsFunctionById(functionId))
-                return await CallSmartContextFunction(functionId, parameters);
+                // Attempt to call as a registered function, if a registered function will the call does not exist, assume
+                // that the function is a smart context function instead.
+                if (m_RegisteredCallsByLLM.TryGetValue(functionId, out Func<JObject, Task<JToken>> call))
+                    result = await CallBasicFunction(call, parameters);
+                // Attempt to call as a smart context function, if this does not exist, then the function has not been
+                // located by the system and cannot be called
+                else if (SystemToolboxes.SmartContextToolbox.ContainsFunctionById(functionId))
+                    result = await CallSmartContextFunction(functionId, parameters);
+                else
+                    result = IFunctionCaller.CallResult.FailedResult();
 
-            return IFunctionCaller.CallResult.FailedResult();
+                workFlow.SendFunctionCallResponse(result, callId);
+            });
         }
 
         /// <inheritdoc />
@@ -49,14 +57,6 @@ namespace Unity.AI.Assistant.Editor.FunctionCalling
 
             try
             {
-                // TODO: Support Instance functions as plugins and remove the FunctionCallingContextBridge
-                // Some plugin functions require the use of contextual access to the current conversation. To achieve
-                // this while maintaining a proper separation of responsibilities, context is provided by the plugin
-                // caller and posted to a static place that the function implementation must pull from to receive the
-                // context. This works because after posting, the function is called immediately. There is a danger
-                // that in async situations the order causes bugs here, but in practice plugins are sync.
-                using var contextTracker = FunctionCallingContextBridge.GetCallContext(context);
-
                 if (!SystemToolboxes.PluginToolbox.TryRunToolByID(functionId, parameters))
                     InternalLog.LogError($"Plugin with the id {functionId} failed, but did not throw an exception");
             }
@@ -109,8 +109,7 @@ namespace Unity.AI.Assistant.Editor.FunctionCalling
                 }
 
                 var (functionSuccess, result)
-                    = await SystemToolboxes.SmartContextToolbox.TryRunToolByIDAsync(functionId, argList.ToArray(),
-                        AssistantSettings.PromptContextLimit);
+                    = await SystemToolboxes.SmartContextToolbox.TryRunToolByIDAsync(functionId, argList.ToArray());
 
                 if (!functionSuccess)
                     return IFunctionCaller.CallResult.FailedResult();
@@ -120,9 +119,9 @@ namespace Unity.AI.Assistant.Editor.FunctionCalling
 
                     var payload = result.Payload;
 
-                    if (payload?.Length > AssistantSettings.PromptContextLimit)
+                    if (payload?.Length > AssistantMessageSizeConstraints.ContextLimit)
                     {
-                        payload = payload.Substring(0, AssistantSettings.PromptContextLimit);
+                        payload = payload.Substring(0, AssistantMessageSizeConstraints.ContextLimit);
                         InternalLog.LogError(
                             $"The context returned by the function was too long and was truncated. This should not happen, update {functionId} to return less data.");
                     }

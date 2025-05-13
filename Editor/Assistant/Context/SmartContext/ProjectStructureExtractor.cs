@@ -75,8 +75,6 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
             var resultPrefix = "Filter:";
             var result = new SmartContextToolbox.ExtractedContext();
 
-            ProjectHierarchyMapEntry.SmartContextLimit = SmartContextToolbox.SmartContextLimit;
-
             // Store all objects in a tree structure first, then serialize it:
             var hierarchyMap = new ProjectHierarchyMapEntry(null);
 
@@ -138,9 +136,15 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
                     }
                     else
                     {
-                        if (!NameAndTypeExist(finalNameFilters, finalTypeFilters, assetNameFilters[i], string.Empty))
+                        var name = assetNameFilters[i];
+                        if (name is "*")
                         {
-                            finalNameFilters.Add(assetNameFilters[i]);
+                            name = "";
+                        }
+
+                        if (!NameAndTypeExist(finalNameFilters, finalTypeFilters, name, string.Empty))
+                        {
+                            finalNameFilters.Add(name);
                             finalTypeFilters.Add(string.Empty);
                         }
                     }
@@ -175,7 +179,7 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
                         ProcessDirectory(subDir);
 
                         if (ProjectHierarchyMapEntry.EstimatedSerializedLength >
-                            ProjectHierarchyMapEntry.SmartContextLimit)
+                            AssistantMessageSizeConstraints.ContextLimit)
                         {
                             result.Truncated = true;
                             break;
@@ -196,7 +200,7 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
                                 hierarchyMap.Insert(info);
 
                                 if (ProjectHierarchyMapEntry.EstimatedSerializedLength >
-                                    ProjectHierarchyMapEntry.SmartContextLimit)
+                                    AssistantMessageSizeConstraints.ContextLimit)
                                 {
                                     result.Truncated = true;
                                     break;
@@ -212,7 +216,7 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
                                 directoriesToProcess.Enqueue(subDir);
 
                                 if (ProjectHierarchyMapEntry.EstimatedSerializedLength >
-                                    ProjectHierarchyMapEntry.SmartContextLimit)
+                                    AssistantMessageSizeConstraints.ContextLimit)
                                 {
                                     result.Truncated = true;
                                     break;
@@ -351,7 +355,7 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
                 hierarchyMap.Insert(info);
 
                 if (ProjectHierarchyMapEntry.EstimatedSerializedLength >
-                    ProjectHierarchyMapEntry.SmartContextLimit)
+                    AssistantMessageSizeConstraints.ContextLimit)
                 {
                     break;
                 }
@@ -363,9 +367,6 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
             }
 
             resultPrefix += ":\n";
-
-            ProjectHierarchyMapEntry.SmartContextLimit =
-                Math.Max(0, ProjectHierarchyMapEntry.SmartContextLimit - resultPrefix.Length);
 
             result.ContextType = "project structure";
             result.Payload = resultPrefix + hierarchyMap.Serialized();

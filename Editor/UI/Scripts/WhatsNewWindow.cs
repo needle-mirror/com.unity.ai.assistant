@@ -1,6 +1,8 @@
 using Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew;
+using Unity.AI.Toolkit.Accounts.Services;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Unity.AI.Assistant.UI.Editor.Scripts
 {
@@ -35,6 +37,24 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
             m_View.RepaintWindow += Repaint;
 
             m_View.InitializeThemeAndStyle();
+        }
+
+        [InitializeOnLoadMethod]
+        static void Init() => DropdownExtension.RegisterMenuExtension(container => container.Add(new AssistantToolbarMenuItem()), 10);
+
+        class AssistantToolbarMenuItem : VisualElement
+        {
+            public AssistantToolbarMenuItem()
+            {
+                AddToClassList("label-button");
+                AddToClassList("text-menu-item");
+                AddToClassList("text-menu-item-row");
+
+                var label = new Label("What's New?");
+                label.style.marginTop = 8;
+                label.AddManipulator(new Clickable(ShowWindow));
+                Add(label);
+            }
         }
     }
 }

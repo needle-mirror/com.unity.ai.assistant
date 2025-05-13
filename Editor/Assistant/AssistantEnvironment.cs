@@ -6,8 +6,8 @@ namespace Unity.AI.Assistant.Editor
     [FilePath("AssistantEnv", FilePathAttribute.Location.PreferencesFolder)]
     internal class AssistantEnvironment : ScriptableSingleton<AssistantEnvironment>
     {
-        const string k_DefaultApiUrl = "https://api.prd.azure.muse.unity.com";
-        const string k_DefaultWebSocketApiUrl = "wss://api.prd.azure.muse.unity.com/v1/assistant/ws";
+        const string k_DefaultApiUrl = "https://api-beta.prd.azure.muse.unity.com";
+        const string k_DefaultWebSocketApiUrl = "wss://api-beta.prd.azure.muse.unity.com/v1/assistant/ws";
 
         [SerializeField]
         public string ApiUrl = k_DefaultApiUrl;

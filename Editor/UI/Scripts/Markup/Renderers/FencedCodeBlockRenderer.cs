@@ -20,8 +20,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Markup.Renderers
 
         protected override void Write(ChatMarkdownRenderer renderer, FencedCodeBlock obj)
         {
-            renderer.AppendText($"<color={AssistantConstants.CodeColorText}>");
-
             var fullCodeBlock = new StringBuilder();
 
             for (int i = 0; i < obj.Lines.Count; i++)
@@ -77,8 +75,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Markup.Renderers
             {
                 displayBlock.AddContent(codeText);
             }
-
-            renderer.AppendText("</color>");
         }
     }
 }

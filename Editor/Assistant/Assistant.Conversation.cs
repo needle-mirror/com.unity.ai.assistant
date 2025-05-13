@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Unity.AI.Assistant.Editor.Data;
 using Unity.AI.Assistant.Editor.ApplicationModels;
+using Unity.AI.Assistant.Editor.Backend.Socket.ErrorHandling;
+using UnityEngine;
 
 namespace Unity.AI.Assistant.Editor
 {
@@ -93,10 +95,8 @@ namespace Unity.AI.Assistant.Editor
         /// </summary>
         public event Action<AssistantConversationId> ConversationDeleted;
 
-        /// <summary>
-        /// Callback when a conversation creation has failed
-        /// </summary>
-        public event Action<AssistantConversationId> ConversationCreationFailed;
+        /// <inheritdoc />
+        public event Action<AssistantConversationId, ErrorInfo> ConversationErrorOccured;
 
         public void SuspendConversationRefresh()
         {
@@ -108,7 +108,7 @@ namespace Unity.AI.Assistant.Editor
             m_ConversationRefreshSuspended = false;
         }
 
-        public void NotifyConversationChange(AssistantConversation conversation)
+        private void NotifyConversationChange(AssistantConversation conversation)
         {
             ConversationChanged?.Invoke(conversation);
         }
@@ -120,9 +120,16 @@ namespace Unity.AI.Assistant.Editor
 
             var tag = UnityDataUtils.GetProjectId();
 
-            var infos = await m_Backend.ConversationRefresh(ct);
-            var conversations = infos.Select(
-                info => new AssistantConversationInfo
+            var infosResult = await m_Backend.ConversationRefresh(await GetCredentialsContext(ct), ct);
+
+            if (infosResult.Status != BackendResult.ResultStatus.Success)
+            {
+                ErrorHandlingUtility.PublicLogBackendResultError(infosResult);
+                return;
+            }
+
+            var conversations = infosResult.Value.Select(
+                info => new AssistantConversationInfo()
                 {
                     Id = new(info.ConversationId),
                     Title = info.Title,
@@ -131,7 +138,7 @@ namespace Unity.AI.Assistant.Editor
                     IsFavorite = info.IsFavorite != null && info.IsFavorite.Value
                 });
 
-            OnConversationHistoryReceived(conversations);
+            ConversationsRefreshed?.Invoke(conversations);
 
             return;
 
@@ -152,8 +159,16 @@ namespace Unity.AI.Assistant.Editor
             if(!conversationId.IsValid)
                 throw new ArgumentException("Invalid conversation id");
 
-            var clientConversation = await m_Backend.ConversationLoad(conversationId.Value, ct);
-            var conversation = ConvertConversation(clientConversation);
+            var result = await m_Backend.ConversationLoad(await GetCredentialsContext(ct), conversationId.Value, ct);
+
+            if (result.Status != BackendResult.ResultStatus.Success)
+            {
+                string errorMessage = "Failed to load the conversation.";
+                ConversationErrorOccured?.Invoke(conversationId, new ErrorInfo(errorMessage, result.ToString()));
+                return;
+            }
+
+            var conversation = ConvertConversation(result.Value);
 
             if (!m_ConversationCache.TryAdd(conversationId, conversation))
             {
@@ -163,12 +178,18 @@ namespace Unity.AI.Assistant.Editor
             ConversationLoaded?.Invoke(conversation);
         }
 
-        public void ConversationFavoriteToggle(AssistantConversationId conversationId, bool isFavorite)
+        public async Task ConversationFavoriteToggle(AssistantConversationId conversationId, bool isFavorite)
         {
             if(!conversationId.IsValid)
                 throw new ArgumentException("Invalid conversation id");
 
-            m_Backend.ConversationFavoriteToggle(conversationId.Value, isFavorite);
+            BackendResult result = await m_Backend.ConversationFavoriteToggle(await GetCredentialsContext(), conversationId.Value, isFavorite);
+
+            if (result.Status != BackendResult.ResultStatus.Success)
+            {
+                ErrorHandlingUtility.PublicLogBackendResultError(result);
+                return;
+            }
         }
 
         public async Task ConversationRename(AssistantConversationId conversationId, [NotNull] string newName, CancellationToken ct = default)
@@ -178,7 +199,14 @@ namespace Unity.AI.Assistant.Editor
                 return;
             }
 
-            await m_Backend.ConversationRename(conversationId.Value, newName, ct);
+            BackendResult result = await m_Backend.ConversationRename(await GetCredentialsContext(ct), conversationId.Value, newName, ct);
+
+            if (result.Status != BackendResult.ResultStatus.Success)
+            {
+                ErrorHandlingUtility.PublicLogBackendResultError(result);
+                return;
+            }
+
             await RefreshConversationsAsync(ct);
         }
 
@@ -188,7 +216,15 @@ namespace Unity.AI.Assistant.Editor
             {
                 return;
             }
-            await m_Backend.ConversationDelete(conversationId.Value, ct);
+
+            BackendResult result = await m_Backend.ConversationDelete(await GetCredentialsContext(ct), conversationId.Value, ct);
+
+            if (result.Status != BackendResult.ResultStatus.Success)
+            {
+                ErrorHandlingUtility.PublicLogBackendResultError(result);
+                return;
+            }
+
             ConversationDeleted?.Invoke(conversationId);
         }
 
@@ -233,11 +269,6 @@ namespace Unity.AI.Assistant.Editor
             return false;
         }
 
-        void OnConversationHistoryReceived(IEnumerable<AssistantConversationInfo> historyData)
-        {
-            ConversationsRefreshed?.Invoke(historyData);
-        }
-
         AssistantConversation ConvertConversation(ClientConversation remoteConversation)
         {
             var conversationId = new AssistantConversationId(remoteConversation.Id);
@@ -255,7 +286,6 @@ namespace Unity.AI.Assistant.Editor
                     Id = new(conversationId, fragment.Id, AssistantMessageIdType.External),
                     IsComplete = true,
                     Role = fragment.Role,
-                    Author = fragment.Author,
                     Content = fragment.Content,
                     Timestamp = fragment.Timestamp,
                     Context = ConvertSelectionContextToInternal(fragment.SelectedContextMetadata),

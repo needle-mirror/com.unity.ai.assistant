@@ -14,7 +14,7 @@ namespace Unity.AI.Assistant.Editor.Context
         private readonly EditorContextReport m_ContextList = new(
             attachedContext: new List<ContextItem>(),
             extractedContext: new List<ContextItem>(),
-            characterLimit: AssistantSettings.PromptContextLimit);
+            characterLimit: AssistantMessageSizeConstraints.ContextLimit);
 
         internal int PredictedLength { get; private set; }
 

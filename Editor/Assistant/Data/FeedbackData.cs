@@ -1,8 +1,9 @@
+using System;
 using Unity.AI.Assistant.Editor.ApplicationModels;
 
 namespace Unity.AI.Assistant.Editor.Data
 {
-    struct FeedbackData
+    struct FeedbackData : IEquatable<FeedbackData>
     {
         public FeedbackData(Sentiment sentiment, string details)
         {
@@ -12,5 +13,21 @@ namespace Unity.AI.Assistant.Editor.Data
 
         public readonly Sentiment Sentiment;
         public readonly string Details;
+
+        public bool Equals(FeedbackData other)
+        {
+            return Sentiment == other.Sentiment &&
+                   string.Equals(Details, other.Details);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is FeedbackData other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Sentiment, Details?.ToLowerInvariant());
+        }
     }
 }

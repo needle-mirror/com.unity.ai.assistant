@@ -47,11 +47,11 @@
     border-width: 1px;
     border-color: var(--muse-chat-primary-500);
     padding: 8px;
+    margin-bottom: 12px;
 }
 
 .mui-whats-new-page-list {
     margin-top: 16px;
-    flex-grow: 1;
     justify-content: space-evenly;
 }
 
@@ -69,6 +69,7 @@
 .mui-whats-new-page-footer {
     -unity-text-align: lower-left;
     margin-bottom: 8px;
+    margin-top: auto;
 }
 
 .mui-whats-new-page-action-button {

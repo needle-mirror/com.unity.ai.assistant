@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using UnityEditor.Search;
 using UnityEngine;
 
 namespace Unity.AI.Assistant.Editor.Utils
@@ -7,13 +8,15 @@ namespace Unity.AI.Assistant.Editor.Utils
     static class TaskUtils
     {
         // Log exceptions for any 'fire and forget' functions (ie. not using await)
-        internal static void WithExceptionLogging(this Task task, Action<Exception> exceptionHandler = null)
+        internal static Task WithExceptionLogging(this Task task, Action<Exception> exceptionHandler = null)
         {
             if (task != null && (!task.IsCompleted || task.IsFaulted))
             {
                 var stackTrace = System.Environment.StackTrace;
                 _ = LogExceptionTask(task, exceptionHandler, stackTrace);
             }
+
+            return task;
         }
         async static Task LogExceptionTask(Task task, Action<Exception> exceptionHandler, string sourceStack)
         {
@@ -27,6 +30,21 @@ namespace Unity.AI.Assistant.Editor.Utils
                 InternalLog.LogException(combinedException);
                 exceptionHandler?.Invoke(combinedException);
             }
+        }
+
+        internal static void DispatchToMainThread(Action action)
+        {
+            Dispatcher.Enqueue(() =>
+            {
+                try
+                {
+                    action.Invoke();
+                }
+                catch (Exception e)
+                {
+                    InternalLog.LogException(e);
+                }
+            });
         }
     }
 }

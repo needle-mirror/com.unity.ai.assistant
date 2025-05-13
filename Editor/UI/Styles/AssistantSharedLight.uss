@@ -52,27 +52,12 @@
 }
 
 .mui-icon-history {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ClockCounterClockwise.png');
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/UndoHistory.png');
     --unity-image-tint-color: var(--muse-chat-light-mode-icon-tint);
 }
 
 .mui-icon-copy {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CopySimple.png');
-    --unity-image-tint-color: var(--muse-chat-light-mode-icon-tint);
-}
-
-.mui-icon-cmd-run {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CmdRun.png');
-    --unity-image-tint-color: var(--muse-chat-light-mode-icon-tint);
-}
-
-.mui-icon-cmd-ask {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CmdAsk.png');
-    --unity-image-tint-color: var(--muse-chat-light-mode-icon-tint);
-}
-
-.mui-icon-cmd-code {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CmdCode.png');
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Copy.png');
     --unity-image-tint-color: var(--muse-chat-light-mode-icon-tint);
 }
 
@@ -82,7 +67,7 @@
 }
 
 .mui-icon-edit {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Edit.png');
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Code.png');
     --unity-image-tint-color: var(--muse-chat-light-mode-icon-tint);
 }
 
@@ -100,37 +85,17 @@
     --unity-image-tint-color: var(--muse-chat-light-mode-icon-tint);
 }
 
-.mui-icon-cancel {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/XSquare.png');
-    --unity-image-tint-color: var(--muse-chat-light-mode-icon-tint);
-}
-
-.mui-icon-stop {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/StopCircle.png');
-    --unity-image-tint-color: var(--muse-chat-light-mode-icon-tint);
-}
-
-.mui-icon-submit {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/PaperPlaneRight.png');
-    --unity-image-tint-color: var(--muse-chat-light-mode-icon-tint);
-}
-
-.mui-icon-submit-white {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/PaperPlaneRight.png');
-    --unity-image-tint-color: var(--muse-chat-light-mode-icon-tint);
-}
-
 .mui-icon-tick {
-    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/tick.png');
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CompletedTask.png');
     --unity-image-tint-color: var(--muse-chat-light-mode-icon-tint);
 }
 
 .mui-icon-star-filled-white {
-    background-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/StarFilledWhite.png");
+    background-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Favorites.png");
 }
 
 .mui-icon-star-filled-grey {
-    --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/StarFilledWhite.png");
+    --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Favorites.png");
     --unity-image-tint-color: rgba(150, 150, 150, 0.2);
 }
 
@@ -144,7 +109,7 @@
 }
 
 .mui-icon-arrow-square-in {
-    --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/arrow-square-in.png");
+    --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ArrowSquareIn.png");
 }
 
 .mui-icon-undo {
@@ -177,11 +142,12 @@
 }
 
 .mui-icon-pick {
-    --unity-image: resource('pick.png');
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Target.png');
+    --unity-image-tint-color: var(--muse-chat-light-mode-icon-tint);
 }
 
 .mui-icon-shortcut {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Shortcut.png');
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Shortcuts.png');
     --unity-image-tint-color: var(--muse-chat-light-mode-icon-tint);
 }
 
@@ -204,7 +170,7 @@
 }
 
 .mui-icon-arrows-counter-clockwise {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ArrowsCounterClockwise.png');
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Refresh.png');
     --unity-image-tint-color: var(--muse-chat-light-mode-icon-tint);
 }
 
@@ -214,7 +180,7 @@
 }
 
 .mui-icon-menu {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Menu.png');
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/List.png');
     --unity-image-tint-color: black;
 }
 
@@ -234,7 +200,7 @@
 }
 
 .mui-icon-stop-square {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/StopSquare.png');
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Stop.png');
     --unity-image-tint-color: black;
 }
 

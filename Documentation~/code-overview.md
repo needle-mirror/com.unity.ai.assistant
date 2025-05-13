@@ -35,6 +35,8 @@ To interact with Assistant in **/code** mode, follow these steps:
 1. Enter your request in the text field. For example, `Write the player controller for a side-scroller video game`.
 1. Press **Enter** on your keyboard or select the send icon.
    
+   You can also [Enable and use the Ctrl+Enter (macOS: ⌘Return) Preferences option](xref:preferences) to send your prompt to Assistant.
+
    Assistant generates the script, complies it, and displays the result.
 
 ## Understand the code review and validation process
@@ -58,3 +60,4 @@ You can handle the generated scripts using the following options:
 
 * [Assistant interface](xref:assistant-interface)
 * [Best practices for using Assistant](xref:assistant-best)
+* [Enable and use the Ctrl+Enter (macOS: ⌘Return) Preferences option](xref:preferences)

@@ -85,6 +85,12 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             m_PreviewChip = new PreviewChip();
             m_PreviewChip.Initialize(Context);
             m_TaskBlockInner.Add(m_PreviewChip);
+
+            EditorApplication.playModeStateChanged += (state) =>
+            {
+                if (state == PlayModeStateChange.ExitingPlayMode)
+                    RefreshDisplayOnExitPlayMode();
+            };
         }
 
         internal new void SetMessage(MessageModel message)
@@ -134,6 +140,19 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             }
             logs = m_RunCommand.CompilationErrors.ToString();
             return m_RunCommand.CompilationSuccess;
+        }
+
+        void RefreshDisplayOnExitPlayMode()
+        {
+            if (!m_RunCommand.RequiredMonoBehaviours.Any() && m_RunCommand.PreviewIsDone)
+            {
+                var content = ContentGroups[k_RunCommandContentIndex];
+
+                if (content.State == DisplayState.Success)
+                {
+                    m_ExecuteButton.SetEnabled(true);
+                }
+            }
         }
 
         public override void Display()

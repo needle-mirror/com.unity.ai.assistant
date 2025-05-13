@@ -6,6 +6,7 @@ using Unity.AI.Assistant.Editor.Analytics;
 using Unity.AI.Assistant.Editor.Commands;
 using Unity.AI.Assistant.Editor.Data;
 using Unity.AI.Assistant.UI.Editor.Scripts.Utils;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using TextField = UnityEngine.UIElements.TextField;
@@ -61,7 +62,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         bool m_TextHasFocus;
         bool m_ShowPlaceholder;
         bool m_HighlightFocus;
-        bool m_RoutedEnabled;
+        bool m_RoutesEnabled;
         bool m_EditContextEnabled;
         bool m_RouteSelection;
 
@@ -70,7 +71,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         public AssistantTextField()
             : base(AssistantUIConstants.UIModulePath)
         {
-            m_RoutedEnabled = false;
+            m_RoutesEnabled = false;
             m_EditContextEnabled = false;
         }
 
@@ -115,16 +116,16 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_HostWindow = hostWindow;
             m_PopupRoot = popupRoot;
             m_PopupAnchor = popupAnchor;
-            m_RoutedEnabled = m_PopupRoot != null && AssistantSettings.BetaFeaturesEnabled;
+            m_RoutesEnabled = m_PopupRoot != null;
             m_EditContextEnabled = true;
 
-            if (m_RoutedEnabled)
+            if (m_RoutesEnabled)
             {
                 InitializeRoutesPopup();
             }
 
             m_AddContextButton.SetDisplay(m_EditContextEnabled);
-            m_AddRouteButton.SetDisplay(m_RoutedEnabled);
+            m_AddRouteButton.SetDisplay(m_RoutesEnabled);
         }
 
         public void ClearText()
@@ -166,7 +167,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_AddRouteButton = view.SetupButton("addRouteButton", ToggleRoutesPopupShown);
             m_AddContextButton = view.Q<Button>("addContextButton");
             m_AddContextButton.SetDisplay(m_EditContextEnabled);
-            m_AddRouteButton.SetDisplay(m_RoutedEnabled);
+            m_AddRouteButton.SetDisplay(m_RoutesEnabled);
 
             k_RouteLabels.Clear();
             foreach (var command in ChatCommands.GetCommands())
@@ -190,7 +191,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_Placeholder = view.Q<Label>("placeholderText");
 
             m_ChatInput = view.Q<TextField>("input");
-            m_ChatInput.maxLength = AssistantConstants.MaxPromptLength;
+            m_ChatInput.maxLength = AssistantMessageSizeConstraints.PromptLimit;
             m_ChatInput.multiline = true;
             m_ChatInput.selectAllOnFocus = false;
             m_ChatInput.RegisterCallback<ClickEvent>(_ => SetPopupVisibility());
@@ -295,13 +296,12 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         {
             StyleRouteInput();
             RefreshUI();
-
             RefreshPointCost();
         }
 
         void RefreshChatCharCount()
         {
-            m_ChatCharCount.text = $"{m_ChatInput.value.Length.ToString()}/{AssistantConstants.MaxPromptLength}";
+            m_ChatCharCount.text = $"{m_ChatInput.value.Length.ToString()}/{AssistantMessageSizeConstraints.PromptLimit}";
         }
 
         private bool CheckPopupNavigationInput(KeyCode keycode)
@@ -325,26 +325,53 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             RefreshChatCharCount();
         }
 
-        void OnChatKeyDownEvent(KeyDownEvent evt)
+        void NewLineInput(KeyDownEvent evt)
         {
-            if (CheckPopupNavigationInput(evt.keyCode))
+            var insertPosition = m_ChatInput.cursorIndex;
+
+            bool pastFirstWord = insertPosition >= m_FirstWord.Length + 1;
+
+            int tagLength = k_CommandInputStylingOpeningTags.Length + k_CommandInputStylingClosingTags.Length;
+
+            // delete first character and tag when delete is pressed at start of route tag
+            if (m_RouteActive && insertPosition + tagLength == tagLength &&
+                evt.keyCode == KeyCode.Delete)
             {
-                SetPopupVisibility();
+                var splitChatInputOnSpace = m_ChatInput.value.Split(" ", 2);
+                m_ChatInput.value = $"{splitChatInputOnSpace[0].Remove(0, k_CommandInputStylingOpeningTags.Length + 1)} {splitChatInputOnSpace[1]}";
+                evt.StopImmediatePropagation();
+                return;
             }
 
-            if (m_RoutedEnabled)
+            // prevent delete key default behavior if at end of route tag
+            bool deleteKeyAtEndOfRouteTag = m_RouteActive &&
+                                         insertPosition + tagLength == tagLength + m_FirstWord.Length &&
+                                         evt.keyCode == KeyCode.Delete;
+
+            bool enterKey = evt.keyCode == KeyCode.KeypadEnter || evt.keyCode == KeyCode.Return;
+
+            // do not allow newline if cursor is within first word
+            bool newlineWithinRouteTag = m_RouteActive && !pastFirstWord &&
+                                         (enterKey ||
+                                          evt.character == '\n');
+
+           if (deleteKeyAtEndOfRouteTag || newlineWithinRouteTag) {
+                evt.StopImmediatePropagation();
+                return;
+            }
+
+            // do not allow newline if cursor is within first word
+            if (m_RouteActive && !pastFirstWord)
             {
-                bool cursorAtOrBeforeFirstWord = m_ChatInput.value.Length == 0 || m_ChatInput.cursorIndex <= m_ChatInput.value.Split(" ")[0].Length;
+                return;
+            }
 
-                if (!cursorAtOrBeforeFirstWord && m_RoutesPopup.IsShown)
-                {
-                    HideRoutesPopup();
-                }
+            var isAtEnd = m_ChatInput.cursorIndex == m_ChatInput.value.Length;
 
-                if (cursorAtOrBeforeFirstWord)
-                {
-                    DetectRouteInputOnKeyDown(evt);
-                }
+            if (m_RouteActive && pastFirstWord)
+            {
+                insertPosition += tagLength;
+                isAtEnd = insertPosition == m_ChatInput.value.Length;
             }
 
             if (string.IsNullOrEmpty(m_ChatInput.value) &&
@@ -353,6 +380,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             {
                 evt.StopImmediatePropagation();
             }
+
             // Shift + enter adds a line break.
             // We get 2 similar events when the user presses shift+enter and want to stop both from propagating but only add one line break!
             if (evt.shiftKey &&
@@ -360,14 +388,12 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             {
                 if (evt.character == '\n')
                 {
-                    var isAtEnd = m_ChatInput.cursorIndex == m_ChatInput.value.Length;
-
-                    m_ChatInput.SetValueWithoutNotify(m_ChatInput.value.Insert(m_ChatInput.cursorIndex, "\n"));
+                    m_ChatInput.SetValueWithoutNotify(m_ChatInput.value.Insert(insertPosition, "\n"));
                     m_ChatInput.cursorIndex += 1;
 
                     if (isAtEnd)
                     {
-                        m_ChatInput.selectIndex = m_ChatInput.cursorIndex + 1;
+                        m_ChatInput.selectIndex = insertPosition + 1;
                     }
                     else
                     {
@@ -391,6 +417,32 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 #endif
             }
 
+        }
+
+        void OnChatKeyDownEvent(KeyDownEvent evt)
+        {
+            if (CheckPopupNavigationInput(evt.keyCode))
+            {
+                SetPopupVisibility();
+            }
+
+            NewLineInput(evt);
+
+            if (m_RoutesEnabled)
+            {
+                bool cursorAtOrBeforeFirstWord = m_ChatInput.value.Length == 0 || m_ChatInput.cursorIndex <= m_ChatInput.value.Split(" ")[0].Length;
+
+                if (!cursorAtOrBeforeFirstWord && m_RoutesPopup.IsShown)
+                {
+                    HideRoutesPopup();
+                }
+
+                if (cursorAtOrBeforeFirstWord)
+                {
+                    DetectRouteInputOnKeyDown(evt);
+                }
+            }
+
             if (m_RouteSelection)
             {
                 m_RouteSelection = false;
@@ -402,6 +454,11 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 case KeyCode.Return:
                 case KeyCode.KeypadEnter:
                 {
+                    // check whether content of chat is only route/command tag
+                    if (m_RouteActive && m_FirstWord.Length == RemoveCommandStyling(m_ChatInput.value.Trim()).Length)
+                    {
+                        return;
+                    }
                     break;
                 }
 
@@ -411,9 +468,24 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 }
             }
 
-            if (evt.ctrlKey || evt.altKey || evt.shiftKey)
-            {
+            bool useModifierToSend = EditorPrefs.GetBool(AssistantSettingsProvider.k_SendPromptModifierKey, false);
+
+            if (evt.altKey || evt.shiftKey)
                 return;
+
+            if (Application.platform == RuntimePlatform.OSXEditor)
+            {
+                if (evt.commandKey != useModifierToSend)
+                {
+                    return;
+                }
+            }
+            else
+            {
+                if (evt.ctrlKey != useModifierToSend)
+                {
+                    return;
+                }
             }
 
             evt.StopPropagation();
@@ -511,6 +583,10 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         string AddCommandStyling(string input)
         {
+            if (m_ChatInput.value.Contains(k_CommandInputStylingOpeningTags))
+            {
+                return m_ChatInput.value;
+            }
             return $"{k_CommandInputStylingOpeningTags}{input}{k_CommandInputStylingClosingTags}";
         }
 
@@ -521,13 +597,32 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         void StyleRouteInput()
         {
-            var splitChatInput = m_ChatInput.value.Split(' ', 2);
+            var splitChatInputOnSpace = m_ChatInput.value.Split(' ', 2);
+            var splitChatInputOnClosingTags = m_ChatInput.value.Split(k_CommandInputStylingClosingTags, 2);
 
-            m_FirstWord = RemoveCommandStyling(splitChatInput[0]);
+            // Moves space added directly after command behind closing rich text tags
+            if (splitChatInputOnClosingTags.Length == 2 && splitChatInputOnClosingTags[0].Contains(" "))
+            {
+                m_ChatInput.value =
+                    $"{splitChatInputOnClosingTags[0].Replace(" ", "")}{k_CommandInputStylingClosingTags} {splitChatInputOnClosingTags[1]}";
+            }
+
+            m_FirstWord = RemoveCommandStyling(splitChatInputOnSpace[0]);
 
             m_RouteActive = ChatCommandParser.IsValidCommand(m_FirstWord);
 
-            m_ChatInput.value = m_RouteActive && splitChatInput.Length > 1 ? $"{AddCommandStyling(m_FirstWord)} {splitChatInput[1]}": RemoveCommandStyling(m_ChatInput.value);
+            if (ChatCommandParser.IsValidCommand(m_FirstWord) && splitChatInputOnSpace.Length > 1)
+            {
+                if (!m_ChatInput.value.Contains(k_CommandInputStylingOpeningTags))
+                {
+                    m_ChatInput.value = $"{AddCommandStyling(m_FirstWord)} {splitChatInputOnSpace[1]}";
+                }
+            }
+            else
+            {
+                m_ChatInput.value = RemoveCommandStyling(m_ChatInput.value);
+            }
+
 
             bool validCommand = ChatCommandParser.IsValidCommand(m_FirstWord);
 
@@ -570,24 +665,26 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             bool caretBeyondFirstWord = m_ChatInput.cursorIndex > m_FirstWord.Length;
             bool caretBeyondFirstWordAndSpace = m_ChatInput.cursorIndex > m_FirstWord.Length + 1;
 
-
-            m_RoutesPopup.UpdateFilteredRoutes(routesFilter);
-
-            if (attemptedCommand && !validCommand && !caretBeyondFirstWord)
+            if (m_RoutesPopup != null)
             {
-                ShowRoutesPopup();
-                m_RoutesPopupTracker?.RealignPopup();
-            }
+                m_RoutesPopup.UpdateFilteredRoutes(routesFilter);
 
-            if (attemptedCommand && !caretBeyondFirstWordAndSpace)
-            {
-                AdjustPopupHighlight();
-            }
+                if (attemptedCommand && !validCommand && !caretBeyondFirstWord)
+                {
+                    ShowRoutesPopup();
+                    m_RoutesPopupTracker?.RealignPopup();
+                }
 
-            if (caretBeyondFirstWord)
-            {
-                m_RoutesPopup.HideNoResultsEntry();
-                HideRoutesPopup();
+                if (attemptedCommand && !caretBeyondFirstWordAndSpace)
+                {
+                    AdjustPopupHighlight();
+                }
+
+                if (caretBeyondFirstWord)
+                {
+                    m_RoutesPopup.HideNoResultsEntry();
+                    HideRoutesPopup();
+                }
             }
 
             if (m_FirstWord != string.Empty)

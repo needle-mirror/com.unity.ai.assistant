@@ -8,7 +8,7 @@ using Unity.AI.Assistant.Editor.Backend;
 using Unity.AI.Assistant.Editor.Context;
 using Unity.AI.Assistant.Editor.Data;
 using Unity.AI.Assistant.Editor.FunctionCalling;
-using Unity.Muse.Agent.Dynamic;
+using Unity.AI.Assistant.Agent.Dynamic.Extension;
 
 namespace Unity.AI.Assistant.Editor
 {
@@ -23,7 +23,13 @@ namespace Unity.AI.Assistant.Editor
         event Action<AssistantConversation> ConversationCreated;
         event Action<AssistantConversationId> ConversationDeleted;
         event Action<IEnumerable<AssistantInspiration>> InspirationsRefreshed;
-        event Action<AssistantConversationId> ConversationCreationFailed;
+
+        /// <summary>
+        /// Invoked when an error occurs during an active conversation. If this is invoked and the conversation is
+        /// active, this error indicates that conversation has stopped. All errors are critical errors and the
+        /// conversation will cease to perform work.
+        /// </summary>
+        event Action<AssistantConversationId, ErrorInfo> ConversationErrorOccured;
 
         event Action<PointCostRequestId, int> PointCostReceived;
 
@@ -34,7 +40,7 @@ namespace Unity.AI.Assistant.Editor
 
         Task RefreshInspirations(CancellationToken ct = default);
         Task ConversationLoad(AssistantConversationId conversationId, CancellationToken ct = default);
-        void ConversationFavoriteToggle(AssistantConversationId conversationId, bool isFavorite);
+        Task ConversationFavoriteToggle(AssistantConversationId conversationId, bool isFavorite);
         Task ConversationDeleteAsync(AssistantConversationId conversationId, CancellationToken ct = default);
         Task ConversationRename(AssistantConversationId conversationId, string newName, CancellationToken ct = default);
         Task RefreshConversationsAsync(CancellationToken ct = default);

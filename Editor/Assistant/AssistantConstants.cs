@@ -4,9 +4,9 @@ namespace Unity.AI.Assistant.Editor
 {
     static class AssistantConstants
     {
+        internal const string PackageName = "com.unity.ai.assistant";
+
         internal const int MaxConversationHistory = 1000;
-        internal const int MaxFeedbackMessageLength = 1000;
-        internal const int MaxPromptLength = 4000;
 
         internal const string TextCutoffSuffix = "...";
 
@@ -30,7 +30,7 @@ namespace Unity.AI.Assistant.Editor
         internal const int AttachedContextDisplayLimit = 8;
 
         internal const string DisclaimerText = @"// {0} AI-Tag
-// This was created with assistance from Muse, a Unity Artificial Intelligence product
+// This was created with the help of Assistant, a Unity Artificial Intelligence product.
 
 ";
     }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
-using Unity.AI.Assistant.Bridge;
 using Unity.AI.Assistant.Bridge.Editor;
+using Unity.AI.Assistant.Editor.ApplicationModels;
+using Unity.AI.Assistant.Editor.Backend.Socket.Protocol.Models.FromClient;
 using UnityEngine;
 
 namespace Unity.AI.Assistant.Editor.Data
@@ -13,7 +14,6 @@ namespace Unity.AI.Assistant.Editor.Data
         }
 
         public string Value;
-        public AssistantConversationId ConversationId;
 
         public readonly List<Object> ObjectAttachments = new();
         public readonly List<LogData> ConsoleAttachments = new();

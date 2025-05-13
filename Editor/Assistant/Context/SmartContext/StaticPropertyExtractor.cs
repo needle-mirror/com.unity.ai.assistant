@@ -385,9 +385,9 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
             var resultAsString = result.ToString().TrimEnd('\n');
 
             bool truncated = false;
-            if (resultAsString.Length > SmartContextToolbox.SmartContextLimit)
+            if (resultAsString.Length > AssistantMessageSizeConstraints.ContextLimit)
             {
-                resultAsString = resultAsString.Substring(0, SmartContextToolbox.SmartContextLimit - 3) + "...";
+                resultAsString = resultAsString.Substring(0, AssistantMessageSizeConstraints.ContextLimit - 3) + "...";
                 truncated = true;
             }
 

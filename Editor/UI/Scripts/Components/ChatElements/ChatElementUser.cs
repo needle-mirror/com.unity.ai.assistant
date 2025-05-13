@@ -15,6 +15,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
         AssistantImage m_UserIcon;
         VisualElement m_UserIconFrame;
         Label m_UserName;
+        Label m_CommandLabel;
         Foldout m_ContextFoldout;
         VisualElement m_ContextContent;
 
@@ -25,6 +26,10 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
         public override void SetData(MessageModel message)
         {
             base.SetData(message);
+
+            m_CommandLabel.text = string.IsNullOrEmpty(message.Command)
+                ? string.Empty
+                : $"/{message.Command}";
 
             RefreshText(m_TextFieldRoot, k_TextFields);
             RefreshContext();
@@ -53,6 +58,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
 
             m_UserName = view.Q<Label>("userName");
             m_UserName.text = UserInfoCache.DisplayName;
+
+            m_CommandLabel = view.Q<Label>("userCommandLabel");
         }
 
         void RefreshContext()

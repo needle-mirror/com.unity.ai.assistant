@@ -64,6 +64,10 @@
 
 .mui-chat-content {
     flex-grow: 1;
+}
+
+.mui-chat-content-inner {
+    flex-grow: 1;
     flex-direction: row;
 }
 
@@ -104,15 +108,12 @@
 }
 
 #progressElementContainer {
+    flex-shrink: 0;
     align-self: flex-start;
     align-items: stretch;
     justify-content: flex-end;
     flex-direction: column;
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--muse-chat-backgrounds-50);
+    width: 100%;
     border-top-width: 1px;
     border-top-color: var(--muse-chat-backgrounds-50);
 }
@@ -122,18 +123,6 @@
     max-width: 700px;
     width: 100%;
     align-self: center;
-}
-
-.mui-chat-cmd-ask.is-selected .muse-chat-icon{
-   --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CmdAskOn.png');
-}
-
-.mui-chat-cmd-run.is-selected .muse-chat-icon{
-   --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CmdRunOn.png');
-}
-
-.mui-chat-cmd-code.is-selected .muse-chat-icon{
-   --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CmdCodeOn.png');
 }
 
 .mui-chat-selected-context-notification {

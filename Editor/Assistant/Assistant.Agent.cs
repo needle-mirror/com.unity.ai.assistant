@@ -8,7 +8,7 @@ using Unity.AI.Assistant.Editor.CodeBlock;
 using Unity.AI.Assistant.Editor.Commands;
 using Unity.AI.Assistant.Editor.Data;
 using Unity.AI.Assistant.Editor.Utils;
-using Unity.Muse.Agent.Dynamic;
+using Unity.AI.Assistant.Agent.Dynamic.Extension;
 using UnityEngine;
 
 namespace Unity.AI.Assistant.Editor
@@ -42,25 +42,24 @@ namespace Unity.AI.Assistant.Editor
 
             if (m_ConversationCache.TryGetValue(conversationId, out var conversation))
             {
-                AddInternalMessage(conversation, $"```{fencedTag}\n{executionResult.Id}\n```", k_SystemRole, false, author: RunCommand.k_CommandName);
+                AddInternalMessage(conversation, $"```{fencedTag}\n{executionResult.Id}\n```", k_SystemRole, false);
             }
         }
 
-        public Task SendEditRunCommand(AssistantMessageId messageId, string updatedCode)
+        public async Task SendEditRunCommand(AssistantMessageId messageId, string updatedCode)
         {
             // get the appropriate workflow
-            ChatWorkflow workflow = null;
             if (messageId.ConversationId.IsValid)
             {
-                var castBackend = m_Backend as AssistantWebSocketBackend;
-                workflow = castBackend?.GetOrCreateWorkflow(FunctionCaller, messageId.ConversationId.Value);
+                var workflow = m_Backend.GetOrCreateWorkflow(await GetCredentialsContext(), FunctionCaller, messageId.ConversationId);
+
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                Task.Run(() =>
+                {
+                    workflow?.SendEditRunCommandRequest(messageId.FragmentId, updatedCode).WithExceptionLogging();
+                });
+#pragma warning restore CS4014
             }
-            else
-                return Task.CompletedTask;
-
-            workflow?.SendEditRunCommandRequest(messageId.FragmentId, updatedCode).WithExceptionLogging();
-
-            return Task.CompletedTask;
         }
 
         public ExecutionResult GetRunCommandExecution(int executionId)

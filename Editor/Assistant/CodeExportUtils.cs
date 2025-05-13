@@ -1,17 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Unity.AI.Assistant.Editor
 {
-    internal static class CodeExportUtils
+    static class CodeExportUtils
     {
-        private static readonly Regex k_UsingsRegex = new(@"\s*using\s+([\w\.]+)\s*;", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        private static readonly Regex k_ClassRegex = new Regex(@"^.*?\s*class\s+", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-        private static readonly IList<string> k_UsingTemp = new List<string>();
-        private static readonly IList<string> k_ContentTemp = new List<string>();
+        static readonly Regex k_UsingsRegex = new(@"\s*using\s+([\w\.]+)\s*;", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        static readonly Regex k_ClassRegex = new Regex(@"^.*?\s*class\s+", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        static readonly IList<string> k_UsingTemp = new List<string>();
+        static readonly IList<string> k_ContentTemp = new List<string>();
 
         public static string Format(string source, string defaultClassName = "MuseCodeExport")
         {
@@ -95,5 +97,24 @@ namespace Unity.AI.Assistant.Editor
             output.Append(source);
             return output.ToString();
         }
+
+        public static string ExtractClassName(string source)
+        {
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var root = (CompilationUnitSyntax)tree.GetRoot();
+
+            var classNodes = root.DescendantNodes()
+                .OfType<ClassDeclarationSyntax>()
+                .ToList();
+
+            var prioritizedTypes = new HashSet<string> { "MonoBehaviour", "ScriptableObject", "IComponentData" };
+            var className = classNodes.FirstOrDefault(c =>
+                c.BaseList != null &&
+                c.BaseList.Types.Any(t => prioritizedTypes.Contains(t.Type.ToString()))
+            ) ?? classNodes.FirstOrDefault();
+
+            return className?.Identifier.Text;
+        }
+
     }
 }

@@ -45,6 +45,11 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
         ProcessingStream,
 
         /// <summary>
+        /// The client has requested the prompt to be canceled
+        /// </summary>
+        Canceling,
+
+        /// <summary>
         /// The workflow has been closed and can no longer be used
         /// </summary>
         Closed

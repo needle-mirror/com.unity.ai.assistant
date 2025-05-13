@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Unity.AI.Assistant.Agent.Dynamic.Extension;
 using Unity.AI.Assistant.CodeAnalyze;
 using Unity.AI.Assistant.Editor;
 using Unity.AI.Assistant.Editor.Agent;
@@ -10,8 +11,6 @@ using Unity.AI.Assistant.Editor.Data;
 using Unity.AI.Assistant.Editor.Utils;
 using Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements;
 using Unity.AI.Assistant.UI.Editor.Scripts.Data;
-using Unity.AI.Assistant.UI.Editor.Scripts.Utils;
-using Unity.Muse.Agent.Dynamic;
 
 namespace Unity.AI.Assistant.UI.Editor.Scripts
 {
@@ -39,7 +38,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
             Provider.ConversationChanged += OnConversationChanged;
             Provider.ConversationDeleted += OnConversationDeleted;
             Provider.ConversationsRefreshed += OnConversationsRefreshed;
-            Provider.ConversationCreationFailed += OnConversationCreationFailed;
+            Provider.ConversationErrorOccured += OnConversationErrorOccured;
 
             Provider.PointCostReceived += OnPointCostReceived;
 
@@ -70,7 +69,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
                 m_Blackboard.SetActiveConversation(data.Id);
             }
 
-            ConversationChanged?.Invoke(model.Id);
+            TaskUtils.DispatchToMainThread(() =>
+                ConversationChanged?.Invoke(model.Id));
         }
 
         void NotifyAPIStateChanged(AssistantConversationId conversationId)
@@ -81,7 +81,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
                 return;
             }
 
-            APIStateChanged?.Invoke();
+            TaskUtils.DispatchToMainThread(() =>
+                APIStateChanged?.Invoke());
         }
 
         void OnInspirationsRefreshed(IEnumerable<AssistantInspiration> data)
@@ -93,12 +94,14 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
                 m_Blackboard.Inspirations.Add(model);
             }
 
-            InspirationsRefreshed?.Invoke();
+            TaskUtils.DispatchToMainThread(() =>
+                InspirationsRefreshed?.Invoke());
         }
 
         void OnFeedbackLoaded(AssistantMessageId messageId, FeedbackData? feedback)
         {
-            FeedbackLoaded?.Invoke(messageId, feedback);
+            TaskUtils.DispatchToMainThread(() =>
+                FeedbackLoaded?.Invoke(messageId, feedback));
         }
 
         void OnConversationDeleted(AssistantConversationId conversationId)
@@ -110,7 +113,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
                     m_Blackboard.SetActiveConversation(AssistantConversationId.Invalid);
                 }
 
-                ConversationDeleted?.Invoke(conversationId);
+                TaskUtils.DispatchToMainThread(() =>
+                    ConversationDeleted?.Invoke(conversationId));
             }
         }
 
@@ -137,16 +141,24 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
                 m_Blackboard.SetFavorite(conversationInfo.Id, conversationInfo.IsFavorite);
             }
 
-            ConversationsRefreshed?.Invoke();
+            TaskUtils.DispatchToMainThread(() =>
+                ConversationsRefreshed?.Invoke());
         }
 
         void OnConnectionChanged(string message, bool connected)
         {
-            ConnectionChanged?.Invoke(message, connected);
+            TaskUtils.DispatchToMainThread(() =>
+                ConnectionChanged?.Invoke(message, connected));
         }
 
         void OnPromptStateChanged(AssistantConversationId conversationId, Assistant.Editor.Assistant.PromptState newState)
         {
+            if (conversationId != m_Blackboard.ActiveConversationId)
+            {
+                InternalLog.Log("Ignoring state request change for non-active conversation");
+                return;
+            }
+
             m_Blackboard.IsAPIStreaming = false;
             m_Blackboard.IsAPIRepairing = false;
             m_Blackboard.IsAPIReadyForPrompt = false;
@@ -154,22 +166,25 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
 
             switch (newState)
             {
-                case Assistant.Editor.Assistant.PromptState.None:
+                case Assistant.Editor.Assistant.PromptState.NotConnected:
                 {
                     SetWorkingState(false);
                     m_Blackboard.IsAPIReadyForPrompt = true;
                     break;
                 }
 
-                case Assistant.Editor.Assistant.PromptState.Streaming:
+                case Assistant.Editor.Assistant.PromptState.Connected:
                 {
-                    m_Blackboard.IsAPIStreaming = true;
+                    SetWorkingState(false);
+                    m_Blackboard.IsAPIReadyForPrompt = true;
                     break;
                 }
-
-                case Assistant.Editor.Assistant.PromptState.RepairCode:
+                case Assistant.Editor.Assistant.PromptState.Connecting:
+                case Assistant.Editor.Assistant.PromptState.AwaitingServer:
+                case Assistant.Editor.Assistant.PromptState.AwaitingClient:
                 {
-                    m_Blackboard.IsAPIRepairing = true;
+                    SetWorkingState(true);
+                    m_Blackboard.IsAPIStreaming = true;
                     break;
                 }
 
@@ -184,19 +199,44 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
             NotifyAPIStateChanged(conversationId);
         }
 
-        void OnConversationCreationFailed(AssistantConversationId conversationId)
+        void OnConversationErrorOccured(AssistantConversationId conversationId, ErrorInfo info)
         {
-            // TODO: Do we want any UI here to indicate the conversation could not be created?
-            ErrorHandlingUtils.ShowGeneralError("Could not create conversation");
+            var conversation = m_Blackboard.GetConversation(conversationId);
 
-            CancelAssistant(conversationId);
+            if (conversation == null)
+            {
+                ErrorHandlingUtility.PublicLogError(info);
+                SetWorkingState(false);
+                return;
+            }
+
+            if (m_Blackboard.ActiveConversationId == conversation.Id)
+            {
+                ErrorHandlingUtility.InternalLogError(info);
+                conversation.Messages.Add(new MessageModel()
+                {
+                    Role = MessageModelRole.Error,
+                    IsComplete = true,
+                    Content = info.PublicMessage
+                });
+
+                TaskUtils.DispatchToMainThread(() =>
+                    ConversationChanged?.Invoke(conversation.Id));
+        }
+
+            Provider.AbortPrompt(conversationId);
+
+            if (m_Blackboard.IsAPIWorking)
+            {
+                SetWorkingState(false);
+            }
         }
 
         public void Deinitialize()
         {
             Provider.OnConnectionChanged -= OnConnectionChanged;
             Provider.ConversationsRefreshed -= OnConversationsRefreshed;
-            Provider.ConversationCreationFailed -= OnConversationCreationFailed;
+            Provider.ConversationErrorOccured -= OnConversationErrorOccured;
             Provider.PromptStateChanged -= OnPromptStateChanged;
             Provider.ConversationLoaded -= OnConversationLoaded;
             Provider.ConversationChanged -= OnConversationChanged;
@@ -213,13 +253,16 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
                 m_Blackboard.SetActiveConversation(conversation.Id);
             }
 
-            ConversationReload?.Invoke(model.Id);
+            TaskUtils.DispatchToMainThread(() =>
+                ConversationReload?.Invoke(model.Id));
         }
 
         void OnConversationLoaded(AssistantConversation conversation)
         {
             var model = ConvertConversationToModel(conversation);
-            ConversationReload?.Invoke(model.Id);
+            OnPromptStateChanged(m_Blackboard.ActiveConversationId, Assistant.Editor.Assistant.PromptState.NotConnected);
+                  TaskUtils.DispatchToMainThread(() =>
+                ConversationReload?.Invoke(model.Id));
         }
 
         ConversationModel ConvertConversationToModel(AssistantConversation conversation)
@@ -231,7 +274,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
                 m_Blackboard.UpdateConversation(model.Id, model);
             }
 
-            model.StartTime = conversation.StartTime;
             model.Title = conversation.Title;
 
             model.Messages.Clear();
@@ -268,7 +310,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
 
             m_Blackboard.SetFavorite(conversationId, isFavorited);
 
-            ConversationsRefreshed?.Invoke();
+            TaskUtils.DispatchToMainThread(() =>
+                ConversationsRefreshed?.Invoke());
         }
 
         public void ConversationDelete(AssistantConversationId conversationId)
@@ -312,6 +355,17 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
             }
         }
 
+        public void Reset()
+        {
+            OnPromptStateChanged(m_Blackboard.ActiveConversationId, Assistant.Editor.Assistant.PromptState.NotConnected);
+        }
+
+        public void CancelPrompt()
+        {
+            if (m_Blackboard.IsAPIStreaming)
+                Provider.AbortPrompt(m_Blackboard.ActiveConversationId);
+        }
+
         public void SendPrompt(string stringPrompt)
         {
             if (!m_Blackboard.IsAPIWorking)
@@ -319,7 +373,34 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
                 SetWorkingState(true);
             }
 
+            RemoveErrorFromCurrentConversation();
             Provider.ProcessPrompt(m_Blackboard.ActiveConversationId, BuildPrompt(stringPrompt)).WithExceptionLogging();
+        }
+
+        void RemoveErrorFromCurrentConversation()
+        {
+            // Remove any error messages in the active conversation
+            if (m_Blackboard.ActiveConversationId.IsValid)
+            {
+                var conversation = m_Blackboard.GetConversation(m_Blackboard.ActiveConversationId);
+
+                Queue<MessageModel> errors = new();
+
+                foreach (var message in conversation.Messages)
+                {
+                    if(message.Role == MessageModelRole.Error)
+                        errors.Enqueue(message);
+                }
+
+                if (errors.Count > 0)
+                {
+                    while (errors.Count > 0)
+                        conversation.Messages.Remove(errors.Dequeue());
+
+                    TaskUtils.DispatchToMainThread(() =>
+                        ConversationChanged?.Invoke(conversation.Id));
+                }
+            }
         }
 
         AssistantPrompt BuildPrompt(string stringPrompt)
@@ -379,13 +460,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
             {
                 Id = message.Id,
                 Content = message.Content,
-
                 IsComplete = message.IsComplete,
-
                 Context = message.Context,
-
-                ErrorCode = message.ErrorCode,
-                ErrorText = message.ErrorText
             };
 
             if (message.IsError)
@@ -410,6 +486,11 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
                         // Trim out slash commands from user messages
                         if(ChatCommandParser.Parse(result.Content, out var commandHandler))
                         {
+                            if (commandHandler.Command != AskCommand.k_CommandName)
+                            {
+                                result.Command = commandHandler.Command;
+                            }
+
                             int commandLength = 1 + commandHandler.Command.Length;
                             if (result.Content.Length > commandLength)
                             {
@@ -445,12 +526,19 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
             }
 
             m_Blackboard.IsAPIWorking = isWorking;
-            APIStateChanged?.Invoke();
+            if (isWorking && m_Blackboard.ActiveConversation != null)
+            {
+                m_Blackboard.ActiveConversation.StartTime = 0;
+            }
+
+            TaskUtils.DispatchToMainThread(() =>
+                APIStateChanged?.Invoke());
         }
 
         void OnPointCostReceived(PointCostRequestId id, int value)
         {
-            PointCostReceived?.Invoke(id, value);
+            TaskUtils.DispatchToMainThread(() =>
+                PointCostReceived?.Invoke(id, value));
         }
 
         public void HandleFunctionCall(string functionId, string[] functionParameters, AssistantUIContext context)
