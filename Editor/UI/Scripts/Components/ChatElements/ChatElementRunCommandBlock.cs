@@ -127,6 +127,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             Validate(k_RunCommandContentIndex);
             Display();
 
+            updatedCode = String.Concat("```csx\n", updatedCode, "\n```");
+
             Context.API.SendEditRunCommand(m_ParentMessage.Id, updatedCode);
         }
 

@@ -47,7 +47,7 @@ To use the **Attach Window** to query assets, follow these steps:
 
 ### Interact with console logs and errors
 
-Assistant analyzes the attached logs or errors to debug context. 
+Assistant analyzes the attached logs or errors to debug context.
 
 To use the **Attach Window** to query console messages, follow these steps:
 
@@ -81,20 +81,20 @@ Search across **All**, **Project**, and **Hierarchy** tabs to locate and attach 
 The **Attach** window displays a **Find** button next to each result. When you select **Find**, it highlights the corresponding object in the **Hierarchy** or **Project** window.
 
 > [!NOTE]
-> The **Find** option is available for all objects except console logs. 
+> The **Find** option is available for all objects except console logs.
 
 #### Dropdown for excess attachments
 
-If you attach too many objects, the **Attach** window converts into a dropdown menu to optimize space. 
+If you attach too many objects, the **Attach** window converts into a dropdown menu to optimize space.
 
 > [!TIP]
-> To maintain accuracy and performance, limit the number of attached objects. 
+> To maintain accuracy and performance, limit the number of attached objects.
 
 #### Clear content
 
 Use **Clear all** to remove all the currently attached objects. To remove individual objects, select **Remove** next to them.
 
-#### Drag option 
+#### Drag option
 
 Drag GameObjects, assets, or console logs directly into the **Attach** Window for attachment.
 

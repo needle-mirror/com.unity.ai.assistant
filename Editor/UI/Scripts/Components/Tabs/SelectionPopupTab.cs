@@ -13,30 +13,39 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         public abstract string Instruction2Message { get; }
 
         internal bool IsSelected { get; set; }
-        internal List<Object> TabSearchResults { get; set; }
+        internal HashSet<Object> TabSearchResults { get; } = new();
         private readonly Label k_NumberOfResultsLabel;
+
+        public int NumberOfResults { get; private set; }
+
 
         protected SelectionPopupTab(string label) : base(label)
         {
             k_NumberOfResultsLabel = new Label();
             k_NumberOfResultsLabel.AddToClassList("mui-tab-results-label");
             tabHeader.Add(k_NumberOfResultsLabel);
-            TabSearchResults = new List<Object>();
         }
 
         internal void SetNumberOfResults(int results, int consoleResults = 0)
         {
+            NumberOfResults = results;
             k_NumberOfResultsLabel.text = results > 0 ? (results + consoleResults).ToString(): string.Empty;
         }
 
         public void ClearResults()
         {
             TabSearchResults.Clear();
+            SetNumberOfResults(0);
         }
 
         internal void AddToResults(Object result)
         {
             TabSearchResults.Add(result);
+        }
+
+        internal virtual void NewResultsReceived()
+        {
+            ClearResults();
         }
     }
 }

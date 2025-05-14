@@ -72,10 +72,18 @@ namespace Unity.AI.Assistant.Agent.Dynamic.Extension
 
         public void DestroyObject(Object objectToDestroy)
         {
-            if (!EditorApplication.isPlaying)
-                Undo.DestroyObjectImmediate(objectToDestroy);
+            if (EditorUtility.IsPersistent(objectToDestroy))
+            {
+                var path = AssetDatabase.GetAssetPath(objectToDestroy);
+                AssetDatabase.DeleteAsset(path);
+            }
             else
-                Object.Destroy(objectToDestroy);
+            {
+                if (!EditorApplication.isPlaying)
+                    Undo.DestroyObjectImmediate(objectToDestroy);
+                else
+                    Object.Destroy(objectToDestroy);
+            }
         }
 
         public void Start()

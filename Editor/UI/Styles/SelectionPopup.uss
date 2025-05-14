@@ -111,6 +111,23 @@
     min-width: 200px;
 }
 
+.mui-selection-popup-loading {
+    flex-direction: row;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0px 80px;
+    min-height: 200px;
+    min-width: 200px;
+}
+
+.mui-icon-loading {
+    background-image: resource('loading@2x');
+    width: 18px;
+    height: 18px;
+    margin-right: 4px;
+}
+
 .mui-selection-popup-no-results-message {
     margin-bottom: 12px;
     display: flex;

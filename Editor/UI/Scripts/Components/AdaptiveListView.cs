@@ -246,10 +246,10 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_UpdateInProgress = true;
         }
 
-        public void EndUpdate(bool scrollToEnd = true)
+        public void EndUpdate(bool scrollToEnd = true, bool fullRefresh = true)
         {
             m_UpdateInProgress = false;
-            DoRefreshList(true);
+            DoRefreshList(fullRefresh);
 
             if (scrollToEnd)
             {
@@ -341,6 +341,11 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 var element = MakeItem();
                 k_VisualElements.Add(element);
                 m_InnerScroll.Add(element);
+
+                // Immediately set context on the new item to avoid it being in a blank state until update happens later:
+                var index = k_VisualElements.Count - 1;
+                var data = k_Data[index];
+                element.SetData(index, data, k_SelectionState[index]);
 
                 if (EnableDelayedElements && operations >= DelayedElementOperations)
                 {

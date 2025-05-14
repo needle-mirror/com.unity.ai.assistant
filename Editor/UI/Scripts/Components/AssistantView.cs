@@ -379,7 +379,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         void ClearChat()
         {
-            m_ConversationName.text = "New chat";
+            m_ConversationName.text = "New conversation";
             m_ChatInput.ClearText();
             m_ConversationPanel.ClearConversation();
             SetInspirationVisible(true);

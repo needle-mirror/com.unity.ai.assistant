@@ -46,7 +46,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 );
             }
 
-            m_ContextListView?.EndUpdate();
+            m_ContextListView?.EndUpdate(false, false);
         }
 
         internal IList<ContextDropdownListEntry> GetEntries()

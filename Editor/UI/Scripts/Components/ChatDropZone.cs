@@ -66,6 +66,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             }
 
             m_DropCallback?.Invoke(DragAndDrop.objectReferences);
+            DragAndDrop.objectReferences = null;
         }
 
         void Reset()

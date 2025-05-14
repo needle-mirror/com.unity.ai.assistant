@@ -40,7 +40,7 @@ To interact with Assistant in **/run** mode, follow these steps:
    You can also [Enable and use the Ctrl+Enter (macOS: ⌘Return) Preferences option](xref:preferences) to send your prompt to Assistant.
 
    Assistant displays the following information:
-   * Summary of the task to be performed. You can modify the parameters before the command is run. 
+   * Summary of the task to be performed. You can modify the parameters before the command is run.
    * Command logic or the code script.
 1. Select the **Run** button to run the action in Unity.
 
@@ -51,7 +51,7 @@ To interact with Assistant in **/run** mode, follow these steps:
 
 ## Undo actions in /run mode
 
-The **Undo History** button appears next to the results. It lets you view and revert recent actions performed using the **/run** mode. 
+The **Undo History** button appears next to the results. It lets you view and revert recent actions performed using the **/run** mode.
 
 ## Additional resources
 

@@ -204,7 +204,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.History
 
             // TODO: Enable if design wants a log to indicate contextual conversations
             // m_ConversationIcon.style.display = data.IsContextAware ? DisplayStyle.Flex : DisplayStyle.None;
-            m_ConversationText.text = data.Title == null ? "New Conversation" : data.Title.Replace("\n", " ");
+            m_ConversationText.text = data.Title == null ? "New conversation" : data.Title.Replace("\n", " ");
             m_ConversationText.tooltip = data.Title;
 
             // This field is fetched via cache, which gets invalidated on a full reload

@@ -24,7 +24,7 @@ To interact with Assistant through the **/ask** mode, follow these steps:
    You can also [Enable and use the Ctrl+Enter (macOS: ⌘Return) Preferences option](xref:preferences) to send your prompt to Assistant.
 
    While Assistant processes your query, the send icon changes to a stop icon so that you can cancel the request if needed.
-   
+
    Assistant processes your input and displays a response. The response includes links to user guides, tutorials, and other helpful documents under [**Sources**](xref:assistant-sources).
 
 1. Read the response and, if needed, type follow-up questions in the text field.

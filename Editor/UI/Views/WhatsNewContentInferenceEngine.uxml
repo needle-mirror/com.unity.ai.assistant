@@ -3,7 +3,6 @@
          xmlns="UnityEngine.UIElements" editor-extension-mode="False">
     <ui:VisualElement class="mui-whats-new-page-root">
         <ui:VisualElement name="page1" class="mui-whats-new-page-section">
-            <ui:VisualElement name="page1Video" class="mui-whats-new-page-video-element"/>
             <ui:Label text="Meet Inference Engine" class="mui-whats-new-page-header"/>
             <ui:Label text="Inference Engine enables new player experiences where real-time (high FPS) inference results are desired, such as with real-world interactions like motion or speech detection, animation effects, and game agents."
                       class="mui-whats-new-page-text"/>
@@ -16,7 +15,6 @@
         </ui:VisualElement>
 
         <ui:VisualElement name="page2" class="mui-whats-new-page-section">
-            <ui:VisualElement name="page2Video" class="mui-whats-new-page-video-element"/>
             <ui:Label text="How it works" class="mui-whats-new-page-header"/>
             <ui:Label text="Start by selecting an AI model for your use case. Import it into Unity, and hook it up to your C# code. Then, deploy your app to any Unity runtime platform as you would normally."
                       class="mui-whats-new-page-text"/>
@@ -26,7 +24,6 @@
         </ui:VisualElement>
 
         <ui:VisualElement name="page3" class="mui-whats-new-page-section">
-            <ui:VisualElement name="page3Video" class="mui-whats-new-page-video-element"/>
             <ui:Label text="Get started with samples" class="mui-whats-new-page-header"/>
             <ui:Label text="Check out our growing library of pre-integrated AI models on Hugging Face, or preview sample projects to get you started in our documentation."
                       class="mui-whats-new-page-text"/>

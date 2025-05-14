@@ -7,6 +7,7 @@ using Unity.AI.Assistant.Editor.CodeAnalyze;
 using Unity.AI.Assistant.Agent.Dynamic.Extension;
 using UnityEngine;
 using Object = UnityEngine.Object;
+using UnityEditor;
 
 namespace Unity.AI.Assistant.Editor.Agent
 {
@@ -60,6 +61,12 @@ namespace Unity.AI.Assistant.Editor.Agent
             try
             {
                 m_ActionInstance.Execute(executionResult);
+
+                // Unsafe actions usually mean deleting things - so we need to update the project view afterwards
+                if (Unsafe)
+                {
+                    AssetDatabase.Refresh();
+                }
             }
             catch (Exception e)
             {

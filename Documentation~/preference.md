@@ -6,11 +6,11 @@ uid: preferences
 
 Use the **Ctrl**+**Enter** (macOS: **⌘Return**) option in Assistant to control how you submit prompts. It's useful when you work across different languages or workflows in which accidental prompt submissions can be  disruptive.
 
-By default, when you press **Enter** (macOS: **Return**), the prompt is immediately sent to Assistant. This can be inconvenient if you're writing a long prompt, multi-line text, or code block that requires formatting. If you enable the **Ctrl**+**Enter** (macOS: **⌘Return**) option, it ensures that prompts are only sent to Assistant when you use the full key combination. 
+By default, when you press **Enter** (macOS: **Return**), the prompt is immediately sent to Assistant. This can be inconvenient if you're writing a long prompt, multi-line text, or code block that requires formatting. If you enable the **Ctrl**+**Enter** (macOS: **⌘Return**) option, it ensures that prompts are only sent to Assistant when you use the full key combination.
 
 ## Enable **Ctrl**+**Enter** (macOS: ⌘Return) option
 
-The **Ctrl**+**Enter** (macOS: **⌘Return**) option modifies the behavior of the text field in Assistant. The text field no longer responds to **Enter** (macOS: **Return**) on its own. 
+The **Ctrl**+**Enter** (macOS: **⌘Return**) option modifies the behavior of the text field in Assistant. The text field no longer responds to **Enter** (macOS: **Return**) on its own.
 
 To configure and enable the **Ctrl**+**Enter** (macOS: **⌘Return**) option in Assistant, follow these steps:
 

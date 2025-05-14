@@ -28,8 +28,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             }
 
             m_DropZone.SetDropZoneActive(false);
-
-            m_DropZone.SetDropZoneActive(false);
         }
 
         bool IsSupportedAsset(Object unityObject)

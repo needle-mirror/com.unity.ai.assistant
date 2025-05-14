@@ -6,7 +6,7 @@
    * [Use /ask mode](xref:ask-overview)
    * [Use /run mode](xref:run-overview)
    * [Use /code mode](xref:code-overview)
- * [Manage Assistant](xref:manage-assistant)     
+ * [Manage Assistant](xref:manage-assistant)
    * [Use Assistant history](xref:assistant-history)
    * [Manage messages and code snippets in Assistant](xref:assistant-code)
    * [Use sources in Assistant](xref:assistant-sources)

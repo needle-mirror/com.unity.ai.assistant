@@ -34,14 +34,14 @@ To interact with Assistant in **/code** mode, follow these steps:
    * Select **Shortcuts** > **/code**.
 1. Enter your request in the text field. For example, `Write the player controller for a side-scroller video game`.
 1. Press **Enter** on your keyboard or select the send icon.
-   
+
    You can also [Enable and use the Ctrl+Enter (macOS: ⌘Return) Preferences option](xref:preferences) to send your prompt to Assistant.
 
    Assistant generates the script, complies it, and displays the result.
 
 ## Understand the code review and validation process
 
-If the compilation is successful, Assistant displays the script without warnings. If the compilation fails, an error message appears. 
+If the compilation is successful, Assistant displays the script without warnings. If the compilation fails, an error message appears.
 
 If compilation fails, you can do the following:
 
@@ -54,7 +54,7 @@ You can handle the generated scripts using the following options:
 
 * **Copy**: Select **Copy** to copy the script and paste it into an IDE.
 * **Save**: Select **Save** to save the script locally in your Unity project.
-* Open the script directly in an IDE like Visual Studio or Rider to edit it. 
+* Open the script directly in an IDE like Visual Studio or Rider to edit it.
 
 ## Additional resources
 

@@ -16,6 +16,11 @@
             <Label name="instruction2Message" class="mui-selection-popup-search-message mui-selection-popup-light" text="Or drag and drop them directly below."/>
         </VisualElement>
 
+        <VisualElement name="loadingIndicator" class="mui-selection-popup-loading">
+            <Image name="loadingIcon" class="mui-icon-loading" />
+            <Label class="mui-selection-popup-light" text="Loading results..." />
+        </VisualElement>
+
         <ui:VisualElement name="adaptiveListViewContainer" class="mui-selection-popup-adaptive-list-view-container"/>
 
     </ui:VisualElement>

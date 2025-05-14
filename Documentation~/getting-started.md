@@ -4,7 +4,7 @@ uid: get-started
 
 # Get started with Assistant
 
-Assistant provides three distinct modes of operation ([**/ask**](xref:ask-overview), [**/run**](xref:run-overview), and [**/code**](xref:code-overview)) to streamline workflows within the Unity Editor. Each mode serves a specific purpose: retrieve project-related information, automate tasks, or generate reusable C# scripts. 
+Assistant provides three distinct modes of operation ([**/ask**](xref:ask-overview), [**/run**](xref:run-overview), and [**/code**](xref:code-overview)) to streamline workflows within the Unity Editor. Each mode serves a specific purpose: retrieve project-related information, automate tasks, or generate reusable C# scripts.
 
 The following table summarizes the key details of each mode, including their purpose, input requirements, output format, and additional notes to help you identify the appropriate mode for your tasks.
 

@@ -3,7 +3,6 @@
          xmlns="UnityEngine.UIElements" editor-extension-mode="False">
     <ui:VisualElement class="mui-whats-new-page-root">
         <ui:VisualElement name="page1" class="mui-whats-new-page-section">
-            <ui:VisualElement name="page1Video" class="mui-whats-new-page-video-element"/>
             <ui:Label text="Generate assets for Unity" class="mui-whats-new-page-header"/>
             <ui:Label text="Using Generators, you can create assets for your production in one place. Access Generators from the AI menu in your toolbar, or the &lt;b&gt;Assets &gt; Create&lt;/b&gt; window menu to generate Textures, Materials, Sprites, Animations, and Audio."
                       class="mui-whats-new-page-text"/>
@@ -13,7 +12,6 @@
         </ui:VisualElement>
 
         <ui:VisualElement name="page2" class="mui-whats-new-page-section">
-            <ui:VisualElement name="page2Video" class="mui-whats-new-page-video-element"/>
             <ui:Label text="Texture Generator" class="mui-whats-new-page-header"/>
             <ui:Label text="Use text and pattern template prompts to generate textures ranging from realistic to imaginative. Textures are generated in low resolution for preview, and then can be upscaled for use in your production."
                       class="mui-whats-new-page-text"/>
@@ -27,7 +25,6 @@
         </ui:VisualElement>
 
         <ui:VisualElement name="page3" class="mui-whats-new-page-section">
-            <ui:VisualElement name="page3Video" class="mui-whats-new-page-video-element"/>
             <ui:Label text="Material Generator" class="mui-whats-new-page-header"/>
             <ui:Label text="Use text and pattern template prompts to generate textures ranging from realistic to imaginative. Textures are generated in low resolution for preview, and then can be upscaled for use in your production."
                       class="mui-whats-new-page-text"/>
@@ -41,9 +38,11 @@
         </ui:VisualElement>
 
         <ui:VisualElement name="page4" class="mui-whats-new-page-section">
-            <ui:VisualElement name="page4Video" class="mui-whats-new-page-video-element"/>
             <ui:Label text="Sprite Generator" class="mui-whats-new-page-header"/>
             <ui:Label text="Generate sprites using a variety of AI model styles for specific assets, like props, characters, or icons. Or, train a custom model based on your own images to get new assets that match your unique style. Refinements are integrated into the Sprite Editor and include upscale, recolor, pixelate, and remove background."
+                      class="mui-whats-new-page-text"/>
+            <ui:VisualElement class="mui-whats-new-page-paragraph"/>
+            <ui:Label text="To open the Sprite Generator, chose menu option &lt;b&gt;Assets &gt; Create &gt; 2D &gt; Generate Sprite&lt;/b&gt;."
                       class="mui-whats-new-page-text"/>
             <ui:Button name="generateSpriteButton" class="mui-whats-new-page-action-button">
                 <ui:Label picking-mode="ignore" class="mui-chat-label" text="Generate Sprite"/>
@@ -52,7 +51,6 @@
         </ui:VisualElement>
 
         <ui:VisualElement name="page5" class="mui-whats-new-page-section">
-            <ui:VisualElement name="page5Video" class="mui-whats-new-page-video-element"/>
             <ui:Label text="Animation Generator" class="mui-whats-new-page-header"/>
             <ui:Label text="Generate humanoid character animation clips from text or video references that can be rigged to your character."
                       class="mui-whats-new-page-text"/>
@@ -66,7 +64,6 @@
         </ui:VisualElement>
 
         <ui:VisualElement name="page6" class="mui-whats-new-page-section">
-            <ui:VisualElement name="page6Video" class="mui-whats-new-page-video-element"/>
             <ui:Label text="Audio Generator" class="mui-whats-new-page-header"/>
             <ui:Label text="Generate audio clips."
                       class="mui-whats-new-page-text"/>

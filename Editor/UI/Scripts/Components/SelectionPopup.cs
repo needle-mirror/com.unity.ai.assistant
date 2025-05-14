@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using Unity.AI.Assistant.Bridge.Editor;
 using Unity.AI.Assistant.Editor.Data;
 using Unity.AI.Assistant.Editor.Utils;
@@ -16,12 +15,22 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 {
     class SelectionPopup : ManagedTemplate
     {
+        const int k_MaxSearchResults = 500;
+
         internal class ListEntry
         {
             public Object Object;
             public SelectionPopup Owner;
             public LogData? LogData;
             public bool IsSelected;
+        }
+
+        enum SearchState
+        {
+            NoSearchTerm,
+            NoResults,
+            Loading,
+            HasResults
         }
 
         VisualElement m_Root;
@@ -33,6 +42,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         Label m_SearchStringDisplay;
         Label m_Instruction1Message;
         Label m_Instruction2Message;
+        VisualElement m_LoadingIndicator;
+        Image m_LoadingIcon;
 
         TabView m_SelectionTabView;
         readonly List<SelectionPopupTab> k_AllTabs = new();
@@ -57,7 +68,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         bool m_SearchActive;
 
         string m_ActiveSearchFilter = string.Empty;
-        string m_TabFilter = string.Empty;
 
         public SelectionPopup()
             : base(AssistantUIConstants.UIModulePath)
@@ -128,7 +138,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             {
                 m_SearchActive = false;
                 ScheduleSearchRefresh();
-                ShowResultsWindow(false);
+                RefreshSearchState();
                 return;
             }
 
@@ -172,9 +182,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             PopulateSelectionListView();
         }
 
-        void OnTabResults(SearchContext context, IEnumerable<SearchItem> items, SelectionPopupTab popupTab)
+        void OnTabResults(IEnumerable<SearchItem> items, SelectionPopupTab popupTab)
         {
-            popupTab.ClearResults();
+            popupTab.NewResultsReceived();
             foreach (var item in items)
             {
                 var obj = item.ToObject();
@@ -188,47 +198,79 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             var consoleItemsCount = ConsoleUtils.GetConsoleLogs(m_LastUpdatedLogReferences);
 
             popupTab.SetNumberOfResults(popupTab.TabSearchResults.Count, consoleItemsCount);
-        }
 
-        void ShowNoResultsText(bool show)
-        {
-            if (show)
+            if (popupTab == m_SelectedTab)
             {
-                m_NoResultsContainer.style.display = DisplayStyle.Flex;
-                m_SearchStringDisplay.text = m_ActiveSearchFilter;
-            }
-            else
-            {
-                m_NoResultsContainer.style.display = DisplayStyle.None;
+                ScheduleSearchRefresh();
             }
         }
 
-        void ShowResultsWindow(bool show)
+        void RefreshSearchState()
         {
-            if (show)
+            if (m_SelectedTab == null)
             {
-                m_AdaptiveListViewContainer.style.display = DisplayStyle.Flex;
-                m_InitialSelection.style.display = DisplayStyle.None;
+                SetSearchState(SearchState.NoSearchTerm);
+                return;
             }
+            var results = m_SelectedTab.NumberOfResults;
+
+            if (results > 0)
+                SetSearchState(SearchState.HasResults);
+            else if (m_SelectedTab is SearchableTab { IsLoading: true })
+                SetSearchState(SearchState.Loading);
+            else if (!string.IsNullOrEmpty(m_ActiveSearchFilter))
+                SetSearchState(SearchState.NoResults);
             else
+                SetSearchState(SearchState.NoSearchTerm);
+        }
+
+        void SetSearchState(SearchState state)
+        {
+            m_NoResultsContainer.style.display = DisplayStyle.None;
+            m_InitialSelection.style.display = DisplayStyle.None;
+            m_AdaptiveListViewContainer.style.display = DisplayStyle.None;
+            m_LoadingIndicator.style.display = DisplayStyle.None;
+
+            switch (state)
             {
-                m_AdaptiveListViewContainer.style.display = DisplayStyle.None;
-                m_InitialSelection.style.display = DisplayStyle.Flex;
+                case SearchState.NoSearchTerm:
+                    m_InitialSelection.style.display = DisplayStyle.Flex;
+                    break;
+                case SearchState.NoResults:
+                    m_InitialSelection.style.display = DisplayStyle.Flex;
+                    m_NoResultsContainer.style.display = DisplayStyle.Flex;
+                    m_SearchStringDisplay.text = m_ActiveSearchFilter;
+                    break;
+                case SearchState.HasResults:
+                    m_AdaptiveListViewContainer.style.display = DisplayStyle.Flex;
+                    break;
+                case SearchState.Loading:
+                    m_LoadingIndicator.style.display = DisplayStyle.Flex;
+                    break;
             }
         }
 
         void Search()
         {
+            SearchableTab.SetupSearchProviders(m_ActiveSearchFilter);
+
             foreach (var tab in k_AllTabs)
             {
                 if (tab is SearchableTab searchableTab)
                 {
-                    SearchService.Request(
-                        $"{searchableTab.Filter}{m_ActiveSearchFilter}",
-                        (context, items) => OnTabResults(context, items, searchableTab)
-                    );
+                    searchableTab.ClearResults();
+
+                    foreach (var searchContext in searchableTab.SearchProviders)
+                    {
+                        searchContext.Callbacks.Add(items =>
+                        {
+                            OnTabResults(items, searchableTab);
+                        });
+                    }
                 }
             }
+
+            SearchableTab.StartSearchers();
         }
 
         void SetSelectedTab(SelectionPopupTab selectedTab)
@@ -240,7 +282,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_SelectedTab = selectedTab;
         }
 
-        void OnSearchTabSelected(SelectionPopupTab tab, string filter)
+        void OnSearchTabSelected(SelectionPopupTab tab)
         {
             m_SearchField.SetEnabled(true);
             m_SearchField.tooltip = string.Empty;
@@ -249,7 +291,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_Instruction2Message.text = tab.Instruction2Message;
 
             SetSelectedTab(tab);
-            m_TabFilter = filter;
             ScheduleSearchRefresh();
         }
 
@@ -278,7 +319,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             {
                 if (Activator.CreateInstance(type) is SearchableTab tab)
                 {
-                    tab.selected += _ => OnSearchTabSelected(tab, tab.Filter);
+                    tab.selected += _ => OnSearchTabSelected(tab);
                     tab.tabHeader.AddToClassList(k_PopupTabClass);
                     searchableTabs.Add(tab);
                 }
@@ -330,14 +371,22 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_Instruction1Message = view.Q<Label>("instruction1Message");
             m_Instruction2Message = view.Q<Label>("instruction2Message");
             m_InitialSelection = view.Q<VisualElement>("initialSelectionPopupMessage");
+            m_LoadingIndicator = view.Q<VisualElement>("loadingIndicator");
+            m_LoadingIcon = m_LoadingIndicator.Q<Image>("loadingIcon");
+
+            schedule.Execute(() =>
+            {
+                var newAngle = (m_LoadingIcon.style.rotate.value.angle.value + 10) % 360;
+                m_LoadingIcon.style.rotate = new StyleRotate(new Rotate(newAngle));
+            }).Every(33);
+
             InitializeTabs(m_SelectionTabView);
-            ShowNoResultsText(false);
+            RefreshSearchState();
 
             var searchFieldRoot = view.Q<VisualElement>("attachItemSearchFieldRoot");
             m_SearchField = new ToolbarSearchField();
             m_SearchField.AddToClassList("mui-selection-search-bar");
-            m_SearchField.RegisterCallback<KeyUpEvent>(_ => CheckAndRefilterSearchResults(true));
-            m_SearchField.RegisterCallback<InputEvent>(_ => CheckAndRefilterSearchResults(true));
+            m_SearchField.RegisterValueChangedCallback(_ => CheckAndRefilterSearchResults());
             searchFieldRoot.Add(m_SearchField);
 
             m_ListView = new()
@@ -386,12 +435,14 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             }
         }
 
-        void AddObjectsToListView(IList<Object> objs, bool addSelection = false)
+        void AddObjectsToListView(IEnumerable<Object> objs, bool addSelection = false)
         {
             m_ListView.BeginUpdate();
-            for (int i = 0; i < objs.Count; i++)
+
+            foreach (var obj in objs)
             {
-                var obj = objs[i];
+                if (m_ListView.Data.Count > k_MaxSearchResults)
+                    break;
 
                 AddObjectToListView(obj, addSelection);
 
@@ -399,7 +450,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                     AddObjectToSelection(obj, true);
             }
 
-            m_ListView.EndUpdate();
+            m_ListView.EndUpdate(false, false);
         }
 
         public void PopulateSearchListView()
@@ -411,16 +462,13 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 return;
             }
 
-            var results = m_SelectedTab.TabSearchResults;
-
             if (m_SearchActive || m_SelectedTab.TabSearchResults.Count > 0)
             {
                 AddLogsToListView();
                 AddObjectsToListView(m_SelectedTab.TabSearchResults);
             }
 
-            ShowResultsWindow(results.Count != 0);
-            ShowNoResultsText(results.Count == 0 && !string.IsNullOrEmpty(m_ActiveSearchFilter));
+            RefreshSearchState();
         }
 
         void AddLogsToListView()
@@ -440,7 +488,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 };
                 m_ListView.AddData(entry);
             }
-            m_ListView.EndUpdate();
+            m_ListView.EndUpdate(false, false);
         }
 
         void PopulateSelectionListView()
@@ -462,7 +510,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                         ValidateObjectSelection();
                         if (Selection.objects.Length > 0)
                         {
-                            AddObjectsToListView(Selection.objects.ToList());
+                            AddObjectsToListView(Selection.objects);
                         }
                         break;
                     }
@@ -509,7 +557,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 tab.SetNumberOfResults(resultCount);
 
                 if (tab.IsSelected)
-                    ShowResultsWindow(resultCount != 0);
+                {
+                    RefreshSearchState();
+                }
             }
         }
 

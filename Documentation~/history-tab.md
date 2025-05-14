@@ -2,7 +2,7 @@
 uid: assistant-history
 ---
 
-# Use Assistant history 
+# Use Assistant history
 
 Assistant saves your full conversation history so that you can access your interactions at any time, across sessions. To review previous interactions, select the **History** button. Browse through your past queries and responses to find the relevant information.
 

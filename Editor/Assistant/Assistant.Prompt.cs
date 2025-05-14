@@ -190,7 +190,7 @@ namespace Unity.AI.Assistant.Editor
             {
                 conversation = new AssistantConversation
                 {
-                    Title = "New Conversation",
+                    Title = "New conversation",
                     Id = conversationId
                 };
 
