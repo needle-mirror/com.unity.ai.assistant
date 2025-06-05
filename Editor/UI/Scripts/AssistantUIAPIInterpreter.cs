@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Unity.AI.Assistant.Agent.Dynamic.Extension;
+using Unity.AI.Assistant.Agent.Dynamic.Extension.Editor;
 using Unity.AI.Assistant.CodeAnalyze;
 using Unity.AI.Assistant.Editor;
 using Unity.AI.Assistant.Editor.Agent;

@@ -45,11 +45,12 @@
     flex-shrink: 1;
 }
 
-.mui-history-panel-header-entry:hover {
+.unity-collection-view__item.mui-history-panel-header-entry:hover {
     background-color: rgba(0, 0, 0, 0);
 }
 
-.mui-history-panel-entry-selected {
+.mui-history-panel-entry-selected,
+.unity-collection-view__item.mui-history-panel-entry-selected:hover {
     background-color: var(--muse-chat-accent-50);
 }
 

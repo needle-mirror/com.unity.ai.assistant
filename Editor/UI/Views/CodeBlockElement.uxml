@@ -10,15 +10,15 @@
                 </ui:VisualElement>
                 <ui:VisualElement class="mui-action-buttons-container">
                     <ui:Button name="saveCodeButton" tooltip="Save Code" class="mui-action-button mui-code-block-element-button">
-                        <ui:Image class="mui-action-button-image" name="saveCodeButtonImage"/>
+                        <ui:Image class="mui-action-button-image-large" name="saveCodeButtonImage"/>
                         <ui:Label class="mui-action-button-label" text="Save"/>
                     </ui:Button>
                     <ui:Button name="copyCodeButton" tooltip="Copy Code" class="mui-action-button mui-code-block-element-button">
-                        <ui:Image class="mui-action-button-image" name="copyCodeButtonImage"/>
+                        <ui:Image class="mui-action-button-image-large" name="copyCodeButtonImage"/>
                         <ui:Label class="mui-action-button-label" text="Copy"/>
                     </ui:Button>
                     <ui:Button name="editCodeButton" tooltip="Edit Code" class="mui-action-button mui-code-block-element-button">
-                        <ui:Image class="mui-action-button-image" name="editCodeButtonImage"/>
+                        <ui:Image class="mui-action-button-image-large" name="editCodeButtonImage"/>
                         <ui:Label class="mui-action-button-label" text="Edit"/>
                     </ui:Button>
                 </ui:VisualElement>
@@ -32,7 +32,7 @@
 
                 </ui:VisualElement>
 
-                <ui:ScrollView class="mui-code-block-content" mode="Horizontal" horizontal-scroller-visibility="AlwaysVisible" vertical-scroller-visibility="Auto" mouse-wheel-scroll-size="0">
+                <ui:ScrollView name="codeScrollView" class="mui-code-block-content" mode="VerticalAndHorizontal" horizontal-scroller-visibility="AlwaysVisible" vertical-scroller-visibility="Auto">
                     <ui:Label name="codeText" class="mui-chat-label mui-code-block--monospaced-text"/>
                 </ui:ScrollView>
 

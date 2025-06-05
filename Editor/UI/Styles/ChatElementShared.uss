@@ -1,5 +1,5 @@
 .mui-chat-root {
-    border-radius: 6px;
+    border-radius: 4px;
     flex-grow: 0;
     flex-shrink: 1;
 }

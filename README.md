@@ -8,7 +8,7 @@ To install this package, follow the instructions in the [Package Manager documen
 
 # Documentation
 
-The documentation can be found [here](https://docs.unity3d.com/Packages/com.unity.muse.chat@latest).
+The documentation can be found [here](https://docs.unity3d.com/Packages/com.unity.ai.assistant@latest).
 
 # Requirements
 

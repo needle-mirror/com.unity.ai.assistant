@@ -41,7 +41,7 @@
     white-space: normal;
     max-width: 280px;
     font-size: var(--muse-chat-small-font-size);
-    color: var(--muse-chat-text-secondary);
+    color: var(--muse-chat-text-secondary-on-background-50);
 }
 
 #museChatInspirationDisclaimer {

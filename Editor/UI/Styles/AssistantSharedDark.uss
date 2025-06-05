@@ -10,6 +10,7 @@
     --muse-chat-text-primary: #d2d2d2;
     --muse-chat-text-primary-inverted: #090909;
     --muse-chat-text-secondary: rgba(210, 210, 210, 0.3);
+    --muse-chat-text-secondary-on-background-50: rgba(160, 160, 160, 1);
     --muse-chat-primary-500: #656565;
     --muse-chat-accent-50: #2c5d87;
     --muse-chat-accent-100: #4c7eff;
@@ -22,6 +23,7 @@
     --muse-chat-prefab-color: #7baefa;
     --muse-chat-code-mark-error: rgba(185, 39, 39, 0.3);
     --muse-chat-code-mark-info: rgba(36, 36, 192, 0.3);
+    --muse-chat-image-hover-tint: #d2d2d2;
 
     /* Legacy Colors To Remove */
     --muse-chat-color-invalid: #dc00ff;
@@ -87,6 +89,10 @@
 .mui-icon-star-filled-grey {
     --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Favorites.png");
     --unity-image-tint-color: var(--muse-chat-text-secondary);
+}
+
+.mui-icon-star-filled-grey:hover {
+    --unity-image-tint-color: var(--muse-chat-image-hover-tint);
 }
 
 .mui-icon-close-s-trimmed {

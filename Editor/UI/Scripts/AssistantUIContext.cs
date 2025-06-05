@@ -1,5 +1,6 @@
 using System;
 using Unity.AI.Assistant.Editor;
+using Unity.AI.Assistant.Editor.Data;
 
 namespace Unity.AI.Assistant.UI.Editor.Scripts
 {
@@ -16,6 +17,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
         public readonly AssistantUIAPIInterpreter API;
 
         public Action ConversationScrollToEndRequested;
+        public Action<AssistantConversationId> ConversationRenamed;
 
         public void Initialize()
         {
@@ -32,6 +34,11 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
         public void SendScrollToEndRequest()
         {
             ConversationScrollToEndRequested?.Invoke();
+        }
+
+        public void SendConversationRenamed(AssistantConversationId id)
+        {
+            ConversationRenamed?.Invoke(id);
         }
     }
 }

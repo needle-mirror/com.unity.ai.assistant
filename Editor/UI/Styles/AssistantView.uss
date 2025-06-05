@@ -33,9 +33,10 @@
 }
 
 .mui-header-label {
-    position: absolute;
-    left: 90px;
-    right: 100px;
+    left: auto;
+    right: auto;
+    flex-grow: 1;
+    flex-shrink: 1;
     align-self: center;
     -unity-text-align: middle-center;
     -unity-font-style: bold;
@@ -45,7 +46,6 @@
 }
 
 #historyButton {
-    position: absolute;
     right: 8px;
 }
 
@@ -81,12 +81,13 @@
 #chatContentRoot {
     background-color: var(--muse-chat-backgrounds-50);
     flex-grow: 1;
+    min-height: 150px;
 }
 
 #historyPanelRoot {
     position: absolute;
     right: 0;
-    top: 1px;
+    top: 2px;
     bottom: 1px;
     border-left-width: 1px;
     border-left-color: var(--muse-chat-backgrounds-50);

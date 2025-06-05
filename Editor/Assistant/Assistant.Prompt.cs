@@ -202,7 +202,9 @@ namespace Unity.AI.Assistant.Editor
             promptMessage.Context = promptContext.Asset;
 
             var assistantMessage = AddIncompleteMessage(conversation, string.Empty, k_AssistantRole, sendUpdate: false);
-            ConversationCreated?.Invoke(conversation);
+
+            if (isNewConversation)
+                ConversationCreated?.Invoke(conversation);
 
             // Make the progress bar indicate musing
 

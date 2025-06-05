@@ -10,6 +10,7 @@
     --muse-chat-text-primary: #090909;
     --muse-chat-text-primary-inverted: #d2d2d2;
     --muse-chat-text-secondary: rgba(29, 29, 29, 0.3);
+    --muse-chat-text-secondary-on-background-50: rgba(29, 29, 29, 1);
     --muse-chat-primary-500: #868686;
     --muse-chat-accent-50: #3a72b0;
     --muse-chat-accent-100: #4c7eff;
@@ -22,9 +23,11 @@
     --muse-chat-prefab-color: #018cff;
     --muse-chat-code-mark-error: rgba(255, 81, 81, 0.3);
     --muse-chat-code-mark-info: rgba(76, 76, 255, 0.3);
+    --muse-chat-image-hover-tint: #090909;
 
     /* Specific to this mode only */
     --muse-chat-light-mode-icon-tint: #383838;
+    --muse-chat-light-mode-icon-tick-tint: #008126;
 
     /* Legacy Colors To Remove */
     --muse-chat-color-invalid: #dc00ff;
@@ -86,17 +89,22 @@
 }
 
 .mui-icon-tick {
-    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CompletedTask.png');
-    --unity-image-tint-color: var(--muse-chat-light-mode-icon-tint);
+    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/CompletedTask.png');
+    --unity-image-tint-color: var(--muse-chat-light-mode-icon-tick-tint);
 }
 
 .mui-icon-star-filled-white {
-    background-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Favorites.png");
+    --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Favorites.png");
+    --unity-image-tint-color: var(--muse-chat-text-primary);
 }
 
 .mui-icon-star-filled-grey {
     --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Favorites.png");
-    --unity-image-tint-color: rgba(150, 150, 150, 0.2);
+    --unity-image-tint-color: var(--muse-chat-text-secondary);
+}
+
+.mui-icon-star-filled-grey:hover {
+    --unity-image-tint-color: var(--muse-chat-image-hover-tint);
 }
 
 .mui-icon-close-s-trimmed {
@@ -110,6 +118,7 @@
 
 .mui-icon-arrow-square-in {
     --unity-image: url("project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ArrowSquareIn.png");
+    --unity-image-tint-color: var(--muse-chat-light-mode-icon-tint);
 }
 
 .mui-icon-undo {

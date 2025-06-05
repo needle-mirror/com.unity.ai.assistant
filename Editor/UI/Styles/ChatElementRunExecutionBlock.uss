@@ -33,6 +33,8 @@
     height: 16px;
     -unity-text-align: middle-left;
     -unity-font-style: bold;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .mui-execution-log-divider {

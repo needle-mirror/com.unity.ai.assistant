@@ -40,7 +40,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
         }
 
         [InitializeOnLoadMethod]
-        static void Init() => DropdownExtension.RegisterMenuExtension(container => container.Add(new AssistantToolbarMenuItem()), 10);
+        static void Init() => DropdownExtension.RegisterMainMenuExtension(container => container.Add(new AssistantToolbarMenuItem()), 0);
 
         class AssistantToolbarMenuItem : VisualElement
         {
@@ -48,10 +48,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
             {
                 AddToClassList("label-button");
                 AddToClassList("text-menu-item");
-                AddToClassList("text-menu-item-row");
+                AddToClassList("dropdown-item-with-margin");
 
-                var label = new Label("What's New?");
-                label.style.marginTop = 8;
+                var label = new Label("See What's New");
                 label.AddManipulator(new Clickable(ShowWindow));
                 Add(label);
             }

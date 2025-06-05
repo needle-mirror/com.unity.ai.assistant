@@ -146,6 +146,12 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
 
         void RefreshDisplayOnExitPlayMode()
         {
+            if (m_RunCommand == null)
+            {
+                m_ExecuteButton.SetEnabled(false);
+                return;
+            }
+
             if (!m_RunCommand.RequiredMonoBehaviours.Any() && m_RunCommand.PreviewIsDone)
             {
                 var content = ContentGroups[k_RunCommandContentIndex];

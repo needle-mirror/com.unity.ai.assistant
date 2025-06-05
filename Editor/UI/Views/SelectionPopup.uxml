@@ -22,6 +22,13 @@
         </VisualElement>
 
         <ui:VisualElement name="adaptiveListViewContainer" class="mui-selection-popup-adaptive-list-view-container"/>
+        <VisualElement name="pagingContainerSpacer" />
+        <VisualElement name="pagingContainer" class="mui-selection-popup-paging">
+            <Label name="pagingLabel" class="mui-selection-popup-light mui-selection-popup-paging-text" text="Showing" />
+            <VisualElement name="pagingSpacer" />
+            <Button name="previousPageButton" class="mui-selection-popup-paging-button" />
+            <Button name="nextPageButton" class="mui-selection-popup-paging-button" />
+        </VisualElement>
 
     </ui:VisualElement>
 </UXML>

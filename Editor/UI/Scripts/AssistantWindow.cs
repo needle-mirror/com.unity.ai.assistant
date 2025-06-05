@@ -17,11 +17,15 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
 
         public Action FocusLost { get; set; }
 
+        [SerializeField]
+        bool m_IsRestoredWindow;
+
         [MenuItem("Window/AI/Assistant")]
         public static void ShowWindow()
         {
             var editor = GetWindow<AssistantWindow>();
-            editor.titleContent = new GUIContent(k_WindowName);
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(AssistantUIConstants.BasePath + AssistantUIConstants.UIEditorPath + AssistantUIConstants.AssetFolder + "icons/Sparkle.png");
+            editor.titleContent = new GUIContent(k_WindowName, icon);
             editor.Show();
             editor.minSize = k_MinSize;
         }
@@ -32,16 +36,25 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
             m_Context = new AssistantUIContext();
 
             m_View = new AssistantView(this);
+
+            if (!m_IsRestoredWindow)
+            {
+                m_View.ClearPersistentState();
+            }
+
             m_View.Initialize(m_Context);
             m_View.style.flexGrow = 1;
             m_View.style.minWidth = 400;
             rootVisualElement.Add(m_View);
 
             m_View.InitializeThemeAndStyle();
+
+            m_IsRestoredWindow = true;
         }
 
         void OnDestroy()
         {
+            m_View?.StorePersistentState();
             m_View?.Deinit();
         }
 

@@ -8,7 +8,7 @@ using Unity.AI.Assistant.Editor.Backend;
 using Unity.AI.Assistant.Editor.Context;
 using Unity.AI.Assistant.Editor.Data;
 using Unity.AI.Assistant.Editor.FunctionCalling;
-using Unity.AI.Assistant.Agent.Dynamic.Extension;
+using Unity.AI.Assistant.Agent.Dynamic.Extension.Editor;
 
 namespace Unity.AI.Assistant.Editor
 {

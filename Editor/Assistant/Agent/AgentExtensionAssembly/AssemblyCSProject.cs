@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-namespace Unity.AI.Assistant.Agent.Dynamic.Extension
+namespace Unity.AI.Assistant.Agent.Dynamic.Extension.Editor
 {
     static class AssemblyCSProject
     {
-        public const string FileName = "Unity.AI.Assistant.Agent.Dynamic.Extension.csproj";
+        public const string FileName = "Unity.AI.Assistant.Agent.Dynamic.Extension.Editor.csproj";
 
         static List<string> m_TemporaryFiles = new();
         public static IEnumerable<string> TemporaryFiles => m_TemporaryFiles;

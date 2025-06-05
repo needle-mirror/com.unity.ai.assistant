@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.AI.Assistant.Agent.Dynamic.Extension
+namespace Unity.AI.Assistant.Agent.Dynamic.Extension.Editor
 {
     struct ExecutionLog
     {

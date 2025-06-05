@@ -24,38 +24,41 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             }
 
             // Allow arrow key navigation of popup
-            if (evt.keyCode == KeyCode.UpArrow && m_RoutesPopup.IsShown)
+            if (m_RoutesPopup.VisibleEntries.Count != 0)
             {
-                m_RoutesPopup.VisibleEntries[m_SelectedRouteItemIndex].SetHovered(false);
-                if (m_SelectedRouteItemIndex == 0)
+                if (evt.keyCode == KeyCode.UpArrow && m_RoutesPopup.IsShown)
                 {
-                    m_SelectedRouteItemIndex = m_RoutesPopup.VisibleEntries.Count - 1;
-                }
-                else
-                {
-                    m_SelectedRouteItemIndex--;
+                    m_RoutesPopup.VisibleEntries[m_SelectedRouteItemIndex].SetHovered(false);
+                    if (m_SelectedRouteItemIndex == 0)
+                    {
+                        m_SelectedRouteItemIndex = m_RoutesPopup.VisibleEntries.Count - 1;
+                    }
+                    else
+                    {
+                        m_SelectedRouteItemIndex--;
+                    }
+
+                    m_RoutesPopup.VisibleEntries[m_SelectedRouteItemIndex].SetHovered(true);
+                    m_RoutesPopup.DisplayRoutes();
+                    evt.StopImmediatePropagation();
                 }
 
-                m_RoutesPopup.VisibleEntries[m_SelectedRouteItemIndex].SetHovered(true);
-                m_RoutesPopup.DisplayRoutes();
-                evt.StopImmediatePropagation();
-            }
-
-            if (evt.keyCode == KeyCode.DownArrow && m_RoutesPopup.IsShown)
-            {
-                m_RoutesPopup.VisibleEntries[m_SelectedRouteItemIndex].SetHovered(false);
-                if (m_SelectedRouteItemIndex == m_RoutesPopup.VisibleEntries.Count - 1)
+                if (evt.keyCode == KeyCode.DownArrow && m_RoutesPopup.IsShown)
                 {
-                    m_SelectedRouteItemIndex = 0;
-                }
-                else
-                {
-                    m_SelectedRouteItemIndex++;
-                }
+                    m_RoutesPopup.VisibleEntries[m_SelectedRouteItemIndex].SetHovered(false);
+                    if (m_SelectedRouteItemIndex == m_RoutesPopup.VisibleEntries.Count - 1)
+                    {
+                        m_SelectedRouteItemIndex = 0;
+                    }
+                    else
+                    {
+                        m_SelectedRouteItemIndex++;
+                    }
 
-                m_RoutesPopup.VisibleEntries[m_SelectedRouteItemIndex].SetHovered(true);
-                m_RoutesPopup.DisplayRoutes();
-                evt.StopImmediatePropagation();
+                    m_RoutesPopup.VisibleEntries[m_SelectedRouteItemIndex].SetHovered(true);
+                    m_RoutesPopup.DisplayRoutes();
+                    evt.StopImmediatePropagation();
+                }
             }
         }
     }

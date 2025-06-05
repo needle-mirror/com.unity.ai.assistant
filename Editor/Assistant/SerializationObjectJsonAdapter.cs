@@ -24,13 +24,12 @@ namespace Unity.AI.Assistant.Editor
         int m_ObjectDepth = 0;
         int m_MaxObjectDepth = -1;
         int m_CurrentDepth;
-        int m_MaxPropertyDepth = -1;    // Limits how deep to go into properties.
-        int MaxDepth = -1;            // Keeps track how deep the deepest property is.
+        int m_MaxPropertyDepth = -1; // Limits how deep to go into properties.
+        int MaxDepth = -1; // Keeps track how deep the deepest property is.
         Stack<int> m_Depths = new Stack<int>();
         HashSet<long> m_VisitedObjects = new HashSet<long>();
         HashSet<long> m_VisitedNodes = new HashSet<long>();
 
-        static Dictionary<int, int> s_DeduplicatedObjectsCopyToOriginal = new();
         public static int JsonOutputLimit = 0;
 
         // Fields to ignore when comparing and serializing components, they can be inferred from the parent object:
@@ -65,28 +64,6 @@ namespace Unity.AI.Assistant.Editor
 
         public ISerializationOverrideProvider OverrideProvider { get; set; }
 
-        public static void AddDeduplicatedObject(int originalInstanceID, int copiedInstanceID)
-        {
-            s_DeduplicatedObjectsCopyToOriginal[originalInstanceID] = originalInstanceID;
-            s_DeduplicatedObjectsCopyToOriginal[copiedInstanceID] = originalInstanceID;
-        }
-
-        public static void RemoveDeduplicatedObject(int instanceID)
-        {
-            var keys = s_DeduplicatedObjectsCopyToOriginal.Where(kvp => kvp.Value == instanceID).Select(kvp => kvp.Key).ToArray();
-            foreach (var key in keys)
-            {
-                s_DeduplicatedObjectsCopyToOriginal.Remove(key);
-            }
-        }
-
-        public static void ClearDeduplicatedObjects()
-        {
-            s_DeduplicatedObjectsCopyToOriginal.Clear();
-        }
-
-        public static bool HasDeduplicatedObjects => s_DeduplicatedObjectsCopyToOriginal.Count > 0;
-
         /// <summary>
         /// Returns the key for the top level object
         /// </summary>
@@ -103,16 +80,8 @@ namespace Unity.AI.Assistant.Editor
             }
             else
             {
-                // If the target is a deduplicated object, don't include the main object name as that may be different across references:
-                if (s_DeduplicatedObjectsCopyToOriginal.Values.Contains(value.targetObject.GetInstanceID()))
-                {
-                    name = instanceID;
-                }
-                else
-                {
-                    var space = instanceID.Length > 0 ? " " : string.Empty;
-                    name = $"{value.targetObject.name}{space}{instanceID}";
-                }
+                var space = instanceID.Length > 0 ? " " : string.Empty;
+                name = $"{value.targetObject.name}{space}{instanceID}";
             }
 
             var directory = AssetDatabase.GetAssetPath(value.targetObject);
@@ -386,12 +355,7 @@ namespace Unity.AI.Assistant.Editor
                         {
                             var instanceID = objectReference.GetInstanceID();
 
-                            if (s_DeduplicatedObjectsCopyToOriginal.TryGetValue(instanceID, out var originalID))
-                            {
-                                context.SerializeValue(
-                                    $"See extracted_context: - Instance ID: {originalID}");
-                            }
-                            else if (!m_VisitedObjects.Contains(instanceID))
+                            if (!m_VisitedObjects.Contains(instanceID))
                             {
                                 if (m_MaxObjectDepth > -1 && m_ObjectDepth > m_MaxObjectDepth)
                                 {
@@ -556,6 +520,7 @@ namespace Unity.AI.Assistant.Editor
             else
                 writer.WriteValue(value.ToString());
         }
+
         static void SafeNumberWrite(JsonWriter writer, double value)
         {
             if (double.IsFinite(value))
@@ -567,7 +532,7 @@ namespace Unity.AI.Assistant.Editor
         static string PrettifyString(string toPrettify)
         {
             if (toPrettify.StartsWith("PPtr<"))
-                return  toPrettify.Substring(5, toPrettify.Length - 6);
+                return toPrettify.Substring(5, toPrettify.Length - 6);
 
             return toPrettify;
         }

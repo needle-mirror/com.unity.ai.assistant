@@ -144,7 +144,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
             if (scrollToEndRequired)
             {
-                m_ConversationList.ScrollToEnd();
+                m_ConversationList.ScrollToEndIfNotLocked();
             }
         }
 
@@ -196,6 +196,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 message.Feedback = feedback;
 
                 m_ConversationList.UpdateData(index, message);
+                ScrollToBottom(true);
             }
         }
     }

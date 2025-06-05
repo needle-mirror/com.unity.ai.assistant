@@ -69,9 +69,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 return;
             }
 
-            if (m_Entry.LogData != null)
+            if (m_Entry.LogData.HasValue)
             {
-                m_Owner.SelectedLogReference((LogData)m_Entry.LogData, this);
+                m_Owner.SelectedLogReference(m_Entry.LogData.Value, this);
                 AIAssistantAnalytics.ReportContextEvent(ContextSubType.ChooseContextFromFlyout, d =>
                 {
                     d.ContextContent = m_Entry.LogData.Value.Message;

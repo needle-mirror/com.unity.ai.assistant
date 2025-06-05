@@ -1,6 +1,6 @@
 {
-    "name": "Unity.AI.Assistant.Agent.Dynamic.Extension",
-    "rootNamespace": "Unity.AI.Assistant.Agent.Dynamic.Extension",
+    "name": "Unity.AI.Assistant.Agent.Dynamic.Extension.Editor",
+    "rootNamespace": "Unity.AI.Assistant.Agent.Dynamic.Extension.Editor",
     "references": [],
     "includePlatforms": [
         "Editor"

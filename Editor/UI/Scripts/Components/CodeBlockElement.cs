@@ -13,7 +13,7 @@ using Unity.AI.Assistant.Editor.Analytics;
 using Unity.AI.Assistant.Editor.CodeAnalyze;
 using Unity.AI.Assistant.UI.Editor.Scripts.Data;
 using Unity.AI.Assistant.UI.Editor.Scripts.Utils;
-using Unity.AI.Assistant.Agent.Dynamic.Extension;
+using Unity.AI.Assistant.Agent.Dynamic.Extension.Editor;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -44,6 +44,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         Label m_CodeBlockTitle;
         AssistantImage m_CodeBlockTitleIcon;
         Label m_LineNumberText;
+        ScrollView m_CodeScrollView;
         Label m_CodeText;
         Foldout m_Toggle;
         Button m_SaveButton;
@@ -112,6 +113,14 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_ContentForeground = view.Q<VisualElement>("codeTextForeground");
 
             m_LineNumberText = view.Q<Label>("lineNumberText");
+            m_CodeScrollView = view.Q<ScrollView>("codeScrollView");
+
+            // Attach callback to filter wheel events so that we can horizontally scroll with the trackpad
+            // But vertical scrolling scroll higher level containers (instead of trying to horizontal scroll as well)
+            // We also apply the same logic to the horizontal slider
+            m_CodeScrollView.contentContainer.RegisterCallback<WheelEvent>(FilterVerticalScrollEvents, TrickleDown.TrickleDown);
+            m_CodeScrollView.horizontalScroller?.RegisterCallback<WheelEvent>(FilterVerticalScrollEvents, TrickleDown.TrickleDown);
+
             m_CodeText = view.Q<Label>("codeText");
             m_CodeText.selection.isSelectable = true;
 
@@ -404,6 +413,43 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                     tooltipElement.AddToClassList(k_MarkingStylePrefix + "tooltip-" + info.Type.ToString().ToLowerInvariant());
                     tooltipElement.tooltip = info.Tooltip;
                     m_ContentForeground.Add(tooltipElement);
+                }
+            }
+        }
+
+        ScrollView GetFirstParentScrollForVerticalScrolling(ScrollView childScrollView, Vector2 globalMousePosition)
+        {
+            var parentScrollView = m_CodeScrollView.GetFirstAncestorOfType<ScrollView>();
+            if (parentScrollView == null)
+                return null;
+
+            var localMousePosition = parentScrollView.WorldToLocal(globalMousePosition);
+            if (parentScrollView.verticalScroller.visible && parentScrollView.ContainsPoint(localMousePosition))
+                return parentScrollView;
+
+            return GetFirstParentScrollForVerticalScrolling(parentScrollView, globalMousePosition);
+        }
+
+        void FilterVerticalScrollEvents(WheelEvent evt)
+        {
+            var delta = evt.delta;
+            var scrollFactor = m_CodeScrollView.mouseWheelScrollSize;
+            var isHorizontal = Mathf.Abs(delta.x) > Mathf.Abs(delta.y);
+
+            evt.StopImmediatePropagation();
+
+            if (isHorizontal && m_CodeScrollView.horizontalScroller.visible)
+            {
+                m_CodeScrollView.scrollOffset += new Vector2(delta.x * scrollFactor, 0);
+            }
+            else
+            {
+                // Note: Unity does not properly handle newly created wheel events so we directly scroll any parent scrollview directly
+                var parentScrollView = GetFirstParentScrollForVerticalScrolling(m_CodeScrollView, evt.mousePosition);
+                if (parentScrollView != null)
+                {
+                    var parentScrollFactor = parentScrollView.mouseWheelScrollSize;
+                    parentScrollView.scrollOffset += new Vector2(0, delta.y * parentScrollFactor);
                 }
             }
         }

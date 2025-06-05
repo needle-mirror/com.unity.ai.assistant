@@ -77,10 +77,19 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
                 element.SetDisplay(true);
             }
 
-            if (element.Message.Content == message.Content &&
-                element.Message.Feedback.Equals(message.Feedback) &&
-                ArrayUtils.ArrayEquals(element.Message.Context, message.Context) &&
-                element.Message.IsComplete == message.IsComplete)   // complete flag removes last word when false.
+            var contentEquals = element.Message.Content == message.Content;
+            if (!string.IsNullOrEmpty(message.Content) && !string.IsNullOrEmpty(element.Message.Content))
+            {
+                contentEquals = element.Message.Content.Trim() == message.Content.Trim();
+            }
+
+            var feedbackEquals = element.Message.Feedback.Equals(message.Feedback);
+            var contextEquals = ArrayUtils.ArrayEquals(element.Message.Context, message.Context);
+            var completeEquals = element.Message.IsComplete == message.IsComplete;
+            if (contentEquals &&
+                feedbackEquals &&
+                contextEquals &&
+                completeEquals)   // complete flag removes last word when false.
             {
                 // No change to content, no need to update
                 return;

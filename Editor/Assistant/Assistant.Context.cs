@@ -39,7 +39,7 @@ namespace Unity.AI.Assistant.Editor
                     var objectContext = new UnityObjectContextSelection();
                     objectContext.SetTarget(currentObject);
 
-                    contextBuilder.InjectContext(objectContext,true);
+                    contextBuilder.InjectContext(objectContext);
 
                     if (stopAtLimit && contextBuilder.PredictedLength > AssistantMessageSizeConstraints.ContextLimit)
                     {
@@ -55,7 +55,7 @@ namespace Unity.AI.Assistant.Editor
                 {
                     var consoleContext = new ConsoleContextSelection();
                     consoleContext.SetTarget(currentLog);
-                    contextBuilder.InjectContext(consoleContext, true);
+                    contextBuilder.InjectContext(consoleContext);
 
                     if (stopAtLimit && contextBuilder.PredictedLength > AssistantMessageSizeConstraints.ContextLimit)
                     {

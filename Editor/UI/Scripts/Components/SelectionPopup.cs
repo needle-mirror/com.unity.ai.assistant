@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Unity.AI.Assistant.Bridge.Editor;
 using Unity.AI.Assistant.Editor.Data;
 using Unity.AI.Assistant.Editor.Utils;
+using Unity.AI.Assistant.UI.Editor.Scripts.Utils;
 using UnityEditor;
-using UnityEditor.Search;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -15,7 +16,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 {
     class SelectionPopup : ManagedTemplate
     {
-        const int k_MaxSearchResults = 500;
+        const int k_MaxSearchResults = 50;
 
         internal class ListEntry
         {
@@ -44,6 +45,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         Label m_Instruction2Message;
         VisualElement m_LoadingIndicator;
         Image m_LoadingIcon;
+        VisualElement m_PagingContainer;
+        Label m_PagingLabel;
 
         TabView m_SelectionTabView;
         readonly List<SelectionPopupTab> k_AllTabs = new();
@@ -64,10 +67,15 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         public Action<LogData> OnContextLogAdded;
 
         SelectionPopupTab m_SelectedTab;
-        bool m_RefreshPending;
+        int m_SelectedTabIndex;
         bool m_SearchActive;
 
         string m_ActiveSearchFilter = string.Empty;
+
+        #region Paging
+        const string k_PagingLabelText = "Showing {0} - {1} results";
+        int m_CurrentPage;
+        #endregion
 
         public SelectionPopup()
             : base(AssistantUIConstants.UIModulePath)
@@ -147,57 +155,27 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             ScheduleSearchRefresh();
         }
 
-
-        void Refresh()
-        {
-            if (m_RefreshPending)
-            {
-                return;
-            }
-
-            m_RefreshPending = true;
-        }
-
         void ScheduleSearchRefresh()
         {
-            Refresh();
-            EditorApplication.delayCall += OnRefreshSearch;
+            EditorApplication.delayCall += PopulateSearchListView;
         }
 
-        void ScheduleSelectionRefresh()
+        void OnTabResults(IEnumerable<Object> items, SelectionPopupTab popupTab)
         {
-            Refresh();
-            EditorApplication.delayCall += OnRefreshSelection;
-        }
-
-        void OnRefreshSearch()
-        {
-            m_RefreshPending = false;
-            PopulateSearchListView();
-        }
-
-        void OnRefreshSelection()
-        {
-            m_RefreshPending = false;
-            PopulateSelectionListView();
-        }
-
-        void OnTabResults(IEnumerable<SearchItem> items, SelectionPopupTab popupTab)
-        {
-            popupTab.NewResultsReceived();
-            foreach (var item in items)
+            if (items != null)
             {
-                var obj = item.ToObject();
-
-                if (IsSupportedAsset(obj))
+                foreach (var item in items)
                 {
-                    popupTab.AddToResults(obj);
+                    if (popupTab.IsSupportedAsset(item))
+                    {
+                        popupTab.AddToResults(item);
+                    }
                 }
             }
 
-            var consoleItemsCount = ConsoleUtils.GetConsoleLogs(m_LastUpdatedLogReferences);
+            ConsoleUtils.GetConsoleLogs(m_LastUpdatedLogReferences);
 
-            popupTab.SetNumberOfResults(popupTab.TabSearchResults.Count, consoleItemsCount);
+            popupTab.RefreshExtraResults(m_LastUpdatedLogReferences);
 
             if (popupTab == m_SelectedTab)
             {
@@ -230,6 +208,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_InitialSelection.style.display = DisplayStyle.None;
             m_AdaptiveListViewContainer.style.display = DisplayStyle.None;
             m_LoadingIndicator.style.display = DisplayStyle.None;
+            m_PagingContainer.style.display = DisplayStyle.None;
 
             switch (state)
             {
@@ -238,11 +217,25 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                     break;
                 case SearchState.NoResults:
                     m_InitialSelection.style.display = DisplayStyle.Flex;
-                    m_NoResultsContainer.style.display = DisplayStyle.Flex;
+
+                    if (m_SelectedTab is SearchableTab)
+                    {
+                        m_NoResultsContainer.style.display = DisplayStyle.Flex;
+                    }
+
                     m_SearchStringDisplay.text = m_ActiveSearchFilter;
                     break;
                 case SearchState.HasResults:
                     m_AdaptiveListViewContainer.style.display = DisplayStyle.Flex;
+
+                    var numberOfResults = m_SelectedTab.NumberOfResults;
+                    if (numberOfResults > k_MaxSearchResults)
+                    {
+                        m_PagingContainer.style.display = DisplayStyle.Flex;
+                        m_PagingLabel.text = string.Format(k_PagingLabelText, m_CurrentPage * k_MaxSearchResults + 1,
+                            Math.Min(m_CurrentPage * k_MaxSearchResults + k_MaxSearchResults, numberOfResults));
+                    }
+
                     break;
                 case SearchState.Loading:
                     m_LoadingIndicator.style.display = DisplayStyle.Flex;
@@ -252,6 +245,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         void Search()
         {
+            m_CurrentPage = 0;
             SearchableTab.SetupSearchProviders(m_ActiveSearchFilter);
 
             foreach (var tab in k_AllTabs)
@@ -264,7 +258,10 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                     {
                         searchContext.Callbacks.Add(items =>
                         {
-                            OnTabResults(items, searchableTab);
+                            if (IsShown)
+                            {
+                                OnTabResults(items, searchableTab);
+                            }
                         });
                     }
                 }
@@ -279,47 +276,34 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             {
                 tab.IsSelected = selectedTab == tab;
             }
+
             m_SelectedTab = selectedTab;
+            m_SelectedTabIndex = k_AllTabs.IndexOf(m_SelectedTab);
         }
 
-        void OnSearchTabSelected(SelectionPopupTab tab)
+        void OnTabSelected(SelectionPopupTab tab)
         {
-            m_SearchField.SetEnabled(true);
-            m_SearchField.tooltip = string.Empty;
+            m_SearchField.SetEnabled(tab.SearchEnabled);
+            m_SearchField.tooltip = tab.SearchTooltip;
 
             m_Instruction1Message.text = tab.Instruction1Message;
             m_Instruction2Message.text = tab.Instruction2Message;
 
             SetSelectedTab(tab);
-            ScheduleSearchRefresh();
-        }
-
-        void OnSelectionTabSelected(EditorSelectionTab tab)
-        {
-            m_SearchField.SetEnabled(false);
-            m_SearchField.tooltip = "Searching and filtering are not available for Console and Selection.";
-
-            m_Instruction1Message.text = tab.Instruction1Message;
-            m_Instruction2Message.text = tab.Instruction2Message;
-
-            SetSelectedTab(tab);
-            if (tab.IsSelected)
-            {
-                ScheduleSelectionRefresh();
-                return;
-            }
             ScheduleSearchRefresh();
         }
 
         void InitializeTabs(TabView tabView)
         {
+            k_AllTabs.Clear();
+
             var searchableTabs = new List<SearchableTab>();
             var typeList = TypeCache.GetTypesDerivedFrom<SearchableTab>();
             foreach (var type in typeList)
             {
                 if (Activator.CreateInstance(type) is SearchableTab tab)
                 {
-                    tab.selected += _ => OnSearchTabSelected(tab);
+                    tab.selected += _ => OnTabSelected(tab);
                     tab.tabHeader.AddToClassList(k_PopupTabClass);
                     searchableTabs.Add(tab);
                 }
@@ -338,7 +322,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             {
                 if (Activator.CreateInstance(type) is EditorSelectionTab tab)
                 {
-                    tab.selected += _ => OnSelectionTabSelected(tab);
+                    tab.selected += _ => OnTabSelected(tab);
                     tab.tabHeader.AddToClassList(k_PopupTabClass);
                     m_EditorSelectionTabs.Add(tab);
 
@@ -354,8 +338,29 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 tabView.Add(tab);
             }
 
-            SetSelectedTab(k_AllTabs[0]);
+            tabView.selectedTabIndex = m_SelectedTabIndex;
+
+            OnTabSelected(k_AllTabs[m_SelectedTabIndex]);
+            PopulateSearchListView();
             RefreshSelectionCount();
+
+            try
+            {
+                RefreshTabButtons();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        internal void RefreshTabButtons()
+        {
+            // TabView sometimes shows the next and previous buttons even though there's no need for them.
+            // This is a workaround to force the buttons to update their state.
+            var updateButtonsMethod = m_SelectionTabView.GetType()
+                .GetMethod("UpdateButtons", BindingFlags.NonPublic | BindingFlags.Instance);
+            updateButtonsMethod.Invoke(m_SelectionTabView, new[] { (object)Vector3.zero });
         }
 
         protected override void InitializeView(TemplateContainer view)
@@ -373,15 +378,16 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_InitialSelection = view.Q<VisualElement>("initialSelectionPopupMessage");
             m_LoadingIndicator = view.Q<VisualElement>("loadingIndicator");
             m_LoadingIcon = m_LoadingIndicator.Q<Image>("loadingIcon");
+            m_PagingContainer = view.Q<VisualElement>("pagingContainer");
+            m_PagingLabel = view.Q<Label>("pagingLabel");
+            view.SetupButton("previousPageButton", PreviousPage);
+            view.SetupButton("nextPageButton", NextPage);
 
             schedule.Execute(() =>
             {
                 var newAngle = (m_LoadingIcon.style.rotate.value.angle.value + 10) % 360;
                 m_LoadingIcon.style.rotate = new StyleRotate(new Rotate(newAngle));
             }).Every(33);
-
-            InitializeTabs(m_SelectionTabView);
-            RefreshSearchState();
 
             var searchFieldRoot = view.Q<VisualElement>("attachItemSearchFieldRoot");
             m_SearchField = new ToolbarSearchField();
@@ -391,7 +397,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
             m_ListView = new()
             {
-                EnableDelayedElements = true,
+                EnableDelayedElements = false,
                 EnableVirtualization = false,
                 EnableScrollLock = true,
                 EnableHorizontalScroll = false
@@ -399,7 +405,10 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_ListView.Initialize(Context);
             m_AdaptiveListViewContainer.Add(m_ListView);
 
-            ScheduleSelectionRefresh();
+            InitializeTabs(m_SelectionTabView);
+            RefreshSearchState();
+
+            ScheduleSearchRefresh();
 
             m_LastConsoleCheckTime = EditorApplication.timeSinceStartup;
             EditorApplication.update += DetectLogChanges;
@@ -411,150 +420,171 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
             RefreshSelectionCount();
 
-            m_SearchField.value = string.Empty;
-
             m_SelectionTabView.Clear();
 
             InitializeTabs(m_SelectionTabView);
 
             CheckAndRefilterSearchResults(true);
-        }
 
-        void AddObjectToListView(Object obj, bool addSelection = false)
-        {
-            if (IsSupportedAsset(obj))
-            {
-                m_ListView?.AddData(
-                    new ListEntry
-                    {
-                        Object = obj,
-                        Owner = this,
-                        IsSelected = ObjectSelection.Contains(obj) || addSelection
-                    }
-                );
-            }
-        }
-
-        void AddObjectsToListView(IEnumerable<Object> objs, bool addSelection = false)
-        {
-            m_ListView.BeginUpdate();
-
-            foreach (var obj in objs)
-            {
-                if (m_ListView.Data.Count > k_MaxSearchResults)
-                    break;
-
-                AddObjectToListView(obj, addSelection);
-
-                if (addSelection && !ObjectSelection.Contains(obj))
-                    AddObjectToSelection(obj, true);
-            }
-
-            m_ListView.EndUpdate(false, false);
+            m_SearchField.Focus();
         }
 
         public void PopulateSearchListView()
         {
-            m_ListView.ClearData();
+            RefreshSelectionCount();
 
             if (m_SelectedTab == null)
             {
+                m_ListView.ClearData();
                 return;
             }
 
-            if (m_SearchActive || m_SelectedTab.TabSearchResults.Count > 0)
+            // When search results come in or tabs change, we need to rebuild the list.
+            // This is expensive and when only later pages change, it's not needed.
+            // Only rebuild the list if the actual data has changed:
+            if (GetEntriesToShow(out var entriesToShow))
             {
-                AddLogsToListView();
-                AddObjectsToListView(m_SelectedTab.TabSearchResults);
+                m_ListView.ClearData();
+
+                m_ListView.BeginUpdate();
+
+                foreach (var entry in entriesToShow)
+                {
+                    m_ListView.AddData(entry);
+                }
+
+                m_ListView.EndUpdate(false, false);
             }
 
             RefreshSearchState();
         }
 
-        void AddLogsToListView()
+        int GetNumberOfPages()
         {
-            ConsoleUtils.GetConsoleLogs(m_LastUpdatedLogReferences);
+            var tab = m_SelectedTab;
 
-            m_ListView.BeginUpdate();
-            // Add console log entries
-            foreach (var logRef in m_LastUpdatedLogReferences)
+            var objectsToShow = tab.TabSearchResults;
+            var totalEntryCount = objectsToShow.Count;
+
+            if (tab.DisplayConsoleLogs)
             {
-                var entry = new ListEntry()
-                {
-                    Object = null,
-                    Owner = this,
-                    LogData = logRef,
-                    IsSelected = ConsoleUtils.FindLogEntry(ConsoleSelection, logRef)
-                };
-                m_ListView.AddData(entry);
+                ConsoleUtils.GetConsoleLogs(m_LastUpdatedLogReferences);
+                totalEntryCount += m_LastUpdatedLogReferences.Count;
             }
-            m_ListView.EndUpdate(false, false);
+
+            return totalEntryCount / k_MaxSearchResults;
         }
 
-        void PopulateSelectionListView()
+        bool GetEntriesToShow(out List<ListEntry> results)
         {
-            m_ListView.ClearData();
+            results = new List<ListEntry>();
 
-            if (m_SelectedTab is EditorSelectionTab tab)
+            var changed = false;
+
+            var tab = m_SelectedTab;
+
+            // Make sure we don't go past the last page when tabs are switched on later pages:
+            m_CurrentPage = Math.Min(m_CurrentPage, GetNumberOfPages());
+
+            var objectsToShow = tab.TabSearchResults;
+            var totalEntryCount = objectsToShow.Count;
+
+            int startIndex, endIndex, returnedEntryCount = 0, logEntryCount = 0;
+
+            if (tab.DisplayConsoleLogs)
             {
-                switch (tab.Type)
+                ConsoleUtils.GetConsoleLogs(m_LastUpdatedLogReferences);
+                logEntryCount = m_LastUpdatedLogReferences.Count;
+                totalEntryCount += logEntryCount;
+
+                startIndex = m_CurrentPage * k_MaxSearchResults;
+                endIndex = Math.Min(m_LastUpdatedLogReferences.Count,
+                    Math.Min(
+                        startIndex + k_MaxSearchResults,
+                        totalEntryCount));
+
+                for (var i = startIndex; i < endIndex; i++, returnedEntryCount++)
                 {
-                    case EditorSelectionTab.SelectionType.Console:
+                    var logRef = m_LastUpdatedLogReferences[i];
+
+                    var entry = new ListEntry
                     {
-                        AddLogsToListView();
-                        break;
-                    }
-                    case EditorSelectionTab.SelectionType.UnityObject:
+                        Object = null,
+                        Owner = this,
+                        LogData = logRef,
+                        IsSelected = ConsoleUtils.FindLogEntry(ConsoleSelection, logRef) >= 0
+                    };
+
+                    if (!changed && !DoEntriesMatch(i, entry))
                     {
-                        // Add selected objects
-                        ValidateObjectSelection();
-                        if (Selection.objects.Length > 0)
-                        {
-                            AddObjectsToListView(Selection.objects);
-                        }
-                        break;
+                        changed = true;
                     }
 
+                    results.Add(entry);
+                }
+
+                if (returnedEntryCount >= k_MaxSearchResults)
+                {
+                    return HasDataChanged(results);
                 }
             }
 
-            RefreshSelectionCount();
-        }
+            startIndex = Math.Max(0, m_CurrentPage * k_MaxSearchResults - logEntryCount);
+            endIndex = Math.Min(startIndex + k_MaxSearchResults, objectsToShow.Count);
 
-        bool IsSupportedAsset(Object obj)
-        {
-            if (obj == null || obj is DefaultAsset)
-                return false;
+            for (var i = startIndex;
+                 i < endIndex && returnedEntryCount < k_MaxSearchResults;
+                 i++, returnedEntryCount++)
+            {
+                var obj = objectsToShow[i];
 
-            var objType = obj.GetType();
+                var entry = new ListEntry { Object = obj, Owner = this, IsSelected = ObjectSelection.Contains(obj) };
 
-            return AssetDatabase.Contains(obj) ||
-                   typeof(Component).IsAssignableFrom(objType) ||
-                   typeof(GameObject).IsAssignableFrom(objType) ||
-                   typeof(Transform).IsAssignableFrom(objType);
+                if (!changed && !DoEntriesMatch(i, entry))
+                {
+                    changed = true;
+                }
+
+                results.Add(entry);
+            }
+
+            return HasDataChanged(results);
+
+            bool HasDataChanged(List<ListEntry> results)
+            {
+                return changed || m_ListView.Data.Count != results.Count;
+            }
+
+            bool DoEntriesMatch(int index, ListEntry entry)
+            {
+                var currentEntries = m_ListView.Data;
+
+                if (currentEntries.Count <= index)
+                    return false;
+
+                var currentEntry = currentEntries[index];
+
+                if (currentEntry.LogData.HasValue != entry.LogData.HasValue)
+                    return false;
+
+                if (currentEntry.LogData.HasValue && !currentEntry.LogData.Value.Equals(entry.LogData.Value))
+                    return false;
+
+                return currentEntry.Object == entry.Object
+                       && currentEntry.IsSelected == entry.IsSelected;
+            }
         }
 
         void RefreshSelectionCount()
         {
-            foreach (var tab in m_EditorSelectionTabs)
-            {
-                int resultCount = 0;
-                switch (tab.Type)
-                {
-                    case EditorSelectionTab.SelectionType.Console:
-                    {
-                        var logs = new List<LogData>();
-                        resultCount = ConsoleUtils.GetConsoleLogs(logs);
-                        break;
-                    }
-                    case EditorSelectionTab.SelectionType.UnityObject:
-                    {
-                        resultCount = Selection.objects.Count(IsSupportedAsset);
-                        break;
-                    }
-                }
+            var logs = new List<LogData>();
+            ConsoleUtils.GetConsoleLogs(logs);
 
-                tab.SetNumberOfResults(resultCount);
+            ValidateObjectSelection();
+
+            foreach (var tab in k_AllTabs)
+            {
+                tab.RefreshExtraResults(logs);
 
                 if (tab.IsSelected)
                 {
@@ -597,14 +627,15 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         internal void SelectedLogReference(LogData logRef, SelectionElement e)
         {
-            if (!ConsoleUtils.HasEqualLogEntry(ConsoleSelection, logRef))
+            var existingEntryIndex = ConsoleUtils.FindLogEntry(ConsoleSelection, logRef);
+            if (existingEntryIndex < 0)
             {
                 AddLogReferenceToSelection(logRef);
                 e.SetSelected(true);
             }
             else
             {
-                ConsoleSelection.RemoveAll(e => e.Equals(logRef));
+                ConsoleSelection.RemoveAt(existingEntryIndex);
                 e.SetSelected(false);
             }
 
@@ -624,7 +655,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         void DetectLogChanges()
         {
-            if (EditorApplication.timeSinceStartup < m_LastConsoleCheckTime + k_ConsoleCheckInterval)
+            if (!IsShown || EditorApplication.timeSinceStartup < m_LastConsoleCheckTime + k_ConsoleCheckInterval)
                 return;
 
             List<LogData> logs = new();
@@ -632,9 +663,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
             if (m_LastUpdatedLogReferences.Count != logs.Count
                 || m_LastUpdatedLogReferences.Any(log => !ConsoleUtils.HasEqualLogEntry(logs, log))
-                || logs.Any(log => !ConsoleUtils.HasEqualLogEntry(m_LastUpdatedLogReferences, log)) )
+                || logs.Any(log => !ConsoleUtils.HasEqualLogEntry(m_LastUpdatedLogReferences, log)))
             {
-                PopulateSelectionListView();
+                PopulateSearchListView();
             }
 
             m_LastConsoleCheckTime = EditorApplication.timeSinceStartup;
@@ -648,6 +679,24 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 {
                     ObjectSelection.RemoveAt(i);
                 }
+            }
+        }
+
+        void PreviousPage(PointerUpEvent evt)
+        {
+            if (m_CurrentPage > 0)
+            {
+                m_CurrentPage -= 1;
+                ScheduleSearchRefresh();
+            }
+        }
+
+        void NextPage(PointerUpEvent evt)
+        {
+            if (m_CurrentPage < GetNumberOfPages())
+            {
+                m_CurrentPage += 1;
+                ScheduleSearchRefresh();
             }
         }
     }

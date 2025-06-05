@@ -3,7 +3,7 @@
     left: 16px;
     right: 16px;
     min-width: 380px;
-    max-width: 500px;
+    max-width: 516px;
 }
 
 .mui-selection-popup-root {
@@ -72,6 +72,7 @@
     justify-content: center;
     align-self: center;
     align-content: center;
+    background-color: var(--muse-chat-backgrounds-200);
 }
 
 .mui-selection-tab-view {
@@ -132,6 +133,7 @@
     margin-bottom: 12px;
     display: flex;
     flex-direction: row;
+    overflow: hidden;
 }
 
 .mui-selection-popup-search-message {
@@ -148,4 +150,70 @@
 
 .mui-selection-popup-search-string {
     -unity-font-style: bold;
+}
+
+.mui-selection-popup-loading {
+    flex-direction: row;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0px 80px;
+    min-height: 200px;
+    min-width: 200px;
+}
+
+.mui-icon-loading {
+    background-image: resource("Loading@2x");
+    width: 18px;
+    height: 18px;
+    margin-right: 4px;
+}
+
+
+.mui-selection-popup-paging {
+    flex-direction: row;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 30px;
+    min-width: 100%;
+    border-top-width: 1px;
+    border-color: var(--muse-chat-backgrounds-100);
+}
+
+.mui-selection-popup-paging-text {
+    align-self: flex-start;
+    margin: 8px;
+}
+
+#pagingSpacer {
+    flex-grow: 1;
+}
+
+#pagingContainerSpacer {
+    flex-grow: 1;
+}
+
+.mui-selection-popup-paging-button {
+    border-width: 0;
+    width: 32px;
+    height: 32px;
+    background-color: rgba(0,0,0,0);
+    margin: 4px;
+}
+
+.mui-selection-popup-paging-button:hover:enabled {
+    background-color: rgba(0,0,0,0);
+}
+
+.mui-selection-popup-paging-button:focus {
+    background-color: rgba(0,0,0,0);
+}
+
+#previousPageButton {
+    background-image: resource('ArrowNavigationLeft@2x');
+}
+
+#nextPageButton {
+    background-image: resource('ArrowNavigationRight@2x');
 }

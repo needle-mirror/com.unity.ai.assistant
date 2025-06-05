@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Unity.AI.Assistant.Editor.CodeAnalyze;
 using Unity.AI.Assistant.Editor.Utils;
-using Unity.AI.Assistant.Agent.Dynamic.Extension;
+using Unity.AI.Assistant.Agent.Dynamic.Extension.Editor;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -17,8 +17,8 @@ namespace Unity.AI.Assistant.Editor.Agent
 {
     class RunCommandInterpreter
     {
-        internal const string k_DynamicAssemblyName = "Unity.AI.Assistant.Agent.Dynamic.Extension";
-        internal const string k_DynamicCommandNamespace = "Unity.AI.Assistant.Agent.Dynamic.Extension";
+        internal const string k_DynamicAssemblyName = "Unity.AI.Assistant.Agent.Dynamic.Extension.Editor";
+        internal const string k_DynamicCommandNamespace = "Unity.AI.Assistant.Agent.Dynamic.Extension.Editor";
         internal const string k_DynamicCommandClassName = "CommandScript";
 
         internal static readonly Regex k_CsxMarkupRegex = new("```csx(.*?)```", RegexOptions.Compiled | RegexOptions.Singleline);
@@ -179,6 +179,36 @@ namespace Unity.AI.Assistant.Editor.Agent
                     }
 
                     fieldInfo.SetValue(instance, listInstance);
+                }
+                else if (fieldType.IsArray &&
+                         typeof(Object).IsAssignableFrom(fieldType.GetElementType()))
+                {
+                    var elementType = fieldType.GetElementType();
+                    Object[] arrayInstance = null;
+
+                    switch (actionParameterAttribute.LookupType)
+                    {
+                        case LookupType.Attachment:
+                            var attachments = runCommand.GetAttachments(elementType);
+                            arrayInstance = attachments.ToArray();
+                            break;
+                        case LookupType.Asset:
+                            var assets = AssetDatabase.LoadAllAssetsAtPath(actionParameterAttribute.LookupName);
+                            arrayInstance = assets.Where(asset => elementType != null && elementType.IsInstanceOfType(asset)).ToArray();
+                            break;
+                        case LookupType.Scene:
+                            Debug.LogWarning("Array of GameObject in the scene is not supported.");
+                            break;
+                    }
+
+                    if (arrayInstance != null)
+                    {
+                        var typedArray = Array.CreateInstance(elementType, arrayInstance.Length);
+                        for (int i = 0; i < arrayInstance.Length; i++)
+                            typedArray.SetValue(arrayInstance[i], i);
+
+                        fieldInfo.SetValue(instance, typedArray);
+                    }
                 }
             }
         }

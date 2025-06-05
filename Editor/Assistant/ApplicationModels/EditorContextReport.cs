@@ -16,7 +16,6 @@ namespace Unity.AI.Assistant.Editor.ApplicationModels
         {
             AttachedContext = attachedContext;
             CharacterLimit = characterLimit;
-            ExtractedContext = extractedContext;
         }
 
         /// <summary>
@@ -32,12 +31,6 @@ namespace Unity.AI.Assistant.Editor.ApplicationModels
         public int CharacterLimit { get; set; }
 
         /// <summary>
-        /// Gets or Sets ExtractedContext
-        /// </summary>
-        [DataMember(Name = "extracted_context", IsRequired = true, EmitDefaultValue = true)]
-        public List<ContextItem> ExtractedContext { get; set; }
-
-        /// <summary>
         /// Returns the string presentation of the object
         /// </summary>
         /// <returns>String presentation of the object</returns>
@@ -47,7 +40,6 @@ namespace Unity.AI.Assistant.Editor.ApplicationModels
             sb.Append("class EditorContextReport {\n");
             sb.Append("  AttachedContext: ").Append(AttachedContext).Append("\n");
             sb.Append("  CharacterLimit: ").Append(CharacterLimit).Append("\n");
-            sb.Append("  ExtractedContext: ").Append(ExtractedContext).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
         }
@@ -61,26 +53,9 @@ namespace Unity.AI.Assistant.Editor.ApplicationModels
             return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
         }
 
-        internal IEnumerable<ContextItem> AllContext
-        {
-            get
-            {
-                foreach (var item in AttachedContext)
-                {
-                    yield return item;
-                }
-
-                foreach (var item in ExtractedContext)
-                {
-                    yield return item;
-                }
-            }
-        }
-
         internal void Sort()
         {
             AttachedContext.Sort((a, b) => a.Priority.CompareTo(b.Priority));
-            ExtractedContext.Sort((a, b) => a.Priority.CompareTo(b.Priority));
         }
     }
 }

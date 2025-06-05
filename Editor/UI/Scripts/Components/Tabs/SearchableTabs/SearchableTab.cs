@@ -5,10 +5,13 @@ using UnityEditor.Search;
 
 namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 {
-    abstract class SearchableTab: SelectionPopupTab
+    abstract class SearchableTab : SelectionPopupTab
     {
+        static readonly Dictionary<string, SearchContextWrapper> s_SearchContextWrapperCache = new();
+        static string s_CurrentQuery;
+
         public abstract SearchContextWrapper[]
-            SearchProviders { get; } // Should be overriden to return HierarchySearchContext or ProjectSearchContext
+            SearchProviders { get; } // Should be overriden to return search providers using GetSearchContextWrapper()
 
         public abstract int Order { get; }
 
@@ -20,9 +23,17 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         public bool IsLoading =>
             SearchProviders is { Length: > 0 } && SearchProviders.Any(p => p is { IsLoading: true });
 
-        // Search contexts that can be shared by multiple tabs:
-        protected static SearchContextWrapper HierarchySearchContext;
-        protected static SearchContextWrapper ProjectSearchContext;
+        protected static SearchContextWrapper GetSearchContextWrapper(string providerId)
+        {
+            if (!s_SearchContextWrapperCache.TryGetValue(providerId, out var wrapper))
+            {
+                var context = SearchService.CreateContext(providerId, s_CurrentQuery);
+                wrapper = new SearchContextWrapper(context);
+                s_SearchContextWrapperCache[providerId] = wrapper;
+            }
+
+            return wrapper;
+        }
 
         protected SearchableTab(string label) : base(label)
         {
@@ -30,23 +41,28 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         public static void SetupSearchProviders(string query)
         {
-            HierarchySearchContext?.Stop();
-            ProjectSearchContext?.Stop();
+            s_CurrentQuery = query;
 
-            HierarchySearchContext = new SearchContextWrapper(SearchService.CreateContext("scene", query));
-            ProjectSearchContext = new SearchContextWrapper(SearchService.CreateContext("asset", query));
+            foreach (var searchContextWrapper in s_SearchContextWrapperCache.Values)
+            {
+                searchContextWrapper.Stop();
+            }
+
+            s_SearchContextWrapperCache.Clear();
         }
 
         public static void StartSearchers()
         {
-            HierarchySearchContext.Start();
-            ProjectSearchContext.Start();
+            foreach (var searchContextWrapper in s_SearchContextWrapperCache.Values)
+            {
+                searchContextWrapper.Start();
+            }
         }
 
         internal class SearchContextWrapper
         {
             SearchContext Context;
-            public List<Action<IList<SearchItem>>> Callbacks = new();
+            public List<Action<IList<UnityEngine.Object>>> Callbacks = new();
 
             bool m_Active = true;
 
@@ -60,24 +76,49 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             public void Stop()
             {
                 m_Active = false;
+
                 Context.Dispose();
             }
 
             public void Start()
             {
-                SearchService.Request(Context,
-                    (_, items) =>
-                    {
-                        if (!m_Active)
-                        {
-                            return;
-                        }
+                Context.asyncItemReceived += (_, items) =>
+                {
+                    if (!m_Active)
+                        return;
 
-                        foreach (var callback in Callbacks)
-                        {
-                            callback.Invoke(items);
-                        }
-                    });
+                    var itemsAsList = GetItemsAsList(items);
+
+                    foreach (var callback in Callbacks)
+                        callback.Invoke(itemsAsList);
+                };
+
+                // Needed so we get out of loading state when the search is finished but no results were returned:
+                Context.sessionEnded += _ =>
+                {
+                    if (!m_Active)
+                        return;
+
+                    foreach (var callback in Callbacks)
+                        callback.Invoke(null);
+                };
+
+                var initialResults = SearchService.GetItems(Context, SearchFlags.FirstBatchAsync);
+
+                var itemsAsList = GetItemsAsList(initialResults);
+
+                if (itemsAsList.Count > 0)
+                {
+                    foreach (var callback in Callbacks)
+                        callback.Invoke(itemsAsList);
+                }
+
+                return;
+
+                List<UnityEngine.Object> GetItemsAsList(IEnumerable<SearchItem> items)
+                {
+                    return items.Select(item => item.ToObject()).Where(obj => obj).ToList();
+                }
             }
         }
     }

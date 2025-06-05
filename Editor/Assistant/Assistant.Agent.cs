@@ -8,7 +8,7 @@ using Unity.AI.Assistant.Editor.CodeBlock;
 using Unity.AI.Assistant.Editor.Commands;
 using Unity.AI.Assistant.Editor.Data;
 using Unity.AI.Assistant.Editor.Utils;
-using Unity.AI.Assistant.Agent.Dynamic.Extension;
+using Unity.AI.Assistant.Agent.Dynamic.Extension.Editor;
 using UnityEngine;
 
 namespace Unity.AI.Assistant.Editor

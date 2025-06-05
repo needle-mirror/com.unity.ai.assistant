@@ -66,6 +66,5 @@ namespace Unity.AI.Assistant.Editor.ApplicationModels
 
         [JsonIgnore] public int Priority;
         [JsonIgnore] public object Context;
-        [JsonIgnore] public int? DeduplicationID;
     }
 }

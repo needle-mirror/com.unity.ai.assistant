@@ -14,11 +14,11 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Utilities
         {
             var contextList = new List<ChatRequestV1.AttachedContextModel>();
 
-            if (editorContextReport?.AllContext == null)
+            if (editorContextReport?.AttachedContext == null)
                 return contextList;
 
             // Go through each context item
-            foreach (var contextItem in editorContextReport.AllContext)
+            foreach (var contextItem in editorContextReport.AttachedContext)
             {
                 var contextModel = new ChatRequestV1.AttachedContextModel();
                 var metaDataModel = new ChatRequestV1.AttachedContextModel.MetadataModel();

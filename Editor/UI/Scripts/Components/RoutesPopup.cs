@@ -34,10 +34,15 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             var newPopupItem = new RoutesPopupEntry();
             newPopupItem.Initialize(Context);
             newPopupItem.SetCommand(commandHandler);
-            m_Disclaimer = newPopupItem.Q(k_DisclaimerName);
-            m_PreviewChip = new PreviewChip();
-            m_PreviewChip.Initialize(Context);
-            m_Disclaimer.Add(m_PreviewChip);
+
+            if (commandHandler.IsPreview)
+            {
+                m_Disclaimer = newPopupItem.Q(k_DisclaimerName);
+                m_PreviewChip = new PreviewChip();
+                m_PreviewChip.Initialize(Context);
+                m_Disclaimer.Add(m_PreviewChip);
+            }
+
             return newPopupItem;
         }
 

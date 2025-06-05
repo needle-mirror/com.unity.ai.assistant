@@ -70,10 +70,10 @@
 }
 
 #input {
-    flex-shrink: 1;
+    flex-shrink: 0;
     flex-grow: 1;
     white-space: normal;
-    margin-right: 42px;
+    margin-right: 2px;
     margin-left: 2px;
     margin-bottom: 0;
 }
@@ -87,10 +87,6 @@
     bottom: -16px;
     right: 0;
     display: none;
-}
-
-#actionButton.mui-mft-scroll-active {
-    right: 24px;
 }
 
 #actionButton.mui-mft-input-hovered {
@@ -148,6 +144,7 @@
 .mui-mtf-input-root {
     display: flex;
     flex-grow: 1;
+    flex-shrink: 0;
     flex-direction: column;
     margin-top: 4px;
 }

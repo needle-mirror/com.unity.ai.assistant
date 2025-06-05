@@ -22,7 +22,7 @@
                     <ui:VisualElement name="inspirationSectionContent" class="mui-chat-inspiration-content">
                     </ui:VisualElement>
                     <ui:VisualElement class="mui-chat-inspiration-spacer"/>
-                    <ui:Button name="refreshButton" tooltip="Refresh currently listed Inspirations" class="mui-chat-inspiration-refresh-btn -muse-chat-button">
+                    <ui:Button name="refreshButton" tooltip="Refresh currently listed examples" class="mui-chat-inspiration-refresh-btn -muse-chat-button">
                         <ui:Image class="mui-action-button-image-large mui-icon-arrows-counter-clockwise"/>
                     </ui:Button>
                 </ui:VisualElement>

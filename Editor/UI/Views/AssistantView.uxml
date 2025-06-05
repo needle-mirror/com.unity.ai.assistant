@@ -5,11 +5,11 @@
         <ui:VisualElement name="root-main">
             <ui:VisualElement name="headerRoot" class="mui-header -muse-chat-panel">
                 <ui:VisualElement name="headerRow" class="mui-header-row">
-                    <ui:Label name="conversationNameLabel" class="mui-chat-label mui-header-label" text="Conversation Name" picking-mode="ignore"/>
                     <ui:Button name="newChatButton" class="mui-action-button mui-header-button">
                         <ui:Image class="mui-action-button-image-large" name="newChatButtonImage"/>
                         <ui:Label class="mui-action-button-label-header" text="Conversation"/>
                     </ui:Button>
+                    <ui:Label name="conversationNameLabel" class="mui-chat-label mui-header-label" text="Conversation Name" picking-mode="ignore"/>
                     <ui:Button name="historyButton" class="mui-action-button mui-header-button">
                         <ui:Image class="mui-action-button-image-large mui-icon-menu"/>
                         <ui:Label class="mui-action-button-label-header" text="History"/>

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Unity.AI.Assistant.Agent.Dynamic.Extension
+namespace Unity.AI.Assistant.Agent.Dynamic.Extension.Editor
 {
 #if CODE_LIBRARY_INSTALLED
     public

@@ -85,30 +85,36 @@ namespace Unity.AI.Assistant.Bridge.Editor
             results.Clear();
 
             int entryCount = LogEntries.GetCount();
-            int resultCount = 0;
 
             for (int i = 0; i < entryCount; i++)
             {
                 if (LogEntries.GetEntryInternal(i, s_Entry))
                 {
-                    results.Add(LogEntryToInternal(s_Entry));
-                    resultCount++;
+                    var entryToAdd = LogEntryToInternal(s_Entry);
+                    // Avoid duplicate entries:
+                    if (FindLogEntry(results, entryToAdd) >= 0)
+                    {
+                        continue;
+                    }
+
+                    results.Add(entryToAdd);
                 }
             }
-            return resultCount;
+            return results.Count;
         }
 
-        internal static bool FindLogEntry(List<LogData> entries, LogData entry)
+        internal static int FindLogEntry(List<LogData> entries, LogData entry)
         {
-            foreach (var l in entries)
+            for (var i = 0; i < entries.Count; i++)
             {
+                var l = entries[i];
                 if (l.Message.Equals(entry.Message) && l.Type == entry.Type)
                 {
-                    return true;
+                    return i;
                 }
             }
 
-            return false;
+            return -1;
         }
 
         internal static bool HasEqualLogEntry(List<LogData> entries, LogData entry)

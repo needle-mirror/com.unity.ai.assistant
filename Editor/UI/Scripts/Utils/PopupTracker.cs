@@ -94,8 +94,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Utils
         public void Dispose()
         {
             m_Root.UnregisterCallback<GeometryChangedEvent>(OnAlignGeometryChanged);
-            m_Root.panel.visualTree.UnregisterCallback<PointerDownEvent>(OnTreeDown, TrickleDown.TrickleDown);
-            m_Root.panel.visualTree.UnregisterCallback<GeometryChangedEvent>(OnTreeGeometryChanged);
+            m_Root.panel?.visualTree.UnregisterCallback<PointerDownEvent>(OnTreeDown, TrickleDown.TrickleDown);
+            m_Root.panel?.visualTree.UnregisterCallback<GeometryChangedEvent>(OnTreeGeometryChanged);
 
             if (m_Anchor != null)
             {

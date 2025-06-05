@@ -1,6 +1,6 @@
 using System;
 
-namespace Unity.AI.Assistant.Agent.Dynamic.Extension
+namespace Unity.AI.Assistant.Agent.Dynamic.Extension.Editor
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
 #if CODE_LIBRARY_INSTALLED

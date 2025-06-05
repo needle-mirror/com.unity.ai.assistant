@@ -240,9 +240,12 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             Context.API.RefreshConversations();
             Context.API.RefreshInspirations();
 
+            Context.ConversationRenamed += OnConversationRenamed;
+
             RegisterContextCallbacks();
 
             AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
+            EditorApplication.playModeStateChanged += OnPlayModeChanged;
 
             EditorApplication.delayCall += () => RestoreState();
         }
@@ -279,12 +282,26 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         public void Deinit()
         {
             AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
+            EditorApplication.playModeStateChanged -= OnPlayModeChanged;
 
             Context.Deinitialize();
 
-            AssistantUISessionState.instance.Clear();
-
             UnregisterContextCallbacks();
+        }
+
+        public void StorePersistentState()
+        {
+            var activeConversation = Context.Blackboard.ActiveConversation;
+
+            AssistantUISessionState.instance.Context =
+                JsonUtility.ToJson(ContextSerializationHelper.BuildPromptSelectionContext(Context.Blackboard.ObjectAttachments, Context.Blackboard.ConsoleAttachments));
+
+            AssistantUISessionState.instance.LastActiveConversationId = activeConversation?.Id.Value;
+        }
+
+        public void ClearPersistentState()
+        {
+            AssistantUISessionState.instance.Clear();
         }
 
         bool m_WaitingForConversationChange = false;
@@ -329,7 +346,20 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             }
         }
 
+        void OnConversationRenamed(AssistantConversationId id)
+        {
+            if (Context.Blackboard.ActiveConversationId == id)
+            {
+                UpdateConversationTitle(id);
+            }
+        }
+
         void OnConversationChanged(AssistantConversationId conversationId)
+        {
+            UpdateConversationTitle(conversationId);
+        }
+
+        void UpdateConversationTitle(AssistantConversationId conversationId)
         {
             var conversation = Context.Blackboard.GetConversation(conversationId);
             if (conversation == null)
@@ -522,12 +552,28 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         void OnBeforeAssemblyReload()
         {
-            var activeConversation = Context.Blackboard.ActiveConversation;
+            StorePersistentState();
+        }
 
-            AssistantUISessionState.instance.Context =
-                JsonUtility.ToJson(ContextSerializationHelper.BuildPromptSelectionContext(Context.Blackboard.ObjectAttachments, Context.Blackboard.ConsoleAttachments));
+        void OnPlayModeChanged(PlayModeStateChange state)
+        {
+            if (!Context.Blackboard.IsAPIWorking)
+            {
+                return;
+            }
 
-            AssistantUISessionState.instance.LastActiveConversationId = activeConversation?.Id.Value;
+            if (state != PlayModeStateChange.ExitingEditMode)
+            {
+                return;
+            }
+
+            if (EditorUtility.DisplayDialog("Assistant is Working", "Entering Play mode will cancel the request sent to Assistant. Cancel prompt and continue?", "Yes", "No"))
+            {
+                return;
+            }
+
+            // The user does not want to cancel the current working state
+            EditorApplication.isPlaying = false;
         }
 
         void AddItemsNumberToLabel(int numItems)

@@ -132,7 +132,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.History
             for (var i = 0; i < k_TempList.Count; i++)
             {
                 var entry = k_TempList[i];
-                if (activeConversation != null && entry is AssistantConversationInfo info && info.Id == activeConversation.Id)
+                if (activeConversation != null && entry is ConversationModel info && info.Id == activeConversation.Id)
                 {
                     selectedIndex = i;
                 }

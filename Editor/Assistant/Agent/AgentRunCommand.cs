@@ -4,7 +4,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Unity.AI.Assistant.CodeAnalyze;
 using Unity.AI.Assistant.Editor.CodeAnalyze;
-using Unity.AI.Assistant.Agent.Dynamic.Extension;
+using Unity.AI.Assistant.Agent.Dynamic.Extension.Editor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using UnityEditor;
@@ -15,11 +15,11 @@ namespace Unity.AI.Assistant.Editor.Agent
     {
         static readonly string[] k_UnauthorizedNamespaces = { "System.Net", "System.Diagnostics", "System.Runtime.InteropServices" };
 
+        readonly List<ClassCodeTextDefinition> k_RequiredMonoBehaviours = new();
+
         IRunCommand m_ActionInstance;
 
         string m_Description;
-
-        List<ClassCodeTextDefinition> m_RequiredMonoBehaviours;
 
         public string Script { get; set; }
         public CompilationErrors CompilationErrors { get; set; }
@@ -34,7 +34,7 @@ namespace Unity.AI.Assistant.Editor.Agent
 
         public bool CompilationSuccess => m_ActionInstance != null;
 
-        public IEnumerable<ClassCodeTextDefinition> RequiredMonoBehaviours => m_RequiredMonoBehaviours;
+        public IEnumerable<ClassCodeTextDefinition> RequiredMonoBehaviours => k_RequiredMonoBehaviours;
 
         public readonly List<Object> CommandAttachments;
 
@@ -89,9 +89,10 @@ namespace Unity.AI.Assistant.Editor.Agent
             m_ActionInstance.BuildPreview(builder);
         }
 
-        public void SetRequiredMonoBehaviours(List<ClassCodeTextDefinition> requiredMonoBehaviours)
+        public void SetRequiredMonoBehaviours(IEnumerable<ClassCodeTextDefinition> newBehaviors)
         {
-            m_RequiredMonoBehaviours = requiredMonoBehaviours;
+            k_RequiredMonoBehaviours.Clear();
+            k_RequiredMonoBehaviours.AddRange(newBehaviors);
         }
 
         public bool HasUnauthorizedNamespaceUsage()

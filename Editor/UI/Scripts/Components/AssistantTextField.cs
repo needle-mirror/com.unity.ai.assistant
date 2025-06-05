@@ -194,6 +194,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_ChatInput.maxLength = AssistantMessageSizeConstraints.PromptLimit;
             m_ChatInput.multiline = true;
             m_ChatInput.selectAllOnFocus = false;
+            m_ChatInput.selectAllOnMouseUp = false;
             m_ChatInput.RegisterCallback<ClickEvent>(_ => SetPopupVisibility());
             m_ChatInput.RegisterCallback<KeyUpEvent>(OnChatKeyUpEvent);
             // TrickleDown.TrickleDown is a workaround for registering KeyDownEvent type with Unity 6
@@ -583,7 +584,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         string AddCommandStyling(string input)
         {
-            if (m_ChatInput.value.Contains(k_CommandInputStylingOpeningTags))
+            if (m_ChatInput.value.Contains(k_CommandInputStylingOpeningTags)
+                && m_ChatInput.value.Contains(k_CommandInputStylingClosingTags))
             {
                 return m_ChatInput.value;
             }
@@ -607,7 +609,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                     $"{splitChatInputOnClosingTags[0].Replace(" ", "")}{k_CommandInputStylingClosingTags} {splitChatInputOnClosingTags[1]}";
             }
 
-            m_FirstWord = RemoveCommandStyling(splitChatInputOnSpace[0]);
+            m_FirstWord = RemoveCommandStyling(splitChatInputOnSpace[0]).ToLower();
 
             m_RouteActive = ChatCommandParser.IsValidCommand(m_FirstWord);
 
@@ -616,6 +618,10 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 if (!m_ChatInput.value.Contains(k_CommandInputStylingOpeningTags))
                 {
                     m_ChatInput.value = $"{AddCommandStyling(m_FirstWord)} {splitChatInputOnSpace[1]}";
+                }
+                else if (!m_ChatInput.value.Contains(k_CommandInputStylingClosingTags))
+                {
+                    m_ChatInput.SetValueWithoutNotify($"{AddCommandStyling(m_FirstWord)} {splitChatInputOnSpace[1]}");
                 }
             }
             else

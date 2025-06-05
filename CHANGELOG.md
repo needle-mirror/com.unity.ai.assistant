@@ -4,6 +4,15 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-pre.6] - 2025-06-05
+- Bump AI Toolkit to 1.0.0-pre.12
+- Fixed issue blocking .NET Standard Editor compatibility
+- Minor UI fixes
+- Minor bug fixes
+- Improved attachment selection UX
+- Fixed issue adding additional attached context to prompts
+- Added support for array types as run parameter field.
+
 ## [1.0.0-pre.5] - 2025-05-14
 - Improved Agent deletion logic
 - Improved search window performance

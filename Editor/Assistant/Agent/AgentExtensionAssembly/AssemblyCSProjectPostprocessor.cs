@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
 
-namespace Unity.AI.Assistant.Agent.Dynamic.Extension
+namespace Unity.AI.Assistant.Agent.Dynamic.Extension.Editor
 {
     class AssemblyCSProjectPostprocessor : AssetPostprocessor
     {

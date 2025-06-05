@@ -264,6 +264,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.History
                 d.ConversationId = m_Data.Id.Value;
                 d.ConversationTitle = evt.newValue;
             });
+
+            Context.SendConversationRenamed(m_Data.Id);
         }
 
         void BeginEdit()

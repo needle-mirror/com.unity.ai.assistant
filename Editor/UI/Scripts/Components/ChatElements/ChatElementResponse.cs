@@ -252,6 +252,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
 
             m_SourcesAttribution = view.Q<Label>("sourcesAttribution");
             m_SourcesFoldout = view.Q<Foldout>("sourcesFoldout");
+            m_SourcesFoldout.RegisterValueChangedCallback(_ => OnSourcesFoldoutChanged());
 
             m_SourcesContent = view.Q<VisualElement>("sourcesContent");
 
@@ -360,6 +361,11 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             m_FeedbackFlagInappropriateCheckbox.value = false;
             m_FeedbackText.value = string.Empty;
             RefreshFeedbackParameters();
+        }
+
+        void OnSourcesFoldoutChanged()
+        {
+            EditorApplication.delayCall += Context.SendScrollToEndRequest;
         }
 
         void OnDownvoteClicked(PointerUpEvent evt)
@@ -481,12 +487,14 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
         {
             if (Message.Role == MessageModelRole.Error || !Message.IsComplete)
             {
+                m_CopyButton.SetEnabled(false);
                 m_UpVoteButton.SetEnabled(false);
                 m_DownVoteButton.SetEnabled(false);
                 m_FeedbackParamSection.style.display = DisplayStyle.None;
                 return;
             }
 
+            m_CopyButton.SetEnabled(true);
             m_UpVoteButton.SetEnabled(true);
             m_DownVoteButton.SetEnabled(true);
 

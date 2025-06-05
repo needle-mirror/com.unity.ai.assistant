@@ -167,7 +167,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
                     AIAssistantAnalytics.ReportUITriggerLocalEvent(UITriggerLocalEventSubType.ModifyRunCommandPreviewWithObjectPicker,
                         d =>
                         {
-                            d.PreviewParameter = evt.newValue.ToString();
+                            if (evt.newValue != null)
+                                d.PreviewParameter = evt.newValue.ToString();
                         });
                 });
                 return objectField;

@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 using Unity.AI.Assistant.UI.Editor.Scripts.Utils;
-using Unity.AI.Assistant.Agent.Dynamic.Extension;
+using Unity.AI.Assistant.Agent.Dynamic.Extension.Editor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.UIElements.Experimental;
