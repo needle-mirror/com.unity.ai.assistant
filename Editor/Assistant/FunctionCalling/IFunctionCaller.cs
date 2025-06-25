@@ -29,7 +29,7 @@ namespace Unity.AI.Assistant.Editor.FunctionCalling
         /// <param name="functionParameters"></param>
         /// <param name="context">Contextual data that can be passed to a plugin call through the <see cref="FunctionCallingContextBridge"/> system</param>
         /// <returns></returns>
-        Task CallPlugin(string functionId, string[] functionParameters, object context = null);
+        IFunctionCaller.CallResult CallPlugin(string functionId, string[] functionParameters, object context = null);
 
 
         public struct CallResult
@@ -44,10 +44,17 @@ namespace Unity.AI.Assistant.Editor.FunctionCalling
             /// </summary>
             public JToken Result;
 
-            public static CallResult SuccessfulResult(JToken response)
-                => new() { IsFunctionCallSucceeded = true, Result = response};
+            public static CallResult SuccessfulResult(JToken response) => new()
+            {
+                IsFunctionCallSucceeded = true,
+                Result = response
+            };
 
-            public static CallResult FailedResult() => new() { IsFunctionCallSucceeded = false };
+            public static CallResult FailedResult(string error) => new()
+            {
+                IsFunctionCallSucceeded = false,
+                Result = JToken.FromObject(error)
+            };
         }
     }
 }

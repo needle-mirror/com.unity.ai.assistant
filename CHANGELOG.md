@@ -4,6 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-pre.7] - 2025-06-25
+- Minor bug fixes
+- Improved error handling for function calling
+- Finalized onboarding content
+- Disabled run when code won't compile
+- Fixed performance issues for long conversations
+- Improved history panel performance
+
 ## [1.0.0-pre.6] - 2025-06-05
 - Bump AI Toolkit to 1.0.0-pre.12
 - Fixed issue blocking .NET Standard Editor compatibility

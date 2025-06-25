@@ -23,22 +23,10 @@ namespace Unity.AI.Assistant.Editor.Plugins
         /// </summary>
         /// <param name="name">Name of the tool function.</param>
         /// <param name="args">Arguments to pass to the tool function.</param>
-        public bool TryRunToolByName(string name, string[] args)
+        public void RunToolByName(string name, string[] args)
         {
-            try
-            {
-                if (TryGetSelectorAndConvertArgs(name, args, out var plugin, out var convertedArgs))
-                {
-                    plugin.Invoke(convertedArgs);
-                    return true;
-                }
-            }
-            catch (Exception e)
-            {
-                InternalLog.LogException(e);
-            }
-
-            return false;
+            GetSelectorAndConvertArgs(name, args, out var plugin, out var convertedArgs);
+            plugin.Invoke(convertedArgs);
         }
 
         public bool TryGetToolButtonTextByID(string id, out string actionText)
@@ -47,22 +35,10 @@ namespace Unity.AI.Assistant.Editor.Plugins
         public bool TryGetToolBlockTitleByID(string id, out string actionText)
             => TryGetToolMetadataByID(id, k_BlockTitleKey, out actionText);
 
-        public bool TryRunToolByID(string id, string[] args)
+        public void RunToolByID(string id, string[] args)
         {
-            try
-            {
-                if (TryGetSelectorIdAndConvertArgs(id, args, out var tool, out var convertedArgs))
-                {
-                    tool.Invoke(convertedArgs);
-                    return true;
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
-
-            return false;
+            GetSelectorIdAndConvertArgs(id, args, out var tool, out var convertedArgs);
+            tool.Invoke(convertedArgs);
         }
     }
 }

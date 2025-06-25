@@ -175,6 +175,11 @@ namespace Unity.AI.Assistant.Editor
                 m_ConversationCache[conversationId] = conversation;
             }
 
+            foreach (var message in conversation.Messages)
+            {
+                FixBASST266(message);
+            }
+
             ConversationLoaded?.Invoke(conversation);
         }
 
@@ -226,47 +231,6 @@ namespace Unity.AI.Assistant.Editor
             }
 
             ConversationDeleted?.Invoke(conversationId);
-        }
-
-        /// <summary>
-        /// Finds and returns the message updater for the given conversation ID.
-        /// </summary>
-        internal IStreamStatusHook GetStreamForConversation(AssistantConversationId conversationId)
-        {
-            for (var i = 0; i < k_MessageUpdaters.Count; i++)
-            {
-                var updater = k_MessageUpdaters[i];
-                if (updater.ConversationId == conversationId.Value)
-                {
-                    return updater;
-                }
-            }
-
-            return null;
-        }
-
-        bool IsConversationInProgress(AssistantConversationId conversationId)
-        {
-            if (HasInternalIdUpdaters())
-            {
-                // If there is an updater with an internal ID, we are musing, but can't be sure for which conversation,
-                return true;
-            }
-
-            var stream = GetStreamForConversation(conversationId);
-            if (stream == null)
-            {
-                // If there is no updater, we are not musing.
-                return false;
-            }
-
-            if (stream.CurrentState == StreamState.InProgress)
-            {
-                // If the message is streaming in set musing to true.
-                return true;
-            }
-
-            return false;
         }
 
         AssistantConversation ConvertConversation(ClientConversation remoteConversation)

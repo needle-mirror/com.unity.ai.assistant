@@ -4,7 +4,7 @@
         <ui:VisualElement class="mui-chat-empty-top-buttons">
             <ui:Button name="museChatWhatsNewButton" class="mui-action-button">
                 <ui:Image class="mui-action-button-image-large mui-icon-sparkle"/>
-                <ui:Label text="See what’s new in 6.2" class="mui-action-button-label"/>
+                <ui:Label text="See what’s new" class="mui-action-button-label"/>
             </ui:Button>
         </ui:VisualElement>
 

@@ -186,12 +186,13 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             //Still display the code
             m_TaskMessage.text = "Unable to generate tasks";
             m_CodePreview.SetCodePreviewTitle("Failed command attempt");
-            m_CodePreview.ShowTitleIcon();
+            m_CodePreview.SetTitleIcon();
             m_TaskWarningIcon.SetDisplay(true);
             m_CodePreview.Show();
             m_CodePreview.SetCode(m_RunCommand.Script);
 
             m_WarningContainer.SetDisplay(true);
+            m_ExecuteButton.SetEnabled(false);
 
 
             if (m_RunCommand.HasUnauthorizedNamespaceUsage())
@@ -239,7 +240,12 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
                 }
 
                 if (!EditorApplication.isPlaying && !m_RunCommand.RequiredMonoBehaviours.Any())
+                {
                     m_ExecuteButton.SetEnabled(true);
+                    m_TaskWarningIcon.SetDisplay(false);
+                    m_CodePreview.SetTitleIcon(false);
+                    m_CodePreview.ClearDisplayedErrors();
+                }
             }
         }
 

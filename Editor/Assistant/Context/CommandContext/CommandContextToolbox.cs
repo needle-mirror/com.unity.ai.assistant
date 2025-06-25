@@ -31,24 +31,11 @@ namespace Unity.AI.Assistant.Editor.Context.CommandContext
         /// <param name="name">Name of the tool function.</param>
         /// <param name="args">Arguments to pass to the tool function.</param>
         /// <param name="output">Output from the tool function</param>
-        public bool TryRunToolByName(string name, string[] args, out IContextSelection output)
+        public void RunToolByName(string name, string[] args, out IContextSelection output)
         {
-            try
-            {
-                if (TryGetSelectorAndConvertArgs(name, args, out var tool, out var convertedArgs))
-                {
-                    var result = (ExtractedContext)tool.Invoke(convertedArgs);
-                    output = result != null ? new ContextSelection(tool, result) : null;
-                    return true;
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
-
-            output = default;
-            return false;
+            GetSelectorAndConvertArgs(name, args, out var tool, out var convertedArgs);
+            var result = (ExtractedContext)tool.Invoke(convertedArgs);
+            output = result != null ? new ContextSelection(tool, result) : null;
         }
     }
 }

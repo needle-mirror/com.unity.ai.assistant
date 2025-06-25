@@ -362,9 +362,7 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
             }
 
             if (hierarchyMap.Children.Count == 0)
-            {
-                return null;
-            }
+                throw new Exception("The project does not contain any asset that matches the specified filters.");
 
             resultPrefix += ":\n";
 

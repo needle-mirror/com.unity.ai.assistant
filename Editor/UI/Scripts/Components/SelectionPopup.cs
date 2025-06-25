@@ -68,7 +68,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         SelectionPopupTab m_SelectedTab;
         int m_SelectedTabIndex;
-        bool m_SearchActive;
 
         string m_ActiveSearchFilter = string.Empty;
 
@@ -144,13 +143,11 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
             if (string.IsNullOrEmpty(m_ActiveSearchFilter))
             {
-                m_SearchActive = false;
                 ScheduleSearchRefresh();
                 RefreshSearchState();
                 return;
             }
 
-            m_SearchActive = true;
 
             ScheduleSearchRefresh();
         }

@@ -83,15 +83,7 @@ namespace Unity.AI.Assistant.Editor
                 var workflow = webSocketBackend.ActiveWorkflow;
                 if (workflow != null && workflow.ConversationId == conversationId.Value)
                     workflow.CancelCurrentChatRequest();
-
-                return;
             }
-
-            // Cancel any active operation to ensure no additional messages arrive while or after we're deleting:
-            var stream = GetStreamForConversation(conversationId);
-
-            if (stream != null)
-                stream.CancellationTokenSource.Cancel();
         }
 
         string GetAccessToken()
@@ -275,6 +267,8 @@ namespace Unity.AI.Assistant.Editor
                     assistantMessage.MessageIndex = conversation.Messages.Count - 1;
 
                     CleanupEvents();
+
+                    FixBASST266(assistantMessage);
 
                     if (isNewConversation)
                     {

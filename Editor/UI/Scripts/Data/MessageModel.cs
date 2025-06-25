@@ -11,6 +11,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Data
         //       i.e do not depend on this being there at all times!
         public string Command;
 
+        // Note: This is temporary to fix https://jira.unity3d.com/browse/BASST-266
+        public string SourceAttribution;
+
         public bool IsComplete;
         public MessageModelRole Role;
 

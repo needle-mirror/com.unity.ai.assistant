@@ -28,7 +28,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
 
         static Texture2D k_UnityAvatarImage;
 
-        string m_TempBASST266FixSourceAttribution = string.Empty;
         Label m_SourcesAttribution;
         Foldout m_SourcesFoldout;
         VisualElement m_SourcesContent;
@@ -65,6 +64,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
         IVisualElementScheduledItem m_ScheduledAnim;
 
         static readonly Dictionary<AssistantMessageId, int> k_AnimationIndices = new();
+
+        static AssistantConversationId s_CurrentStoredConversationFeedbacks;
+        static readonly Dictionary<AssistantMessageId, FeedbackData> k_StoredFeedbackUIState = new();
 
         int AnimationIndex
         {
@@ -119,29 +121,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
 
             m_MessageId = message.Id;
 
-            // https://jira.unity3d.com/browse/BASST-266 is an important bug that should be solved by the server. Our
-            // open-beta requires it though, and the server side solution should be designed correctly. So, as temporary
-            // fix, we will strip the attribution on the frontend and put it in the correct place.
+            SetCurrentConversation(message.Id.ConversationId);
 
-            // This solution is extremely hardcoded, and assumes the `<sub>Powered by` will be present on the line of
-            // the attribution. It will strip this line out, and forward it to the sources visualizer so that it can
-            // render the line instead.
-            StringBuilder messageWithoutSourceAttribution = new();
-            string sourceAttribution = string.Empty;
-
-            foreach (string line in message.Content.Split("\n"))
-            {
-                if (line.Contains("<sub>Powered by"))
-                {
-                    sourceAttribution = line;
-                    continue;
-                }
-
-                messageWithoutSourceAttribution.Append($"{line}\n");
-            }
-
-            m_TempBASST266FixSourceAttribution = sourceAttribution;
-            message.Content = messageWithoutSourceAttribution.ToString();
             base.SetData(message);
 
             m_FeedbackMode = FeedbackEditMode.None;
@@ -159,7 +140,14 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
 
             if (message.Feedback != null)
             {
+                // Feedback returned from backend
                 SetFeedback(message.Id, message.Feedback);
+                StoreFeedbackUIState(message.Id, message.Feedback.Value);
+            }
+            else if (k_StoredFeedbackUIState.TryGetValue(Message.Id, out var feedbackData))
+            {
+                // Feedback cached for current conversation
+                SetFeedback(message.Id, feedbackData);
             }
 
             // Cancel any active animations:
@@ -337,6 +325,13 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
 
             Context.API.SendFeedback(Id, m_FeedbackFlagInappropriateCheckbox.value, message, m_FeedbackMode == FeedbackEditMode.UpVote);
 
+            if (k_StoredFeedbackUIState.TryGetValue(Message.Id, out var feedbackData))
+            {
+                // Null is intentional since we clear the sent text at this point
+                var newFeedbackData = new FeedbackData(feedbackData.Sentiment, null);
+                StoreFeedbackUIState(Message.Id, newFeedbackData);
+            }
+
             m_FeedbackSendButton.EnableInClassList(AssistantUIConstants.ActiveActionButtonClass, true);
             m_FeedbackSendButtonLabel.text = AssistantUIConstants.FeedbackButtonSentTitle;
             m_FeedbackSendButtonImage.SetDisplay(true);
@@ -378,7 +373,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             m_FeedbackPlaceholder.text = AssistantUIConstants.FeedbackDownVotePlaceholder;
 
             Context.API.SendFeedback(Id, m_FeedbackFlagInappropriateCheckbox.value, string.Empty, false);
-            m_FeedbackText.value = string.Empty;
+
+            var newFeedbackData = new FeedbackData(Sentiment.Negative, m_FeedbackText.value);
+            StoreFeedbackUIState(Message.Id, newFeedbackData);
 
             m_FeedbackMode = FeedbackEditMode.DownVote;
             RefreshFeedbackParameters();
@@ -394,7 +391,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             m_FeedbackPlaceholder.text = AssistantUIConstants.FeedbackUpVotePlaceholder;
 
             Context.API.SendFeedback(Id, false, string.Empty, true);
-            m_FeedbackText.value = string.Empty;
+
+            var newFeedbackData = new FeedbackData(Sentiment.Positive, m_FeedbackText.value);
+            StoreFeedbackUIState(Message.Id, newFeedbackData);
 
             m_FeedbackMode = FeedbackEditMode.UpVote;
             RefreshFeedbackParameters();
@@ -468,10 +467,18 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             // This exists to solve https://jira.unity3d.com/browse/BASST-266 quickly. This should not be the final
             // solution. The source block is extracted from the chat stream as it streamed and sets
             // m_TempBASST266FixSourceAttribution. If not empty, it should be displayed in the sources block.
-            var showAttribution = !string.IsNullOrEmpty(m_TempBASST266FixSourceAttribution);
+            var showAttribution = !string.IsNullOrEmpty(Message.SourceAttribution);
             m_SourcesAttribution.SetDisplay(showAttribution);
             if (showAttribution)
-                m_SourcesAttribution.text = m_TempBASST266FixSourceAttribution;
+            {
+                // strip subscript tags to allow our styling
+                var attributionText = Message.SourceAttribution
+                    .Replace("<sub>", string.Empty)
+                    .Replace("</sub>", string.Empty)
+                    .Trim();
+
+                m_SourcesAttribution.text = attributionText;
+            }
 
             for (var index = 0; index < SourceBlocks.Count; index++)
             {
@@ -558,6 +565,21 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             m_FeedbackText.value = string.Empty;
 
             RefreshFeedbackParameters(true);
+        }
+
+        static void SetCurrentConversation(AssistantConversationId conversationId)
+        {
+            if (s_CurrentStoredConversationFeedbacks == conversationId)
+                return;
+
+            k_StoredFeedbackUIState.Clear();
+
+            s_CurrentStoredConversationFeedbacks = conversationId;
+        }
+
+        void StoreFeedbackUIState(AssistantMessageId assistantMessageId, FeedbackData feedbackData)
+        {
+            k_StoredFeedbackUIState[assistantMessageId] = feedbackData;
         }
     }
 }

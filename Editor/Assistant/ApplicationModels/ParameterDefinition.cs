@@ -45,6 +45,11 @@ namespace Unity.AI.Assistant.Editor.ApplicationModels
         public string Type { get; set; }
 
         /// <summary>
+        /// Whether this parameter is optional or not. Parameters with the params keyword in C# are considered optional.
+        /// </summary>
+        public bool Optional { get; set; }
+
+        /// <summary>
         /// Returns the string presentation of the object
         /// </summary>
         /// <returns>String presentation of the object</returns>
@@ -67,10 +72,5 @@ namespace Unity.AI.Assistant.Editor.ApplicationModels
         {
             return Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented);
         }
-
-        /// <summary>
-        /// Whether this parameter is optional or not. Parameters with the params keyword in C# are considered optional.
-        /// </summary>
-        public bool Optional { get; set; }
     }
 }

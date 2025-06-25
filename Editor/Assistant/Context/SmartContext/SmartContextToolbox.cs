@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Unity.AI.Assistant.Editor.FunctionCalling;
 using Unity.AI.Assistant.Editor.Utils;
@@ -10,6 +8,10 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
 {
     partial class SmartContextToolbox : FunctionToolbox
     {
+#if MUSE_INTERNAL
+        internal static event Action<string, object[]> OnCachedFunctionCalled;
+#endif
+
         /// <summary>
         ///     Create a toolbox.
         ///     The Toolbox will use mthods returned by the contextProviderSource to build a list of available tools.
@@ -26,68 +28,29 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
         /// <param name="name">Name of the tool function.</param>
         /// <param name="args">Arguments to pass to the tool function.</param>
         /// <param name="output">Output from the tool function</param>
-        public bool TryRunToolByName(string name, string[] args, out IContextSelection output)
+        public void RunToolByName(string name, string[] args, out IContextSelection output)
         {
-            try
-            {
-                if (TryGetSelectorAndConvertArgs(name, args, out var tool, out var convertedArgs))
-                {
-                    var result = (ExtractedContext)tool.Invoke(convertedArgs);
-                    output = result != null ? new ContextSelection(tool, result) : null;
-
-                    return true;
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
-
-            output = default;
-            return false;
+            GetSelectorAndConvertArgs(name, args, out var tool, out var convertedArgs);
+            var result = (ExtractedContext)tool.Invoke(convertedArgs);
+            output = result != null ? new ContextSelection(tool, result) : null;
         }
 
-        public bool TryRunToolByID(string id, string[] args, out IContextSelection output)
+        public void RunToolByID(string id, string[] args, out IContextSelection output)
         {
-            try
-            {
-                if (TryGetSelectorIdAndConvertArgs(id, args, out var tool, out var convertedArgs))
-                {
-                    var result = (ExtractedContext)tool.Invoke(convertedArgs);
-                    output = result != null ? new ContextSelection(tool, result) : null;
-
-                    return true;
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
-
-            output = default;
-            return false;
+            GetSelectorIdAndConvertArgs(id, args, out var tool, out var convertedArgs);
+            var result = (ExtractedContext)tool.Invoke(convertedArgs);
+            output = result != null ? new ContextSelection(tool, result) : null;
         }
 
-        public async Task<(bool, IContextSelection)> TryRunToolByIDAsync(string id, string[] args)
+        public async Task<IContextSelection> RunToolByIDAsync(string id, string[] args)
         {
-            IContextSelection output = default;
-            try
-            {
-                if (TryGetSelectorIdAndConvertArgs(id, args, out var tool, out var convertedArgs))
-                {
-                    var result = (ExtractedContext)await tool.InvokeAsync(convertedArgs);
-                    output = result != null ? new ContextSelection(tool, result) : null;
-
-                    // TODO: Null results are reported as errors. Null results are not always errors, they can mean that an object could not be found for example. https://jira.unity3d.com/browse/ASST-778
-                    return (output != null, output);
-                }
-            }
-            catch (Exception e)
-            {
-                InternalLog.LogException(e);
-            }
-
-            return (false, default);
+#if MUSE_INTERNAL
+                OnCachedFunctionCalled?.Invoke(id, args);
+#endif
+            GetSelectorIdAndConvertArgs(id, args, out var tool, out var convertedArgs);
+            var result = (ExtractedContext)await tool.InvokeAsync(convertedArgs);
+            var output = result != null ? new ContextSelection(tool, result) : null;
+            return output;
         }
     }
 }

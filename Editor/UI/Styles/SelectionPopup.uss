@@ -82,16 +82,20 @@
     border-color: var(--muse-chat-backgrounds-75);
 }
 
+.mui-selection-tab-view .unity-tab__header:checked {
+    border-color: var(--muse-chat-accent-50);
+}
+
+.mui-selection-tab-view .unity-tab__header:hover>.unity-tab__header-underline {
+    background-color: var(--muse-chat-popup-tab-hover);
+}
+
 .mui-selection-tab-view .unity-tab__header:checked>.unity-tab__header-underline {
     background-color: var(--muse-chat-accent-50);
 }
 
 .mui-selection-tab-view .unity-tab__header:hover {
-    background-color: var(--muse-chat-backgrounds-150);
-}
-
-.mui-selection-tab-view .unity-tab__header:checked:hover {
-    background-color: var(--muse-chat-backgrounds-150);
+    background-color: var(--muse-chat-backgrounds-200);
 }
 
 .mui-tab-results-label {

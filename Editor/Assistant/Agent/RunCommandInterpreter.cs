@@ -93,7 +93,7 @@ namespace Unity.AI.Assistant.Editor.Agent
             // TODO remove any constructors from CommandScript
 
             // Remove embedded MonoBehaviours that already exist in the project
-            additionalScripts = tree.ExtractTypesByInheritance<MonoBehaviour>();
+            additionalScripts = tree.ExtractTypesByInheritance<MonoBehaviour>(out var usingDirectives).ChangeModifiersToPublic().ToCodeTextDefinition(usingDirectives);
             for (var i = additionalScripts.Count - 1; i >= 0; i--)
             {
                 var monoBehaviour = additionalScripts[i];

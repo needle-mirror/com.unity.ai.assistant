@@ -29,13 +29,19 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew
         VisualElement m_VideoFullView;
         VisualElement m_VideoFullContent;
 
-        public WhatsNewView()
-            : base(AssistantUIConstants.UIModulePath)
-        {
-        }
+        WhatsNewWindow m_Window;
 
         public event Action CloseRequested;
         public event Action RepaintWindow;
+
+        public WhatsNewView()
+            : base(AssistantUIConstants.UIModulePath)
+        {}
+
+        public void SetWindow(WhatsNewWindow window)
+        {
+            m_Window = window;
+        }
 
         /// <summary>
         /// Setup the default theme, only used when this is hosted by a separate window (not assistant window)
@@ -67,18 +73,36 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew
             m_VideoFullContent = view.Q<VisualElement>("videoFullViewContent");
             m_VideoFullContent.RegisterCallback<PointerUpEvent>(ToggleVideoFullView);
 
-            RegisterContent<WhatsNewContentAssistant>();
-            RegisterContent<WhatsNewContentGenerators>();
-            RegisterContent<WhatsNewContentInferenceEngine>();
+            RegisterContent<WhatsNewContentAssistant>(m_Window);
+            RegisterContent<WhatsNewContentGenerators>(m_Window);
+            RegisterContent<WhatsNewContentInferenceEngine>(m_Window);
 
             RefreshContentButtons();
+
+            RestoreLastContent();
         }
 
-        void RegisterContent<T>()
+        private void RestoreLastContent()
+        {
+            if (m_Window && !string.IsNullOrEmpty(m_Window.ContentType))
+            {
+                foreach (var content in k_Contents)
+                {
+                    if (content.GetType().AssemblyQualifiedName == m_Window.ContentType)
+                    {
+                        OnActivateContent(content, m_Window.ContentPageIndex);
+                        return;
+                    }
+                }
+            }
+        }
+
+        void RegisterContent<T>(WhatsNewWindow window)
             where T : WhatsNewContent, new()
         {
             var page = new T();
             page.SetParent(this);
+            page.SetState(window);
             page.Initialize(Context);
             page.style.flexGrow = 1;
             k_Contents.Add(page);
@@ -102,9 +126,12 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew
             m_LandingPageRoot.SetDisplay(true);
             m_ContentRoot.SetDisplay(false);
             m_ContentRoot.Clear();
+
+            if (m_Window)
+                m_Window.ContentType = default;
         }
 
-        void OnActivateContent(WhatsNewContent content)
+        void OnActivateContent(WhatsNewContent content, int contentPageIndex = 0)
         {
             m_LandingPageRoot.SetDisplay(false);
 
@@ -112,7 +139,10 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew
             m_ContentRoot.SetDisplay(true);
             m_ContentRoot.Add(content);
 
-            content.BrowseTo(0);
+            content.BrowseTo(contentPageIndex);
+
+            if (m_Window)
+                m_Window.ContentType = content.GetType().AssemblyQualifiedName;
         }
 
         public void PlayVideoInto(VisualElement targetElement, string videoName)

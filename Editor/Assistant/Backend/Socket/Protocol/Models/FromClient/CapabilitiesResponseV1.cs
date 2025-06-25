@@ -125,6 +125,12 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Protocol.Models.FromClient
                 /// </summary>
                 [JsonProperty("parameter_description", Required = Required.Always)]
                 public string ParameterDescription { get; set; }
+
+                /// <summary>
+                /// Whether this parameter is optional or not
+                /// </summary>
+                [JsonProperty("parameter_is_optional")]
+                public bool ParameterIsOptional { get; set; } = false;
             }
         }
 

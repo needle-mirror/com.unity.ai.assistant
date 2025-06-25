@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Unity.AI.Assistant.Editor.Context.SmartContext;
@@ -16,8 +17,6 @@ using Unity.Ai.Assistant.Protocol.Client;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
-using FunctionCall = Unity.AI.Assistant.Editor.ApplicationModels.FunctionCall;
-using SmartContextResponse = Unity.AI.Assistant.Editor.ApplicationModels.SmartContextResponse;
 
 namespace Unity.AI.Assistant.Editor
 {
@@ -29,23 +28,12 @@ namespace Unity.AI.Assistant.Editor
 
         static float s_LastRefreshTokenTime;
 
-        readonly List<IStreamStatusHook> k_MessageUpdaters = new();
-        public int MessageUpdatersCount => k_MessageUpdaters.Count;
-
         IAssistantBackend m_Backend;
         public IFunctionCaller FunctionCaller { get; private set; }
 
 #pragma warning disable CS0067 // Event is never used
         public event Action<string, bool> OnConnectionChanged;
 #pragma warning restore CS0067
-
-#if MUSE_INTERNAL
-        internal event Action<TimeSpan, SmartContextResponse> OnSmartContextCallDone;
-        internal event Action<TimeSpan, FunctionCall> OnSmartContextExtracted;
-        internal event Action<AssistantConversation> OnFinalResponseReceived;
-        internal bool IsProcessingConversations => k_MessageUpdaters.Count > 0;
-        internal bool SkipChatCall = false; // Used for benchmarking to skip the actual chat call and only call smart context.
-#endif
 
         async Task<CredentialsContext> GetCredentialsContext(CancellationToken ct = default)
         {
@@ -57,16 +45,6 @@ namespace Unity.AI.Assistant.Editor
         public event Action<AssistantMessageId, FeedbackData?> FeedbackLoaded;
 
         public bool SessionStatusTrackingEnabled => m_Backend == null || m_Backend.SessionStatusTrackingEnabled;
-
-        public List<AssistantConversationId> GetProcessingConversations()
-        {
-            if (k_MessageUpdaters.Count == 0)
-            {
-                return null;
-            }
-
-            return k_MessageUpdaters.Select(x => new AssistantConversationId(x.ConversationId)).ToList();
-        }
 
         public void InitializeDriver(IAssistantBackend backend, IFunctionCaller functionCaller = null)
         {
@@ -116,23 +94,6 @@ namespace Unity.AI.Assistant.Editor
             return message;
         }
 
-        /// <summary>
-        /// Checks if there are message updaters with an internal conversation id.
-        /// </summary>
-        /// <returns>True if there is an updater with an internal ID.</returns>
-        bool HasInternalIdUpdaters()
-        {
-            for (var i = 0; i < k_MessageUpdaters.Count; i++)
-            {
-                var updater = k_MessageUpdaters[i];
-                if (!new AssistantConversationId(updater.ConversationId).IsValid)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
 
         public async Task SendFeedback(AssistantMessageId messageId, bool flagMessage, string feedbackText, bool upVote)
         {
@@ -172,6 +133,33 @@ namespace Unity.AI.Assistant.Editor
             FeedbackLoaded?.Invoke(messageId, result.Value);
 
             return result.Value;
+        }
+
+        public static void FixBASST266(AssistantMessage message)
+        {
+            // https://jira.unity3d.com/browse/BASST-266 is an important bug that should be solved by the server. Our
+            // open-beta requires it though, and the server side solution should be designed correctly. So, as temporary
+            // fix, we will strip the attribution on the frontend and put it in the correct place.
+
+            // This solution is extremely hardcoded, and assumes the `<sub>Powered by` will be present on the line of
+            // the attribution. It will strip this line out, and forward it to the sources visualizer so that it can
+            // render the line instead.
+            StringBuilder messageWithoutSourceAttribution = new();
+            string sourceAttribution = string.Empty;
+
+            foreach (string line in message.Content.Split("\n"))
+            {
+                if (line.Contains("<sub>Powered by"))
+                {
+                    sourceAttribution = line;
+                    continue;
+                }
+
+                messageWithoutSourceAttribution.Append($"{line}\n");
+            }
+
+            message.SourceAttribution = sourceAttribution;
+            message.Content = messageWithoutSourceAttribution.ToString();
         }
     }
 }

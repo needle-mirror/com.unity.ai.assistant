@@ -10,14 +10,12 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
     class ChatElementWrapper : AdaptiveListViewEntry
     {
         VisualElement m_Root;
-        Label m_IndexDebugElement;
 
         ChatElementBase m_ChatElement;
 
         protected override void InitializeView(TemplateContainer view)
         {
             m_Root = view.Q<VisualElement>("wrapperRoot");
-            m_IndexDebugElement = view.Q<Label>("indexDebugText");
         }
 
         public override void SetData(int index, object data, bool isSelected = false)

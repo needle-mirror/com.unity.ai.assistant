@@ -12,7 +12,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
         const string k_ActionCursorClassName = "mui-action-cursor";
         const string k_TextPillSpacingClass = "mui-text-object-pill-spacing";
         const string k_WarningClassName = "mui-object-pill-warning";
-        static readonly Regex k_PlaceholderRegex = new(@"%(\d+)", RegexOptions.Compiled);
 
         ExecutionLog m_Content;
         AssistantImage m_ExecutionIcon;
@@ -57,7 +56,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
         {
             var log = content.Log;
             var references = content.LoggedObjects;
-            var matches = k_PlaceholderRegex.Matches(log);
+            var referenceNames = content.LoggedObjectNames;
+            var matches = ExecutionResult.PlaceholderRegex.Matches(log);
             for (int i = 0; i < matches.Count; i++)
             {
                 var match = matches[i];
@@ -79,7 +79,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
                                 m_ExecutionLogContainer.Add(objectPill);
                                 break;
                             }
-                            AddTextToLog("<i>Destroyed Object</i>");
+
+                            var referenceName = referenceNames[index];
+                            AddTextToLog(string.IsNullOrEmpty(referenceName) ? "<i>Destroyed Object</i>" : $"<i>{referenceName}</i>");
                             break;
                         }
                         default:

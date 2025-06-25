@@ -11,15 +11,15 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew.Pages
 
             view.SetupButton("openAssistantButton", OnOpenAssistant);
 
-            RegisterPage(view.Q<VisualElement>("page1"), "1 - SlashCommand");
-            RegisterPage(view.Q<VisualElement>("page2"), "2 - TroubleshootingConsole");
-            RegisterPage(view.Q<VisualElement>("page3"), "3 - RunCommands");
-            RegisterPage(view.Q<VisualElement>("page4"), "4 - ModifyScript");
-            RegisterPage(view.Q<VisualElement>("page5"), "5 - PointsCost");
+            RegisterPage(view.Q<VisualElement>("page1"), "Assistant1 - SlashCommand");
+            RegisterPage(view.Q<VisualElement>("page2"), "Assistant2 - TroubleshootingConsole");
+            RegisterPage(view.Q<VisualElement>("page3"), "Assistant3 - RunCommands");
+            RegisterPage(view.Q<VisualElement>("page4"), "Assistant4 - ModifyScript");
+            RegisterPage(view.Q<VisualElement>("page5"), "Assistant5 - PointsCost");
         }
 
         public override string Title => "Assistant";
-        public override string Description => "Boost productivity by automating tasks and unblocking obstacles";
+        public override string Description => "Boost productivity by automating tasks and unblocking obstacles.";
 
         void OnOpenAssistant(PointerUpEvent evt)
         {

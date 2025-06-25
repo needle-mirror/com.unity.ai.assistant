@@ -19,6 +19,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew
         int m_CurrentPageIndex;
 
         WhatsNewView m_ParentView;
+        WhatsNewWindow m_Window;
 
         protected WhatsNewContent()
             : base(AssistantUIConstants.UIModulePath)
@@ -28,14 +29,29 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew
         public abstract string Title { get; }
         public abstract string Description { get; }
 
+        private int CurrentPageIndex
+        {
+            get => m_CurrentPageIndex;
+            set
+            {
+                m_CurrentPageIndex = value;
+                m_Window.ContentPageIndex = value;
+            }
+        }
+
         public void SetParent(WhatsNewView newParent)
         {
             m_ParentView = newParent;
         }
 
+        public void SetState(WhatsNewWindow whatsNewState)
+        {
+            m_Window = whatsNewState;
+        }
+
         public void BrowseTo(int page)
         {
-            m_CurrentPageIndex = Mathf.Clamp(page, 0, k_Pages.Count - 1);
+            CurrentPageIndex = Mathf.Clamp(page, 0, k_Pages.Count - 1);
             RefreshPageDisplay();
         }
 
@@ -66,9 +82,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew
 
         void OnNextPressed(PointerUpEvent evt)
         {
-            if (m_CurrentPageIndex < k_Pages.Count - 1)
+            if (CurrentPageIndex < k_Pages.Count - 1)
             {
-                m_CurrentPageIndex++;
+                CurrentPageIndex++;
             }
             else
             {
@@ -81,9 +97,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew
 
         void OnBackPressed(PointerUpEvent evt)
         {
-            if (m_CurrentPageIndex > 0)
+            if (CurrentPageIndex > 0)
             {
-                m_CurrentPageIndex--;
+                CurrentPageIndex--;
             }
             else
             {
@@ -100,12 +116,12 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew
 
             for(var i = 0; i < k_Pages.Count; i++)
             {
-                k_Pages[i].SetDisplay(i == m_CurrentPageIndex);
+                k_Pages[i].SetDisplay(i == CurrentPageIndex);
             }
 
-            m_NextButton.text = m_CurrentPageIndex == k_Pages.Count - 1 ? k_BackToStartText : "Next";
-            m_BackButton.text = m_CurrentPageIndex == 0 ? k_BackToStartText : "Previous";
-            m_PageControlLabel.text = $"{m_CurrentPageIndex + 1} / {k_Pages.Count}";
+            m_NextButton.text = CurrentPageIndex == k_Pages.Count - 1 ? k_BackToStartText : "Next";
+            m_BackButton.text = CurrentPageIndex == 0 ? k_BackToStartText : "Previous";
+            m_PageControlLabel.text = $"{CurrentPageIndex + 1} / {k_Pages.Count}";
         }
 
         void PlayVideo()
@@ -115,7 +131,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew
                 return;
             }
 
-            var targetPage = k_Pages[m_CurrentPageIndex];
+            var targetPage = k_Pages[CurrentPageIndex];
 
             if (!k_PageVideos.TryGetValue(targetPage, out var videoFileName))
             {
@@ -123,14 +139,41 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew
                 return;
             }
 
-            var targetElement = targetPage.Q<VisualElement>($"page{m_CurrentPageIndex + 1}Video");
+            var targetElement = targetPage.Q<VisualElement>($"page{CurrentPageIndex + 1}Video");
             if (targetElement == null)
             {
                 m_ParentView.StopVideo();
                 return;
             }
 
-            m_ParentView.PlayVideoInto(targetElement, videoFileName);
+            var videoElement = SetupTargetElement(targetElement);
+
+            m_ParentView.PlayVideoInto(videoElement, videoFileName);
+        }
+
+        VisualElement SetupTargetElement(VisualElement container)
+        {
+            var existingMainElement = container.Q<VisualElement>("mainVideoElement");
+            if (existingMainElement != null)
+            {
+                return existingMainElement;
+            }
+
+            // Element to play the video in
+            var videoElement = new VisualElement();
+            videoElement.name = "mainVideoElement";
+            videoElement.AddToClassList("mui-whats-new-video-element");
+
+            // Create an overlay icon element to enlarge
+            var iconElement = new VisualElement();
+            iconElement.AddToClassList("mui-whats-new-video-icon");
+            iconElement.AddToClassList("mui-icon-enlarge");
+            iconElement.pickingMode = PickingMode.Ignore;
+
+            container.Add(videoElement);
+            container.Add(iconElement);
+
+            return videoElement;
         }
     }
 }

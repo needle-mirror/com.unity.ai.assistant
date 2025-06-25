@@ -20,7 +20,7 @@
 
 .entry-label-item {
     padding: 0;
-    margin: 1px 3px 0 0;
+    margin: 1px 0 0 0;
     -unity-text-align: middle-left;
     align-self: center;
     white-space: normal;

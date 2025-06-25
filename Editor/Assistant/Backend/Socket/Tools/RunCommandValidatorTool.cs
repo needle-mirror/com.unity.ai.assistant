@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using Unity.AI.Assistant.Editor.Agent;
@@ -39,7 +40,8 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Tools
                     {
                         ParameterName = "code",
                         ParameterType = "string",
-                        ParameterDescription = "The code to attempt to compile"
+                        ParameterDescription = "The code to attempt to compile",
+                        ParameterIsOptional = false
                     }
                 },
                 FunctionTag = new List<string>() { "code-correction" }
@@ -48,10 +50,10 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Tools
 
         public static JToken Call(JObject arg)
         {
-            if (arg.TryGetValue("code", out JToken value))
-                return Compile(value.ToString());
+            if (!arg.TryGetValue("code", out JToken value))
+                throw new Exception("No code found");
 
-            return OrchestrationUtilities.GetFunctionCallFailureValue();
+            return Compile(value.ToString());
         }
     }
 }

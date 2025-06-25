@@ -46,16 +46,9 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Tools
 
         public async static Task<JToken> Call(JObject arg)
         {
-            try
-            {
-                // TODO: This converts to a string because all smart context functions should return a string. We should think about supporting arbitrary json instead
-                await CachePackageData();
-                return Run().ToString();
-            }
-            catch (Exception)
-            {
-                return OrchestrationUtilities.GetFunctionCallFailureValue();
-            }
+            // TODO: This converts to a string because all smart context functions should return a string. We should think about supporting arbitrary json instead
+            await CachePackageData();
+            return Run().ToString();
         }
     }
 }

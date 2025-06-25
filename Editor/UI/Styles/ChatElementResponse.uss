@@ -54,8 +54,7 @@
 
 #sourcesContent {
     padding-top: 8px;
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: column;
 }
 
 .mui-chat-sources-foldout {

@@ -502,14 +502,10 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
 
         public void SendFunctionCallResponse(IFunctionCaller.CallResult result, Guid callId)
         {
-            var finalResult = result.IsFunctionCallSucceeded
-                ? result.Result
-                : OrchestrationUtilities.GetFunctionCallFailureValue();
-
             m_WebSocket.Send(new FunctionCallResponseV1
             {
                 CallId = callId,
-                FunctionResult = finalResult,
+                FunctionResult = result.Result,
                 Success = result.IsFunctionCallSucceeded
             }, m_InternalCancellationTokenSource.Token);
         }

@@ -8,12 +8,28 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
 {
     internal class WhatsNewWindow : EditorWindow
     {
-        const string k_WindowName = "What's New";
+        const string k_WindowName = "See what's new";
 
         static Vector2 k_MinSize = new(400, 600);
 
         internal AssistantUIContext m_Context;
         internal WhatsNewView m_View;
+
+        [SerializeField]
+        string m_LastContentType;
+        [SerializeField]
+        int m_LastContentPage;
+
+        public string ContentType
+        {
+            get => m_LastContentType;
+            set => m_LastContentType = value;
+        }
+        public int ContentPageIndex
+        {
+            get => m_LastContentPage;
+            set => m_LastContentPage = value;
+        }
 
         public static void ShowWindow()
         {
@@ -28,6 +44,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
             m_Context = new AssistantUIContext();
 
             m_View = new WhatsNewView();
+            m_View.SetWindow(this);
             m_View.Initialize(m_Context);
             m_View.CloseRequested += Close;
             m_View.style.flexGrow = 1;

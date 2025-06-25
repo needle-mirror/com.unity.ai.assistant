@@ -27,12 +27,14 @@
 @import url("ContextDropdown.uss");
 @import url("SelectionPopup.uss");
 @import url("HistoryPanel.uss");
-@import url("HistoryPanelEntry.uss");
-@import url("RoutesPopup.uss");
+@import url("HistoryPanelConversationEntry.uss");
+@import url("HistoryPanelEntryWrapper.uss");
+@import url("HistoryPanelHeaderEntry.uss");
 @import url("ObjectPill.uss");
-@import url("RoutesPopupEntry.uss");
 @import url("PreviewChip.uss");
 @import url("ProgressElement.uss");
+@import url("RoutesPopup.uss");
+@import url("RoutesPopupEntry.uss");
 @import url("SelectionElement.uss");
 @import url("SelectionPopup.uss");
 @import url("WhatsNewContent.uss");

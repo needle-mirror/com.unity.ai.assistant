@@ -34,6 +34,7 @@
 
     /* Specialized overrides for dark + light discrepancy */
     --muse-chat-popup-hover: #d6d6d6;
+    --muse-chat-popup-tab-hover: #222222;
 }
 
 .-muse-chat-panel {
@@ -217,8 +218,11 @@
     background-image: resource('dropdown@2x');
 }
 
-.mui-icon-arrows-in {
-    --unity-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ArrowsIn.png');
-    --unity-image-tint-color: black;
+.mui-icon-enlarge {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Enlarge.png');
 }
 
+.mui-icon-shrink {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Shrink.png');
+    -unity-background-image-tint-color: black;
+}

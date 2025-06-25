@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Unity.AI.Assistant.Agent.Dynamic.Extension.Editor
 {
@@ -10,12 +12,22 @@ namespace Unity.AI.Assistant.Agent.Dynamic.Extension.Editor
         public string Log;
         public LogType LogType;
         public object[] LoggedObjects;
+        public string[] LoggedObjectNames;
 
         public ExecutionLog(string formattedLog, LogType logType, object[] loggedObjects = null)
         {
             Log = formattedLog;
             LogType = logType;
             LoggedObjects = loggedObjects;
+            LoggedObjectNames = loggedObjects != null ? new string[loggedObjects.Length] : null;
+
+            if (LoggedObjectNames != null)
+            {
+                for (int i = 0; i < loggedObjects.Length; i++)
+                {
+                    LoggedObjectNames[i] = loggedObjects[i] is Object obj ? obj.name : loggedObjects[i]?.ToString();
+                }
+            }
         }
     }
 
@@ -31,7 +43,7 @@ namespace Unity.AI.Assistant.Agent.Dynamic.Extension.Editor
 
         static int k_NextExecutionId = 1;
 
-        static readonly Regex k_PlaceholderRegex = new(@"%(\d+)", RegexOptions.Compiled);
+        public static readonly Regex PlaceholderRegex = new(@"%(\d+)", RegexOptions.Compiled);
 
         List<ExecutionLog> m_Logs = new();
         string m_ConsoleLogs;
@@ -125,6 +137,43 @@ namespace Unity.AI.Assistant.Agent.Dynamic.Extension.Editor
             {
                 m_ConsoleLogs += $"{type}: {logString}\n";
             }
+        }
+
+        public List<string> GetFormattedLogs()
+        {
+            List<string> formattedLogs = new();
+
+            if (m_Logs == null)
+            {
+                return formattedLogs;
+            }
+
+            foreach (var content in m_Logs)
+            {
+                if (string.IsNullOrEmpty(content.Log))
+                {
+                    continue;
+                }
+
+                string logTemplate = content.Log;
+                var references = content.LoggedObjects;
+
+                string formattedLog = PlaceholderRegex.Replace(logTemplate, match =>
+                {
+                    if (int.TryParse(match.Groups[1].Value, out int index))
+                    {
+                        if (references != null && index >= 0 && index < references.Length)
+                        {
+                            return references[index]?.ToString() ?? string.Empty;
+                        }
+                    }
+
+                    return match.Value;
+                });
+
+                formattedLogs.Add(formattedLog);
+            }
+            return formattedLogs;
         }
     }
 }

@@ -68,23 +68,37 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
                             field.AddToClassList("entry-label-item");
                             m_Description.Add(field);
                         }
+                        else
+                        {
+                            // Go the label route
+                            object value = fieldInfo.GetValue(m_AgentRunCommand.Instance);
+                            var labelText = $"{value?.ToString() ?? "None"} ";
+            
+                            // Call a split function
+                            SplitAndAddToDescription(labelText);
+                        }
                     }
                 }
                 else
                 {
-                    // Split the segment by spaces, but keep the spaces
-                    string[] parts = Regex.Split(segment, @"(\s+)");
-                    foreach (string part in parts)
-                    {
-                        if (!string.IsNullOrWhiteSpace(part))
-                        {
-                            var label = new Label(part);
-                            label.AddToClassList("entry-label-item");
-                            m_Description.Add(label);
-                        }
-                    }
+                    SplitAndAddToDescription(segment);
                 }
             }
+        }
+
+        void SplitAndAddToDescription(string segment)
+        {
+            // Split the segment by spaces or dots, and keep them
+            string[] parts = Regex.Split(segment, @"(?<=\s+|\.)");
+            foreach (string part in parts)
+            {
+                if (!string.IsNullOrWhiteSpace(part))
+                {
+                    var label = new Label(part.Replace(" ", "\u00A0\u200B"));
+                    label.AddToClassList("entry-label-item");
+                    m_Description.Add(label);
+                }
+            }    
         }
 
         VisualElement CreateFieldForType(FieldInfo fieldInfo, object instance)
@@ -174,9 +188,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
                 return objectField;
             }
 
-            var label = new Label(value?.ToString() ?? "None");
-            label.AddToClassList("entry-label-item");
-            return label;
+            return null;
         }
 
         public void RegisterAction(Action entryAction)

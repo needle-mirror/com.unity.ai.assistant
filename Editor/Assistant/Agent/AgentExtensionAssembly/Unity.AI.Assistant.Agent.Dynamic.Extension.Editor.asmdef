@@ -13,7 +13,7 @@
     "defineConstraints": [],
     "versionDefines": [
         {
-            "name": "com.unity.muse.code-library",
+            "name": "com.unity.ai.assistant.code-library",
             "expression": "0",
             "define": "CODE_LIBRARY_INSTALLED"
         }

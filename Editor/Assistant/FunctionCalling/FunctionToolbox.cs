@@ -38,44 +38,40 @@ namespace Unity.AI.Assistant.Editor.FunctionCalling
             return string.IsNullOrEmpty(actionText);
         }
 
-        public bool TryGetSelectorIdAndConvertArgs(string id, string[] args, out CachedFunction function, out object[] convertedArgs)
+        public void GetSelectorIdAndConvertArgs(string id, string[] args, out CachedFunction function, out object[] convertedArgs)
         {
             convertedArgs = null;
             if (!k_ToolsById.TryGetValue(id, out function))
-                return false;
+                throw new Exception($"Tool {id} does not exist.");
 
-            return ConvertArgsFromFunction(args, function, out convertedArgs);
+            ConvertArgsFromFunction(args, function, out convertedArgs);
         }
 
-        public bool TryGetSelectorAndConvertArgs(string name, string[] args, out CachedFunction function, out object[] convertedArgs)
+        public void GetSelectorAndConvertArgs(string name, string[] args, out CachedFunction function, out object[] convertedArgs)
         {
             convertedArgs = null;
             if (!k_Tools.TryGetValue(name, out function))
-                return false;
+                throw new Exception($"Tool {name} does not exist.");
 
-            return ConvertArgsFromFunction(args, function, out convertedArgs);
+            ConvertArgsFromFunction(args, function, out convertedArgs);
         }
 
-        bool ConvertArgsFromFunction(string[] args, CachedFunction function, out object[] convertedArgs)
+        void ConvertArgsFromFunction(string[] args, CachedFunction function, out object[] convertedArgs)
         {
             convertedArgs = null;
 
             if (function.FunctionDefinition.Parameters == null || function.FunctionDefinition.Parameters.Count == 0)
             {
                 convertedArgs = Array.Empty<object>();
-                return true;
+                return;
             }
 
             // Check what parameters are required:
             var requiredArgCount = function.FunctionDefinition?.Parameters?.Count(parameter => !parameter.Optional) ?? 0;
 
             if (args.Length < requiredArgCount)
-            {
-                InternalLog.LogError(
-                    $"Incorrect function call: {function.FunctionDefinition!.Name} args: {string.Join(",", args)}");
                 throw new ArgumentException(
                     $"The incorrect number of args were provided. Given args: {string.Join(",", args)}. Required Args: {string.Join(",", function.FunctionDefinition?.Parameters!.Where(p => !p.Optional).Select(p => p.Name)!)}");
-            }
 
             convertedArgs = new object[function.FunctionDefinition.Parameters.Count];
 
@@ -107,8 +103,7 @@ namespace Unity.AI.Assistant.Editor.FunctionCalling
                     }
                     catch (Exception)
                     {
-                        InternalLog.LogWarning(
-                            $"SmartContextError: The LLM did not return an arg that was a valid positional arg");
+                        throw new Exception($"The argument at index {i} could not be converted to a valid type.");
                     }
                 }
 
@@ -143,13 +138,9 @@ namespace Unity.AI.Assistant.Editor.FunctionCalling
                 }
                 catch (Exception)
                 {
-                    InternalLog.LogWarning(
-                        $"SmartContextError: The LLM did not return an arg that was a valid named arg");
-                    return false;
+                    throw new Exception($"{arg} is not a valid argument.");
                 }
             }
-
-            return true;
         }
     }
 }

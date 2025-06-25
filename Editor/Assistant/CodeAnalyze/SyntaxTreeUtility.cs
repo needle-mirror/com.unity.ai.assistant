@@ -163,19 +163,53 @@ namespace Unity.AI.Assistant.Editor.CodeAnalyze
             return root.SyntaxTree;
         }
 
-        internal static List<ClassCodeTextDefinition> ExtractTypesByInheritance<T>(this SyntaxTree syntaxTree)
+        internal static IEnumerable<ClassDeclarationSyntax> ExtractTypesByInheritance<T>(this SyntaxTree syntaxTree, out IEnumerable<UsingDirectiveSyntax> usingDirectives)
         {
             var root = syntaxTree.GetRoot() as CompilationUnitSyntax;
+            if (root == null)
+            {
+                usingDirectives = Enumerable.Empty<UsingDirectiveSyntax>();
+                return Enumerable.Empty<ClassDeclarationSyntax>();
+            }
+
+            usingDirectives = root.Usings;
 
             var classes = root.DescendantNodes().OfType<ClassDeclarationSyntax>()
                 .Where(c => c.BaseList != null && c.BaseList.Types.Any(t => t.Type.ToString() == typeof(T).Name));
 
+            return classes;
+        }
+
+        internal static IEnumerable<ClassDeclarationSyntax> ChangeModifiersToPublic(this IEnumerable<ClassDeclarationSyntax> classes)
+        {
+            foreach (var classNode in classes)
+            {
+                // remove all access modifiers (but keeps static, abstract, etc)
+                var nonAccessModifiers = classNode.Modifiers
+                    .Where(m =>
+                        !m.IsKind(SyntaxKind.PublicKeyword) &&
+                        !m.IsKind(SyntaxKind.InternalKeyword) &&
+                        !m.IsKind(SyntaxKind.PrivateKeyword) &&
+                        !m.IsKind(SyntaxKind.ProtectedKeyword));
+
+                // force public
+                var newModifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+                    .AddRange(nonAccessModifiers);
+
+                var updatedClass = classNode.WithModifiers(newModifiers).NormalizeWhitespace();
+
+                yield return updatedClass;
+            }
+        }
+
+        internal static List<ClassCodeTextDefinition> ToCodeTextDefinition(this IEnumerable<ClassDeclarationSyntax> classes, IEnumerable<UsingDirectiveSyntax> usingDirectives)
+        {
             var declarations = new List<ClassCodeTextDefinition>();
             foreach (var classNode in classes)
             {
                 var extractedCode = CSharpSyntaxTree.ParseText(classNode.ToFullString());
 
-                foreach (var usingDirective in root.Usings)
+                foreach (var usingDirective in usingDirectives)
                     extractedCode = extractedCode.AddUsingDirective(usingDirective.Name.ToString());
 
                 declarations.Add(new ClassCodeTextDefinition(classNode.Identifier.ToString(), extractedCode.ToString()));

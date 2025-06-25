@@ -28,6 +28,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         public bool EnableSelection = false;
         public bool EnableScrollLock = false;
+        public bool EnableAutoScroll = true;
         public bool EnableVirtualization = true;
         public bool EnableDelayedElements = false;
         public bool EnableHorizontalScroll = false;
@@ -60,7 +61,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 m_InnerList.itemsSource = (IList)k_Data;
                 m_InnerList.makeItem = MakeItem;
                 m_InnerList.bindItem = BindItem;
-                m_InnerList.fixedItemHeight = 100;
                 m_InnerList.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
             }
             else
@@ -170,7 +170,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
             if (EnableVirtualization)
             {
-                m_InnerList.RefreshItems();
+                m_InnerList.Rebuild();
                 EnforceScrollState();
                 return;
             }
@@ -309,7 +309,10 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
             if (EnableVirtualization)
             {
-                m_InnerList.RefreshItems();
+                if (!m_UpdateInProgress)
+                {
+                    m_InnerList.RefreshItems();
+                }
             }
             else
             {

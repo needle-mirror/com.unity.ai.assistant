@@ -242,9 +242,7 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
             string projectSettingName)
         {
             if (string.IsNullOrEmpty(projectSettingName))
-            {
-                return null;
-            }
+                throw new Exception("The project settings name cannot be null or empty.");
 
             var staticPropertyNameInput = projectSettingName;
 

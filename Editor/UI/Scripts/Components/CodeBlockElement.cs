@@ -155,9 +155,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_LineNumberController = new LineNumberController(m_CodeText, m_LineNumberText);
         }
 
-        internal void ShowTitleIcon()
+        internal void SetTitleIcon(bool isEnabled = true)
         {
-            m_CodeBlockTitleIcon.SetDisplay(true);
+            m_CodeBlockTitleIcon.SetDisplay(isEnabled);
         }
 
         public void SetActions(bool copy, bool save, bool select, bool edit)
@@ -248,6 +248,12 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 MarkLine(error.Item1, CodeLineMarkingType.Error, error.Item2);
             }
 
+            RefreshCodeDisplay();
+        }
+
+        public void ClearDisplayedErrors()
+        {
+            m_LineMarkings.Clear();
             RefreshCodeDisplay();
         }
 

@@ -460,6 +460,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
             {
                 Id = message.Id,
                 Content = message.Content,
+                SourceAttribution = message.SourceAttribution,
                 IsComplete = message.IsComplete,
                 Context = message.Context,
             };

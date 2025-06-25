@@ -257,12 +257,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         void CheckHistoryPanelClick(ClickEvent e)
         {
-            var clickPosition = e.localPosition;
-            var historyPanelWorldBound = m_HistoryPanel.worldBound;
-            var offsetWorldBoundPosition = new Vector2(historyPanelWorldBound.position.x, historyPanelWorldBound.position.y - m_SearchBarOffset);
-            var offsetHistoryPanelWorldBound = new Rect(offsetWorldBoundPosition, m_HistoryPanel.worldBound.size);
-            var clickWithinHistoryPanel = offsetHistoryPanelWorldBound.Contains(clickPosition);
-            var clickOfHistoryButton = e.target == m_HistoryButton;
+            var clickOfHistoryButton = m_HistoryButton.worldBound.Contains(e.position);
+            var clickWithinHistoryPanel = m_HistoryPanel.worldBound.Contains(e.position);
+
             if (!clickWithinHistoryPanel && AssistantUISessionState.instance.IsHistoryOpen && !clickOfHistoryButton)
             {
                 SetHistoryDisplay(false);

@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.AI.Toolkit.Chat;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Unity.AI.Assistant.Editor.Context.SmartContext
 {
@@ -29,7 +31,7 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
             string prompt = null)
         {
             if (string.IsNullOrEmpty(objectName))
-                return null;
+                throw new Exception("The object name should not be null or empty.");
 
             var selectedContext = new ContextBuilder();
 
@@ -60,9 +62,7 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
             var objectContext = new UnityObjectContextSelection();
 
             if (matchingAsset == null)
-            {
-                return null;
-            }
+                throw new Exception($"Could not find object '{objectName}'");
 
             var prefix = $"Contents of asset {matchingAsset.name}:\n";
 
@@ -135,9 +135,7 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
 
             // If the payload is already in the selected context, do not return anything:
             if (selectedContext.Contains(objectPayload))
-            {
-                return null;
-            }
+                throw new Exception("The object context is already contained in the context selection.");
 
             var result = prefix + objectPayload;
             if (result.Length <= AssistantMessageSizeConstraints.ContextLimit)
@@ -152,9 +150,7 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
             objectPayload = ((IContextSelection)objectContext).DownsizedPayload;
             // If the payload is already in the selected context, do not return anything:
             if (selectedContext.Contains(objectPayload))
-            {
-                return null;
-            }
+                throw new Exception("The object context is already contained in the context selection.");
 
             return new SmartContextToolbox.ExtractedContext
             {

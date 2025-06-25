@@ -22,6 +22,7 @@ namespace Unity.AI.Assistant.Editor.Data
 
         public AssistantMessageId Id;
         public string Role;
+        public string SourceAttribution;
         public AssistantContextEntry[] Context;
 
         public long Timestamp;

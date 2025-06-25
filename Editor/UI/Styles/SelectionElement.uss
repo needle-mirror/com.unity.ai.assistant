@@ -1,6 +1,13 @@
 .mui-selection-element-root {
     border-color: var(--muse-chat-backgrounds-50);
-    background-color: var(--muse-chat-backgrounds-200);
+}
+
+.selectionelement__element {
+    background-color: var(--muse-chat-backgrounds-150);
+}
+
+.mui-selection-element-even-row {
+    background-color: var(--muse-chat-backgrounds-250);
 }
 
 .mui-selection-element-row {
@@ -85,4 +92,13 @@
 
 .mui-selection-element-details {
     margin-left: 8px;
+    flex-direction: row;
+}
+
+.mui-selection-element-details-preview {
+    flex-shrink: 0;
+    flex-grow: 1;
+    height: 32px;
+    width: 32px;
+    margin-right: 8px;
 }

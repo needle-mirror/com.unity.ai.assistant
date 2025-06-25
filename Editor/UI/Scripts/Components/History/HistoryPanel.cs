@@ -6,6 +6,7 @@ using Unity.AI.Assistant.Editor.Data;
 using Unity.AI.Assistant.UI.Editor.Scripts.Data;
 using Unity.AI.Assistant.UI.Editor.Scripts.Utils;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.History
@@ -19,7 +20,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.History
 
         ToolbarSearchField m_SearchBar;
         VisualElement m_ContentRoot;
-        AdaptiveListView<object, HistoryPanelEntry> m_ContentList;
+        AdaptiveListView<object, HistoryPanelEntryWrapper> m_ContentList;
 
         AssistantConversationId m_SelectedConversation;
 
@@ -34,9 +35,10 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.History
         protected override void InitializeView(TemplateContainer view)
         {
             m_ContentRoot = view.Q<VisualElement>("historyContentRoot");
-            m_ContentList = new AdaptiveListView<object, HistoryPanelEntry>
+            m_ContentList = new AdaptiveListView<object, HistoryPanelEntryWrapper>
             {
-                EnableVirtualization = true
+                EnableVirtualization = true,
+                EnableAutoScroll = false
             };
             m_ContentList.Initialize(Context);
             m_ContentList.SelectionChanged += SelectionChanged;
@@ -121,6 +123,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.History
             var nowRaw = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             var activeConversation = Context.Blackboard.ActiveConversation;
 
+            m_ContentList.BeginUpdate();
             m_ContentList.ClearData();
             m_ContentList.ClearSelection();
 
@@ -128,7 +131,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.History
             LoadData(k_TempList, nowRaw, m_SearchFilter);
 
             int selectedIndex = -1;
-            m_ContentList.BeginUpdate();
             for (var i = 0; i < k_TempList.Count; i++)
             {
                 var entry = k_TempList[i];

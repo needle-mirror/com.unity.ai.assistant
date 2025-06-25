@@ -30,6 +30,7 @@
 
     /* Specialized overrides for dark + light discrepancy */
     --muse-chat-popup-hover: var(--muse-chat-foregrounds-300);
+    --muse-chat-popup-tab-hover: #cbcbcb;
 }
 
 .-muse-chat-panel {
@@ -191,6 +192,10 @@
     background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Stop.png');
 }
 
-.mui-icon-arrows-in {
-    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/ArrowsIn.png');
+.mui-icon-enlarge {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Enlarge.png');
+}
+
+.mui-icon-shrink {
+    background-image: url('project://database/Packages/com.unity.ai.assistant/Editor/UI/Assets/icons/Shrink.png');
 }

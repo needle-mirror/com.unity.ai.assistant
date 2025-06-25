@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Unity.AI.Assistant.Editor.ApplicationModels;
+using Unity.AI.Assistant.Editor.Context.SmartContext;
 using Unity.AI.Assistant.Editor.Utils;
 
 namespace Unity.AI.Assistant.Editor.FunctionCalling
@@ -29,10 +31,8 @@ namespace Unity.AI.Assistant.Editor.FunctionCalling
             var isAsync = Method.GetCustomAttribute<AsyncStateMachineAttribute>() != null;
 
             if (isAsync)
-            {
-                InternalLog.LogWarning($"{Method.Name} is an async function - call it through InvokeAsync.  Skipping.");
-                return null;
-            }
+                throw new Exception($"{Method.Name} is an async function, use InvokeAsync(...) instead.");
+
             return Method.Invoke(null, parameters);
         }
 
@@ -46,16 +46,21 @@ namespace Unity.AI.Assistant.Editor.FunctionCalling
 
             var isAsync = Method.GetCustomAttribute<AsyncStateMachineAttribute>() != null;
 
+            object result;
+
             if (isAsync)
             {
                 var task = (Task)Method.Invoke(null, parameters);
                 await task;
                 var resultProperty = task.GetType().GetProperty("result");
-                var result = resultProperty.GetValue(task);
-                return result;
+                result = resultProperty.GetValue(task);
+            }
+            else
+            {
+                result = Method.Invoke(null, parameters);
             }
 
-            return Method.Invoke(null, parameters);
+            return result;
         }
     }
 }

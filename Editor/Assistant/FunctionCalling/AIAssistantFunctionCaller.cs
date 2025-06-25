@@ -43,29 +43,24 @@ namespace Unity.AI.Assistant.Editor.FunctionCalling
                 else if (SystemToolboxes.SmartContextToolbox.ContainsFunctionById(functionId))
                     result = await CallSmartContextFunction(functionId, parameters);
                 else
-                    result = IFunctionCaller.CallResult.FailedResult();
+                    result = IFunctionCaller.CallResult.FailedResult($"Could not find function '{functionId}'");
 
                 workFlow.SendFunctionCallResponse(result, callId);
             });
         }
 
         /// <inheritdoc />
-        public Task CallPlugin(string functionId, string[] parameters, object context = null)
+       public IFunctionCaller.CallResult CallPlugin(string functionId, string[] parameters, object context = null)
         {
-            if (!SystemToolboxes.PluginToolbox.ContainsFunctionById(functionId))
-                InternalLog.LogError($"Plugin with the id {functionId} does not exist");
-
             try
             {
-                if (!SystemToolboxes.PluginToolbox.TryRunToolByID(functionId, parameters))
-                    InternalLog.LogError($"Plugin with the id {functionId} failed, but did not throw an exception");
+                SystemToolboxes.PluginToolbox.RunToolByID(functionId, parameters);
+                return IFunctionCaller.CallResult.SuccessfulResult(null);
             }
-            catch (Exception e )
+            catch (Exception e)
             {
-                InternalLog.LogError($"Plugin with the id {functionId} failed, and threw a {e.GetType().Name} Exception. {e.Message} {e.StackTrace} ");
+                return IFunctionCaller.CallResult.FailedResult(GetExceptionErrorMessage(e));
             }
-
-            return Task.CompletedTask;
         }
 
         async Task<IFunctionCaller.CallResult> CallBasicFunction(Func<JObject, Task<JToken>> func, JObject functionParameters)
@@ -75,9 +70,9 @@ namespace Unity.AI.Assistant.Editor.FunctionCalling
                 JToken result = await func(functionParameters);
                 return IFunctionCaller.CallResult.SuccessfulResult(result);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return IFunctionCaller.CallResult.FailedResult();
+                return IFunctionCaller.CallResult.FailedResult(GetExceptionErrorMessage(e));
             }
         }
 
@@ -108,34 +103,33 @@ namespace Unity.AI.Assistant.Editor.FunctionCalling
                     }
                 }
 
-                var (functionSuccess, result)
-                    = await SystemToolboxes.SmartContextToolbox.TryRunToolByIDAsync(functionId, argList.ToArray());
+                var result = await SystemToolboxes.SmartContextToolbox.RunToolByIDAsync(functionId, argList.ToArray());
 
-                if (!functionSuccess)
-                    return IFunctionCaller.CallResult.FailedResult();
-                else
+                var responseObj = new JObject();
+
+                var payload = result.Payload;
+                if (payload?.Length > AssistantMessageSizeConstraints.ContextLimit)
                 {
-                    var responseObj = new JObject();
-
-                    var payload = result.Payload;
-
-                    if (payload?.Length > AssistantMessageSizeConstraints.ContextLimit)
-                    {
-                        payload = payload.Substring(0, AssistantMessageSizeConstraints.ContextLimit);
-                        InternalLog.LogError(
-                            $"The context returned by the function was too long and was truncated. This should not happen, update {functionId} to return less data.");
-                    }
-
-                    responseObj.Add("payload", payload);
-                    responseObj.Add("truncated", result.Truncated);
-                    responseObj.Add("type", result.ContextType);
-                    return IFunctionCaller.CallResult.SuccessfulResult(responseObj);
+                    payload = payload.Substring(0, AssistantMessageSizeConstraints.ContextLimit);
+                    InternalLog.LogError(
+                        $"The context returned by the function was too long and was truncated. This should not happen, update {functionId} to return less data.");
                 }
+
+                responseObj.Add("payload", payload);
+                responseObj.Add("truncated", result.Truncated);
+                responseObj.Add("type", result.ContextType);
+
+                return IFunctionCaller.CallResult.SuccessfulResult(responseObj);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return IFunctionCaller.CallResult.FailedResult();
+                return IFunctionCaller.CallResult.FailedResult(GetExceptionErrorMessage(e));
             }
+        }
+
+        static string GetExceptionErrorMessage(Exception e)
+        {
+            return e.InnerException?.Message ?? e.Message;
         }
     }
 }

@@ -52,3 +52,10 @@
     flex-direction: row;
     margin-top: 0;
 }
+
+.mui-chat-attribution-text {
+    height: 16px;
+    margin-top: 12px;
+    margin-bottom: 8px;
+    color: var(--muse-chat-text-secondary-on-background-50)
+}

@@ -685,9 +685,7 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
             }
 
             if (hierarchyMap.Children.Count == 0)
-            {
-                return null;
-            }
+                throw new Exception("The scene does not contain any game object that matches the specified filter");
 
             string componentDescription = "";
             if (foundSortedComponents.Count > 0)

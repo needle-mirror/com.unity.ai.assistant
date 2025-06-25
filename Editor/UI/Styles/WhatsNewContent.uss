@@ -53,6 +53,7 @@
 .mui-whats-new-page-list {
     margin-top: 16px;
     justify-content: space-evenly;
+    min-height: 100px;
 }
 
 .mui-whats-new-page-paragraph {

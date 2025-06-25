@@ -38,7 +38,8 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Utilities
                     {
                         ParameterName = p.Name,
                         ParameterType = p.Type,
-                        ParameterDescription = p.Description
+                        ParameterDescription = p.Description,
+                        ParameterIsOptional = p.Optional
                     }).ToList()
                 };
             }).ToList();
@@ -72,7 +73,10 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Utilities
                             new CapabilitiesResponseV1.LaunchButtonObject.LaunchButtonAction.
                                 FunctionParametersObject()
                                 {
-                                    ParameterName = p.Name, ParameterType = p.Type, ParameterDescription = p.Description
+                                    ParameterName = p.Name,
+                                    ParameterType = p.Type,
+                                    ParameterDescription = p.Description,
+                                    ParameterIsOptional = p.Optional
                                 }).ToList()
                     };
                 });
@@ -82,8 +86,6 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Utilities
                 Functions = pluginFunctions.ToList()
             };
         }
-
-        internal static JToken GetFunctionCallFailureValue() => JToken.FromObject("Error - Failed function call");
 
         internal static Func<JObject, Task<JToken>> WrapAsAsync(Func<JObject, JToken> syncFunc)
         {

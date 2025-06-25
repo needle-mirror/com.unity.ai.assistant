@@ -4,12 +4,14 @@
     <ui:VisualElement name="rootPanel" class="mui-whats-new-root">
         <ui:VisualElement name="landingPage" class="mui-whats-new-landing-page">
             <ui:Label text="See what's new in Unity AI" class="mui-whats-new-header"/>
-            <ui:Label text="Unity 6.2 introduces new, optional, AI-driven features. Accelerate development by automating complex tasks, generating assets, and using real-time AI in your runtime applications. You can prototype, iterate, and build faster, iterate seamlessly, leaving more time to focus on what makes your app unique." class="mui-whats-new-label"/>
+            <ui:Label text="Unity 6.2 introduces new, optional AI-driven features. Accelerate development by automating complex tasks, generating assets, and using real-time AI in your runtime applications. Prototype and build more quickly, iterate seamlessly, and spend more time focusing on what makes your app unique." class="mui-whats-new-label"/>
 
-            <ui:ScrollView name="contentButtonRoot" class="mui-whats-new-content-button-root">
+            <ui:ScrollView name="contentButtonRoot">
             </ui:ScrollView>
 
-            <ui:Label text="You can choose to uninstall these features if you don’t want to use them. If you are an organization owner, you may also disable them in the Unity Cloud dashboard." class="mui-whats-new-label"/>
+            <ui:Label text="&lt;a href=&quot;https://discussions.unity.com/lists/ai&quot;&gt;Join the conversation in Discussions&lt;/a&gt;" class="mui-whats-new-label mui-whats-new-grow"/>
+
+            <ui:Label text="You can uninstall these features in the Package Manager if you choose not to use them. The owner of your Unity ID organization can also disable Unity AI in the cloud dashboard." class="mui-whats-new-label"/>
             <ui:VisualElement class="mui-whats-new-control-root">
                 <ui:Button name="closeButton" text="Close" class="mui-whats-new-control-button"/>
             </ui:VisualElement>
@@ -21,7 +23,7 @@
         <ui:VisualElement name="videoFullView" class="mui-whats-new-video-full-view">
             <ui:VisualElement name="videoFullViewContent">
             </ui:VisualElement>
-            <ui:Image picking-mode="ignore" class="mui-whats-new-video-full-view-icon mui-icon-arrows-in"/>
+            <ui:Image picking-mode="ignore" class="mui-whats-new-video-icon mui-icon-shrink"/>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

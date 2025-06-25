@@ -89,6 +89,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_FeedbackQueue.Clear();
 
             UpdateVisibility();
+            UpdateOverlayButtons();
         }
 
         void UpdateVisibility()
@@ -145,6 +146,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             if (scrollToEndRequired)
             {
                 m_ConversationList.ScrollToEndIfNotLocked();
+                UpdateOverlayButtons();
             }
         }
 

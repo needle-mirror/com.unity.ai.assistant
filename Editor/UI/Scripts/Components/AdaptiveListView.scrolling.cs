@@ -49,6 +49,11 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         void ChangeScrollState(ScrollState newState, bool force = false)
         {
+            if (!EnableAutoScroll)
+            {
+                return;
+            }
+
             if (!force && m_ScrollState == newState)
             {
                 return;
@@ -72,7 +77,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         void EnforceScrollState()
         {
-            if (k_Data.Count == 0)
+            if (k_Data.Count == 0 || !EnableAutoScroll)
             {
                 return;
             }

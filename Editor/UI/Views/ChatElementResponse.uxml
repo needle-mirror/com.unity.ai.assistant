@@ -15,9 +15,9 @@
         </ui:VisualElement>
         <ui:VisualElement>
             <ui:Foldout name="sourcesFoldout" class="mui-chat-foldout mui-chat-sources-foldout" text="Sources">
-                <ui:Label name="sourcesAttribution"/>
                 <ui:VisualElement name="sourcesContent">
                 </ui:VisualElement>
+                <ui:Label name="sourcesAttribution" class="mui-chat-attribution-text"/>
             </ui:Foldout>
         </ui:VisualElement>
         <ui:VisualElement name="optionsSection" class="mui-chat-footer">

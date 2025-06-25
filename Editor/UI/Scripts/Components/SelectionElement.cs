@@ -1,9 +1,11 @@
 using System;
+using System.Text;
 using Unity.AI.Assistant.Bridge.Editor;
 using Unity.AI.Assistant.Editor.Analytics;
 using Unity.AI.Assistant.Editor.Utils;
 using Unity.AI.Assistant.UI.Editor.Scripts.Utils;
 using UnityEditor;
+using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.UIElements;
 using TextOverflow = UnityEngine.UIElements.TextOverflow;
@@ -16,6 +18,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         Label m_Path;
         Button m_FindButton;
         VisualElement m_Checkmark;
+        Image m_PreviewImage;
         SelectionPopup m_Owner;
         LogData m_LogData;
 
@@ -28,7 +31,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         readonly string k_PrefabInSceneStyleClass = "mui-chat-selection-prefab-text-color";
         readonly string k_EntrySelectedClass = "mui-selected-list-entry";
         readonly string k_LogPathString = "Selected Console Log";
-
+        readonly string k_SelectionElementEvenRow = "mui-selection-element-even-row";
 
         protected override void InitializeView(TemplateContainer view)
         {
@@ -37,6 +40,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_Text.enableRichText = false;
             m_FindButton = view.SetupButton("selectionElementFindButton", OnFindClicked);
             m_Checkmark = view.Q<VisualElement>("mui-selection-element-checkmark");
+            m_PreviewImage = view.Q<Image>("selectionElementPreview");
 
             m_FindButton.visible = false;
             m_FindButton.focusable = false;
@@ -91,7 +95,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         public override void SetData(int index, object data, bool isSelected = false)
         {
-            base.SetData(index, data);
+            base.SetData(index, data, isSelected);
 
             m_Entry = data as SelectionPopup.ListEntry;
             SetOwner(m_Entry?.Owner);
@@ -100,6 +104,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             {
                 return;
             }
+
+            // For background coloring
+            SetAsEvenRow(index % 2 == 0);
 
             if (m_Entry.LogData != null)
             {
@@ -113,6 +120,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                     m_Text.tooltip = $"Console {m_Entry.LogData.Value.Type}:\n{lines[0]}";
 
                 m_Text.style.textOverflow = TextOverflow.Ellipsis;
+
+                // Hides the preview image for log entries since there is no icons for it
+                m_PreviewImage.SetDisplay(false);
             }
             else
             {
@@ -121,16 +131,71 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 if (unityObj != null)
                 {
                     SetText(unityObj.name);
-                    SetPath(AssetDatabase.GetAssetOrScenePath(unityObj));
+                    string path = GetObjectPath(unityObj);
+                    SetPath(path);
                     ShowTextAsPrefabInScene(unityObj.IsPrefabInScene());
 
                     m_Text.tooltip = ContextViewUtils.GetObjectTooltip(unityObj);
+
+                    m_PreviewImage.image = GetAssetPreview(unityObj);
                 }
 
                 m_Text.style.textOverflow = TextOverflow.Clip;
             }
 
             SetSelected(m_Entry.IsSelected);
+        }
+
+        static string GetObjectPath(UnityEngine.Object obj)
+        {
+            if (AssetDatabase.Contains(obj))
+                return AssetDatabase.GetAssetOrScenePath(obj);
+
+            if (obj is GameObject go)
+                return GetGameObjectPath(go);
+
+            return string.Empty;
+        }
+
+        static string GetGameObjectPath(GameObject go)
+        {
+            var pathBuilder = new StringBuilder();
+
+            // Build path from bottom up (child to root)
+            var current = go.transform;
+            while (current != null)
+            {
+                if (pathBuilder.Length > 0)
+                    pathBuilder.Insert(0, "/");
+                pathBuilder.Insert(0, current.name);
+                current = current.parent;
+            }
+
+            // Prepend scene name
+            var sceneName = GetSceneName(go.scene);
+            if (!string.IsNullOrEmpty(sceneName))
+            {
+                pathBuilder.Insert(0, "/");
+                pathBuilder.Insert(0, sceneName);
+            }
+
+            return pathBuilder.ToString();
+        }
+
+        static string GetSceneName(UnityEngine.SceneManagement.Scene scene)
+        {
+            return string.IsNullOrEmpty(scene.name) ? "Unsaved Scene" : scene.name;
+        }
+
+        static Texture2D GetAssetPreview(UnityEngine.Object obj)
+        {
+            var preview = AssetPreview.GetAssetPreview(obj);
+            if (preview == null)
+            {
+                preview = AssetPreview.GetMiniTypeThumbnail(obj.GetType());
+            }
+
+            return preview;
         }
 
         void SetText(string text)
@@ -148,7 +213,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_Owner = selectionPopup;
         }
 
-
         void ShowTextAsPrefabInScene(bool isPrefab)
         {
             if (isPrefab)
@@ -157,6 +221,13 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 m_Text.RemoveFromClassList(k_PrefabInSceneStyleClass);
         }
 
+        void SetAsEvenRow(bool even)
+        {
+            if (even)
+                AddToClassList(k_SelectionElementEvenRow);
+            else
+                RemoveFromClassList(k_SelectionElementEvenRow);
+        }
 
         public void SetSelected(bool selected)
         {

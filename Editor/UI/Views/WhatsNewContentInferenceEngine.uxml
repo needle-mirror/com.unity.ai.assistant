@@ -3,11 +3,12 @@
          xmlns="UnityEngine.UIElements" editor-extension-mode="False">
     <ui:VisualElement class="mui-whats-new-page-root">
         <ui:VisualElement name="page1" class="mui-whats-new-page-section">
+            <ui:VisualElement name="page1Video" class="mui-whats-new-page-video-element"/>
             <ui:Label text="Meet Inference Engine" class="mui-whats-new-page-header"/>
-            <ui:Label text="Inference Engine enables new player experiences where real-time (high FPS) inference results are desired, such as with real-world interactions like motion or speech detection, animation effects, and game agents."
+            <ui:Label text="Inference Engine enables new player experiences where real-time (high FPS) inference results are desired, such as motion or speech detection, animation effects, and game agents."
                       class="mui-whats-new-page-text"/>
             <ui:VisualElement class="mui-whats-new-page-paragraph"/>
-            <ui:Label text="You can easily integrate AI models running on your local machine in the Unity Editor or end-user runtime app without the complexity, latency, and cost of server inference."
+            <ui:Label text="Easily integrate AI models running on your local machine in the Unity Editor or runtime app without the complexity, latency, and cost of server inference."
                       class="mui-whats-new-page-text"/>
             <ui:VisualElement class="mui-whats-new-page-paragraph-flex"/>
             <ui:Label text="Inference Engine is free and does not consume points."
@@ -15,20 +16,19 @@
         </ui:VisualElement>
 
         <ui:VisualElement name="page2" class="mui-whats-new-page-section">
+            <ui:VisualElement name="page2Video" class="mui-whats-new-page-video-element"/>
             <ui:Label text="How it works" class="mui-whats-new-page-header"/>
-            <ui:Label text="Start by selecting an AI model for your use case. Import it into Unity, and hook it up to your C# code. Then, deploy your app to any Unity runtime platform as you would normally."
+            <ui:Label text="Start by selecting an AI model for your use case. Import it into Unity, and integrate it with your C# code. Then, deploy your app to any Unity runtime platform as you would normally."
                       class="mui-whats-new-page-text"/>
             <ui:VisualElement class="mui-whats-new-page-paragraph"/>
-            <ui:Label text="Inference Engine automatically optimizes your model for local inference and offers performance tuning tricks like frame slicing to make it run smoothly."
+            <ui:Label text="Inference Engine automatically optimizes your model for local inference and offers performance-enhancing techniques, such as frame slicing, to ensure smooth operation."
                       class="mui-whats-new-page-text"/>
         </ui:VisualElement>
 
         <ui:VisualElement name="page3" class="mui-whats-new-page-section">
+            <ui:VisualElement name="page3Video" class="mui-whats-new-page-video-element"/>
             <ui:Label text="Get started with samples" class="mui-whats-new-page-header"/>
-            <ui:Label text="Check out our growing library of pre-integrated AI models on Hugging Face, or preview sample projects to get you started in our documentation."
-                      class="mui-whats-new-page-text"/>
-            <ui:VisualElement class="mui-whats-new-page-paragraph"/>
-            <ui:Label text="Don’t see the model you need? Contact us to see if we can help."
+            <ui:Label text="Explore our growing library of pre-integrated AI models on &lt;a href=&quot;https://huggingface.co/models&#63;other&#61;unity-inference-engine&quot;&gt;Hugging Face&lt;/a&gt;, along with sample projects to help you get started with our &lt;a href=&quot;https://docs.unity3d.com/Packages/com.unity.ai.inference@latest&quot;&gt;documentation&lt;/a&gt;. If you can’t find the model you need, &lt;a href=&quot;https://discussions.unity.com/lists/ai&quot;&gt;contact us&lt;/a&gt;, and we’ll see how we can assist."
                       class="mui-whats-new-page-text"/>
         </ui:VisualElement>
 

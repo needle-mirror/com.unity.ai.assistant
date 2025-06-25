@@ -1,5 +1,4 @@
 using System;
-using Unity.AI.Assistant.Editor;
 using Unity.AI.Assistant.UI.Editor.Scripts.Components;
 using UnityEditor;
 using UnityEngine;
@@ -21,13 +20,15 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
         bool m_IsRestoredWindow;
 
         [MenuItem("Window/AI/Assistant")]
-        public static void ShowWindow()
+        public static AssistantWindow ShowWindow()
         {
             var editor = GetWindow<AssistantWindow>();
             var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(AssistantUIConstants.BasePath + AssistantUIConstants.UIEditorPath + AssistantUIConstants.AssetFolder + "icons/Sparkle.png");
             editor.titleContent = new GUIContent(k_WindowName, icon);
             editor.Show();
             editor.minSize = k_MinSize;
+
+            return editor;
         }
 
         void CreateGUI()
