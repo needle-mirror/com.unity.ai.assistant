@@ -5,7 +5,6 @@ using System.Reflection;
 using Unity.AI.Assistant.Editor.Commands;
 using Unity.AI.Assistant.Editor.Context.SmartContext;
 using Unity.AI.Assistant.Editor.Plugins;
-using Unity.AI.Toolkit.Chat;
 using UnityEditor;
 using UnityEngine;
 

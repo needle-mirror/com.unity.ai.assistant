@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.AI.Toolkit.Chat;
+using Unity.AI.Assistant.Editor.FunctionCalling;
+using Unity.AI.Assistant.Editor.Plugins;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;

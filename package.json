@@ -1,7 +1,7 @@
 {
   "name": "com.unity.ai.assistant",
   "displayName": "Assistant",
-  "version": "1.0.0-pre.7",
+  "version": "1.0.0-pre.8",
   "unity": "6000.2",
   "description": "Use AI for project-aware information retrieval, troubleshooting, code generation, assistance, and scene editing.\n\nAsk\nSolve hard problems or get ideas for your project. Assistant provides you with relevant answers based on the context of your project.\n\nRun\nAutomate actions in the Editor to tackle repetitive tasks and streamline workflows. Use natural language to scatter objects across terrain, adjust lighting, rename assets, restructure project files, and more.\n\nCode\nReduce the time and effort required to structure gameplay mechanics by using Assistant to create pre-compiled scripts.",
   "dependencies": {
@@ -12,15 +12,15 @@
   },
   "unityRelease": "0a9",
   "_upm": {
-    "changelog": "- Minor bug fixes\n- Improved error handling for function calling\n- Finalized onboarding content\n- Disabled run when code won't compile\n- Fixed performance issues for long conversations\n- Improved history panel performance"
+    "changelog": "- Moved Plugin Attributes back to AI Assistant"
   },
   "upmCi": {
-    "footprint": "ad6c5f16b5cb8b2b2b6f85b1502d4977f1247a55"
+    "footprint": "fe2cb3971e268d4d1a03dc31e16c0edea347906b"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.ai.assistant@1.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/muse-editor.git",
     "type": "git",
-    "revision": "8c0aaa1c266c6724e4ae22874b8a81d7707a4d3e"
+    "revision": "f9b797a1b1b03aeb98dcc9aadd32b646ff4d8f20"
   }
 }

@@ -5,7 +5,7 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
     /// The ChatWorkflow state is used to track when certain message types are allowed to appear. Even though
     /// technically messages and come at any time, the protocol enforces timing in some siutations.
     /// </summary>
-    public enum State
+    enum State
     {
         /// <summary>
         /// The workflow has been constructed but has not been started yet

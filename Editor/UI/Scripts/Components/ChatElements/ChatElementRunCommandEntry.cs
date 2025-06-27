@@ -73,7 +73,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
                             // Go the label route
                             object value = fieldInfo.GetValue(m_AgentRunCommand.Instance);
                             var labelText = $"{value?.ToString() ?? "None"} ";
-            
+
                             // Call a split function
                             SplitAndAddToDescription(labelText);
                         }
@@ -98,7 +98,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
                     label.AddToClassList("entry-label-item");
                     m_Description.Add(label);
                 }
-            }    
+            }
         }
 
         VisualElement CreateFieldForType(FieldInfo fieldInfo, object instance)

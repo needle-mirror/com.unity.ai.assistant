@@ -229,15 +229,13 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
             UpdateContextSelectionElements();
 
-            // Schedule a history update every 5 minutes
-            schedule.Execute(Context.API.RefreshConversations).Every(1000 * 60 * 5);
-
             Context.API.ConversationReload += OnConversationReload;
             Context.API.ConversationChanged += OnConversationChanged;
             Context.API.ConversationDeleted += OnConversationDeleted;
             Context.API.ConnectionChanged += OnConnectionChanged;
 
-            Context.API.RefreshConversations();
+            ScheduleConversationRefresh();
+
             Context.API.RefreshInspirations();
 
             Context.ConversationRenamed += OnConversationRenamed;
@@ -248,6 +246,14 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             EditorApplication.playModeStateChanged += OnPlayModeChanged;
 
             EditorApplication.delayCall += () => RestoreState();
+        }
+
+        void ScheduleConversationRefresh()
+        {
+            Context.API.RefreshConversations();
+
+            // Schedule another history update in 5 minutes.
+            schedule.Execute(ScheduleConversationRefresh).StartingIn(1000 * 60 * 5);
         }
 
         void OnHistoryPanelGeometryChanged(Rect geometry, Rect previousGeometry)

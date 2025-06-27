@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Unity.AI.Assistant.Editor.Commands;
 using Unity.AI.Assistant.Editor.ApplicationModels;
-using Unity.AI.Toolkit.Chat;
+using Unity.AI.Assistant.Editor.Plugins;
 using UnityEngine;
 
 namespace Unity.AI.Assistant.Editor.FunctionCalling

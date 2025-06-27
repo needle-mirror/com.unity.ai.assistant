@@ -105,6 +105,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             }
         }
 
+        internal string Text => m_ChatInput.value;
+
         public event Action<string, bool> OnCommand;
         public event Action<string> SubmitRequest;
         public event Action CancelRequest;
@@ -326,7 +328,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             RefreshChatCharCount();
         }
 
-        void NewLineInput(KeyDownEvent evt)
+        internal void NewLineInput(KeyDownEvent evt)
         {
             var insertPosition = m_ChatInput.cursorIndex;
 
@@ -339,7 +341,16 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 evt.keyCode == KeyCode.Delete)
             {
                 var splitChatInputOnSpace = m_ChatInput.value.Split(" ", 2);
-                m_ChatInput.value = $"{splitChatInputOnSpace[0].Remove(0, k_CommandInputStylingOpeningTags.Length + 1)} {splitChatInputOnSpace[1]}";
+                if (splitChatInputOnSpace.Length > 1)
+                {
+                    m_ChatInput.value =
+                        $"{splitChatInputOnSpace[0].Remove(0, k_CommandInputStylingOpeningTags.Length + 1)} {splitChatInputOnSpace[1]}";
+                }
+                else
+                {
+                    m_ChatInput.value = string.Empty;
+                }
+
                 evt.StopImmediatePropagation();
                 return;
             }
