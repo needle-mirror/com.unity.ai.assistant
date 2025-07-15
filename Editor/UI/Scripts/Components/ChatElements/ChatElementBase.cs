@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Unity.AI.Assistant.Editor;
@@ -19,6 +20,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
         const int k_MessageChunkSize = 80000;
 
         const string k_ActionCursorClassName = "mui-action-cursor";
+
+        static readonly string[] k_NewLineTokens = { "\r\n", "\n", "\r" };
 
         IList<SourceBlock> m_SourceBlocks;
         IList<AssistantContextEntry> m_ContextEntries;
@@ -254,7 +257,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
                 messageContent = GetAnimatedMessage(messageContent);
             }
 
-            string[] lines = messageContent.Split("\n");
+            string[] lines = messageContent.Split(k_NewLineTokens, StringSplitOptions.None);
             var chunk = new StringBuilder();
             for (var i = 0; i < lines.Length; i++)
             {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Newtonsoft.Json.Linq;
 using Unity.AI.Assistant.Editor.Agent;
 using Unity.AI.Assistant.Editor.Backend.Socket.Protocol.Models.FromClient;
@@ -15,12 +16,13 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Tools
 
         internal static JObject Compile(string code)
         {
-            var assembly = new DynamicAssemblyBuilder(RunCommandInterpreter.k_DynamicAssemblyName, RunCommandInterpreter.k_DynamicCommandNamespace)
-                .CompileAndLoadAssembly(code, out var compilationErrors, out string localFixedCode);
+            using var stream = new MemoryStream();
+            var compilationSuccessful = new DynamicAssemblyBuilder(RunCommandInterpreter.k_DynamicAssemblyName, RunCommandInterpreter.k_DynamicCommandNamespace)
+                .TryCompileCode(code, stream, out var compilationErrors, out string localFixedCode);
 
             return new JObject()
             {
-                { "isCompilationSuccessful" , assembly != null },
+                { "isCompilationSuccessful" , compilationSuccessful },
                 { "compilationLogs", compilationErrors.ToString() },
                 { "localFixedCode", localFixedCode }
             };

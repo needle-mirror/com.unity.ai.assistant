@@ -72,14 +72,14 @@ namespace Unity.AI.Assistant.Editor.CodeAnalyze
             }
         }
 
-        public Assembly CompileAndLoadAssembly(string code, out CompilationErrors compilationErrors, out string updatedCode)
+        public bool TryCompileCode(string code, MemoryStream compilationStream, out CompilationErrors compilationErrors, out string updatedCode)
         {
             if (string.IsNullOrEmpty(code))
             {
                 updatedCode = code;
                 compilationErrors = new CompilationErrors();
                 compilationErrors.Add("Compilation error: script is empty");
-                return null;
+                return false;
             }
 
             var compilation = Compile(code, out var tree);
@@ -114,18 +114,21 @@ namespace Unity.AI.Assistant.Editor.CodeAnalyze
 
             updatedCode = updatedTree.GetText().ToString();
 
-            using var ms = new MemoryStream();
-            var result = compilation.Emit(ms);
+            var result = compilation.Emit(compilationStream);
             if (!result.Success)
             {
                 compilationErrors = GetCompilationErrors(result);
-                return null;
+                return false;
             }
 
-            ms.Seek(0, SeekOrigin.Begin);
-
             compilationErrors = new CompilationErrors();
-            return Assembly.Load(ms.ToArray());
+            return true;
+        }
+
+        internal Assembly LoadAssembly(MemoryStream compilationStream)
+        {
+            compilationStream.Seek(0, SeekOrigin.Begin);
+            return Assembly.Load(compilationStream.ToArray());
         }
 
         public CSharpCompilation Compile(string code, out SyntaxTree tree)

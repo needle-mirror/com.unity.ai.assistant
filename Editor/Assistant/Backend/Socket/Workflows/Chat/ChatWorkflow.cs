@@ -54,6 +54,8 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
             }
         }
 
+        public bool IsCancelled => m_InternalCancellationTokenSource.IsCancellationRequested;
+
         /// <summary>
         /// If the workflow is in the <see cref="State.Closed"/> state, indicates the reason for the closure.
         /// </summary>
@@ -146,6 +148,12 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
 
             if (!result.IsConnectedSuccessfully)
             {
+                if (IsCancelled)
+                {
+                    InternalLog.Log("Workflow ignores non-successful connection. Workflow was already cancelled.");
+                    return;
+                }
+
                 AccessTokenRefreshUtility.IndicateRefreshMayBeRequired();
                 m_WebSocket.Dispose();
                 OnClose?.Invoke(new CloseReason()
@@ -270,13 +278,17 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket.Workflows.Chat
                     action();
                     break;
                 }
-                // Once a response is being streamed, the server must not send anything else until it is complete
+                // Once a response is being streamed, we only support getting function calls or response fragments
                 case State.ProcessingStream:
                 {
-                    if (message is not ChatResponseV1 chatResponseV1)
-                        DisconnectBecauseMessageSentAtWrongTime();
-                    else
-                        HandleChatResponseFragmentV1(chatResponseV1);
+                    Action action = result.DeserializedData switch
+                    {
+                        FunctionCallRequestV1 fcr => () => HandleFunctionCallRequestV1(fcr),
+                        ChatResponseV1 crf => () => HandleChatResponseFragmentV1(crf),
+                        _ => DisconnectBecauseMessageSentAtWrongTime
+                    };
+
+                    action();
                     break;
                 }
             }

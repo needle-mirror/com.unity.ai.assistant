@@ -95,6 +95,14 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket
             }
         }
 
+        public void ForceDisconnectWorkflow(string conversationId)
+        {
+            if (m_ActiveWorkflow != null && m_ActiveWorkflow.ConversationId == conversationId)
+            {
+                m_ActiveWorkflow.LocalDisconnect();
+            }
+        }
+
         // Needed for testing:
         private IAiAssistantApi m_ApiOverride;
 

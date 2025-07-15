@@ -5,6 +5,7 @@ using Unity.AI.Assistant.Editor;
 using Unity.AI.Assistant.Editor.Analytics;
 using Unity.AI.Assistant.Editor.Commands;
 using Unity.AI.Assistant.Editor.Data;
+using Unity.AI.Assistant.Editor.Utils;
 using Unity.AI.Assistant.UI.Editor.Scripts.Utils;
 using UnityEditor;
 using UnityEngine;
@@ -466,11 +467,19 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 case KeyCode.Return:
                 case KeyCode.KeypadEnter:
                 {
+                    var trimmedPrompt = m_ChatInput.value.Trim();
+
                     // check whether content of chat is only route/command tag
-                    if (m_RouteActive && m_FirstWord.Length == RemoveCommandStyling(m_ChatInput.value.Trim()).Length)
+                    if (m_RouteActive && m_FirstWord.Length == RemoveCommandStyling(trimmedPrompt).Length)
                     {
                         return;
                     }
+                    // check for empty prompt, only whitespaces
+                    if (trimmedPrompt.Length == 0)
+                    {
+                        return;
+                    }
+
                     break;
                 }
 
@@ -502,12 +511,14 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
             evt.StopPropagation();
 
-            // Do not allow submit while the API is working
-            if (!Context.Blackboard.IsAPIWorking && Context.Blackboard.IsAPIReadyForPrompt)
+            // Cancel if we have an active API/prompt
+            if (Context.Blackboard.IsAPIWorking || !Context.Blackboard.IsAPIReadyForPrompt)
             {
-                OnSubmit();
-                m_AddRouteButton.SetEnabled(true);
+                CancelRequest?.Invoke();
             }
+
+            OnSubmit();
+            m_AddRouteButton.SetEnabled(true);
         }
 
         void ToggleRoutesPopupShown(PointerUpEvent evt)

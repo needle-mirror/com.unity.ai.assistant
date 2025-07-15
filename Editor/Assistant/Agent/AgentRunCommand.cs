@@ -13,7 +13,7 @@ namespace Unity.AI.Assistant.Editor.Agent
 {
     class AgentRunCommand
     {
-        static readonly string[] k_UnauthorizedNamespaces = { "System.Net", "System.Diagnostics", "System.Runtime.InteropServices" };
+        static readonly string[] k_UnauthorizedNamespaces = { "System.Net", "System.Diagnostics", "System.Runtime.InteropServices", "System.Reflection" };
 
         readonly List<ClassCodeTextDefinition> k_RequiredMonoBehaviours = new();
 
@@ -99,12 +99,6 @@ namespace Unity.AI.Assistant.Editor.Agent
         {
             var tree = SyntaxFactory.ParseSyntaxTree(Script);
             return tree.ContainsNamespaces(k_UnauthorizedNamespaces);
-        }
-
-        public bool IsUsingDeprecatedStructure()
-        {
-            var tree = SyntaxFactory.ParseSyntaxTree(Script);
-            return tree.ContainsInterface("IAgentAction");
         }
 
         public IEnumerable<Object> GetAttachments(Type type)

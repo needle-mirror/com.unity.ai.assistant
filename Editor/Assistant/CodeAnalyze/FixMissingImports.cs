@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using UnityEngine;
 
 namespace Unity.AI.Assistant.Editor.CodeAnalyze
 {
@@ -8,11 +9,16 @@ namespace Unity.AI.Assistant.Editor.CodeAnalyze
     {
         static readonly string[] k_DiagnosticIds = { "CS0246", "CS1061" };
 
-        private readonly Dictionary<string, string[]> k_NamespaceKeywords = new ()
+        readonly Dictionary<string, string[]> k_NamespaceKeywords = new ()
         {
             { "System.Linq", new[] { "Where", "Select", "OrderBy", "Concat", "Any" } },
             { "System.Collections.Generic", new[] { "List<>", "Dictionary<>" } },
             { "Unity.AI.Navigation", new[] { "NavMeshSurface" } },
+        };
+
+        readonly Dictionary<string, string> k_WrongNamespaces = new ()
+        {
+            { "Unity.Cinemachine", "Cinemachine" },
         };
 
         public override bool CanFix(Diagnostic diagnostic)
@@ -20,10 +26,16 @@ namespace Unity.AI.Assistant.Editor.CodeAnalyze
             if (!k_DiagnosticIds.Contains(diagnostic.Id))
                 return false;
 
-            var message = diagnostic.GetMessage();
+            var messages = diagnostic.GetMessage();
             foreach (var keywords in k_NamespaceKeywords.Values)
             {
-                if (keywords.Any(keyword => message.Contains($"'{keyword}'")))
+                if (keywords.Any(keyword => messages.Contains($"'{keyword}'")))
+                    return true;
+            }
+
+            foreach (var wrongNamespace in k_WrongNamespaces)
+            {
+                if (messages.Contains($"'{wrongNamespace.Value}'"))
                     return true;
             }
 
@@ -32,12 +44,22 @@ namespace Unity.AI.Assistant.Editor.CodeAnalyze
 
         public override SyntaxTree ApplyFix(SyntaxTree tree, Diagnostic diagnostic)
         {
+            var messages = diagnostic.GetMessage();
             foreach (var namespaceKeywords in k_NamespaceKeywords)
             {
                 var keywords = namespaceKeywords.Value;
-                if (keywords.Any(keyword => diagnostic.GetMessage().Contains($"'{keyword}'")))
+                if (keywords.Any(keyword => messages.Contains($"'{keyword}'")))
                 {
                     return tree.AddUsingDirective(namespaceKeywords.Key);
+                }
+            }
+
+            foreach (var wrongNamespace in k_WrongNamespaces)
+            {
+                if (messages.Contains($"'{wrongNamespace.Value}'"))
+                {
+                    var cleanTree = tree.RemoveUsingDirective(wrongNamespace.Value);
+                    return cleanTree.AddUsingDirective(wrongNamespace.Key);
                 }
             }
 

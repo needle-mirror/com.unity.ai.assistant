@@ -154,6 +154,9 @@
 
 .mui-selection-popup-search-string {
     -unity-font-style: bold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .mui-selection-popup-loading {

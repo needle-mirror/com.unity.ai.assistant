@@ -1,3 +1,4 @@
+using System.IO;
 using Unity.AI.Assistant.CodeAnalyze;
 using Unity.AI.Assistant.Editor.CodeAnalyze;
 
@@ -11,9 +12,8 @@ namespace Unity.AI.Assistant.Editor.CodeBlock
 
         public bool ValidateCode(string code, out string localFixedCode, out CompilationErrors compilationErrors)
         {
-            var codeAssembly = m_Builder.CompileAndLoadAssembly(code, out compilationErrors, out localFixedCode);
-
-            return codeAssembly != null;
+            using var stream = new MemoryStream();
+            return m_Builder.TryCompileCode(code, stream, out compilationErrors, out localFixedCode);
         }
     }
 }

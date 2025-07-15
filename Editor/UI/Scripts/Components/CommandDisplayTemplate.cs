@@ -68,7 +68,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             return true;
         }
 
-        public abstract void Display();
+        public abstract void Display(bool isUpdate = false);
 
         public virtual void Sync()
         {

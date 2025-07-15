@@ -24,7 +24,6 @@
     -unity-text-align: middle-left;
     align-self: center;
     white-space: normal;
-    max-width: 120px;
     height: 20px;
 }
 

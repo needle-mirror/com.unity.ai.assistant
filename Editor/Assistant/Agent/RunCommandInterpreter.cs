@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -57,12 +58,19 @@ namespace Unity.AI.Assistant.Editor.Agent
         {
             commandScript = ScriptPreProcessor(commandScript, out var embeddedMonoBehaviours);
 
-            var agentAssembly = m_Builder.CompileAndLoadAssembly(commandScript, out var compilationLogs, out var updatedScript);
+            using var stream = new MemoryStream();
+            var compilationSuccessful = m_Builder.TryCompileCode(commandScript, stream, out var compilationLogs, out var updatedScript);
             var runCommand = new AgentRunCommand(contextAttachments) { CompilationErrors = compilationLogs, Script = updatedScript };
 
-            if (agentAssembly != null)
+            if (runCommand.HasUnauthorizedNamespaceUsage())
             {
-                var commandInstance = CreateRunCommand(agentAssembly, out var commandDescription);
+                compilationSuccessful = false;
+            }
+
+            if (compilationSuccessful)
+            {
+                var agentAssembly = m_Builder.LoadAssembly(stream);
+                var commandInstance = CreateRunCommandInstance(agentAssembly, out var commandDescription);
                 runCommand.SetInstance(commandInstance, commandDescription);
 
                 if (commandInstance != null)
@@ -213,7 +221,7 @@ namespace Unity.AI.Assistant.Editor.Agent
             }
         }
 
-        IRunCommand CreateRunCommand(Assembly dynamicAssembly, out string commandDescription)
+        IRunCommand CreateRunCommandInstance(Assembly dynamicAssembly, out string commandDescription)
         {
             var type = dynamicAssembly.GetType(k_DynamicCommandFullClassName);
             if (type == null)

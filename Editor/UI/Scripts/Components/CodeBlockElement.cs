@@ -14,6 +14,7 @@ using Unity.AI.Assistant.Editor.CodeAnalyze;
 using Unity.AI.Assistant.UI.Editor.Scripts.Data;
 using Unity.AI.Assistant.UI.Editor.Scripts.Utils;
 using Unity.AI.Assistant.Agent.Dynamic.Extension.Editor;
+using Unity.AI.Assistant.Editor.Utils;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -53,6 +54,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         AssistantImage m_CopyButtonImage;
         Button m_EditButton;
         AssistantImage m_EditButtonImage;
+
+        FileSystemWatcher m_FileWatcher;
 
         bool m_AnalyticsEnabled;
 
@@ -107,6 +110,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         protected override void InitializeView(TemplateContainer view)
         {
+            RegisterCallback<DetachFromPanelEvent>(OnDetach);
+
             m_Controls = view.Q<VisualElement>("codeBlockControls");
             m_Content = view.Q<VisualElement>("codeBlockContent");
             m_ContentBackground = view.Q<VisualElement>("codeTextBackground");
@@ -153,6 +158,12 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_CodeBlockTitleIcon.SetDisplay(false);
 
             m_LineNumberController = new LineNumberController(m_CodeText, m_LineNumberText);
+        }
+
+        void OnDetach(DetachFromPanelEvent evt)
+        {
+            DeleteTempEditFile();
+            m_FileWatcher?.Dispose();
         }
 
         internal void SetTitleIcon(bool isEnabled = true)
@@ -327,41 +338,59 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         {
             AIAssistantAnalytics.ReportUITriggerBackendEvent(UITriggerBackendEventSubType.EditCode);
 
-            m_EditButton.SetEnabled(false);
+            if (string.IsNullOrEmpty(m_TempEditedFilePath))
+            {
+                m_TempEditedFilePath = AssemblyCSProject.CreateTemporaryFile();
 
-            m_TempEditedFilePath = AssemblyCSProject.CreateTemporaryFile();
+                File.WriteAllText(m_TempEditedFilePath, m_Code);
 
-            File.WriteAllText(m_TempEditedFilePath, m_Code);
+                CodeEditorProjectUtils.Sync();
 
-            CodeEditorProjectUtils.Sync();
+                StartFileWatcher(m_TempEditedFilePath);
+            }
 
+            // Open it even if it already exists, this allows us to re-open the file if it was closed
             Process.Start(m_TempEditedFilePath);
-
-            EditorApplication.focusChanged += OnFocusChanged;
         }
 
-        void OnFocusChanged(bool focused)
+        void StartFileWatcher(string filepath)
         {
-            if (!focused)
-                return;
+            m_FileWatcher?.Dispose();
 
-            EditorApplication.focusChanged -= OnFocusChanged;
+            var directory = Path.GetDirectoryName(filepath);
+            var fileName = Path.GetFileName(filepath);
 
+            m_FileWatcher = new FileSystemWatcher(directory, fileName);
+            m_FileWatcher.Changed += OnFileChanged;
+            m_FileWatcher.NotifyFilter = NotifyFilters.LastWrite;
+            m_FileWatcher.EnableRaisingEvents = true;
+        }
+
+        void OnFileChanged(object sender, FileSystemEventArgs e)
+        {
             if (File.Exists(m_TempEditedFilePath))
             {
                 string updatedCode = File.ReadAllText(m_TempEditedFilePath);
 
                 if (updatedCode != m_Code)
-                    SetCode(updatedCode);
-
-                File.Delete(m_TempEditedFilePath);
-                m_TempEditedFilePath = string.Empty;
-                AssemblyCSProject.ClearTemporaryFiles();
-
-                OnCodeChanged?.Invoke(updatedCode);
+                {
+                    TaskUtils.DispatchToMainThread(() =>
+                    {
+                        SetCode(updatedCode);
+                        OnCodeChanged?.Invoke(updatedCode);
+                    });
+                }
             }
+        }
 
-            m_EditButton.SetEnabled(true);
+        void DeleteTempEditFile()
+        {
+            if (string.IsNullOrEmpty(m_TempEditedFilePath))
+                return;
+
+            File.Delete(m_TempEditedFilePath);
+            m_TempEditedFilePath = string.Empty;
+            AssemblyCSProject.ClearTemporaryFiles();
         }
 
         void ToggleDisplay(bool isVisible, bool sendAnalytics = false)

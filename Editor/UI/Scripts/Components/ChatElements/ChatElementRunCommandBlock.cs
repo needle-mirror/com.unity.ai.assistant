@@ -125,7 +125,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
         {
             ContentGroups[k_RunCommandContentIndex].Content = updatedCode;
             Validate(k_RunCommandContentIndex);
-            Display();
+            Display(true);
 
             updatedCode = String.Concat("```csx\n", updatedCode, "\n```");
 
@@ -163,14 +163,14 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             }
         }
 
-        public override void Display()
+        public override void Display(bool isUpdate = false)
         {
             var content = ContentGroups[k_RunCommandContentIndex];
 
             switch (content.State)
             {
                 case DisplayState.Success:
-                    DisplayCommandPreview();
+                    DisplayCommandPreview(isUpdate);
                     break;
                 case DisplayState.Fail:
                     DisplayCompilationWarning();
@@ -203,10 +203,11 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             m_CodePreview.DisplayErrors(m_RunCommand.CompilationErrors);
         }
 
-        void DisplayCommandPreview()
+        void DisplayCommandPreview(bool isUpdate)
         {
             m_PreviewContainer.Clear();
             m_WarningContainer.SetDisplay(false);
+            m_TaskMessage.text = "Tasks";
 
             if (m_RunCommand.Unsafe)
                 DisplayUnsafeWarning();
@@ -215,7 +216,10 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
 
             // Update Code preview text with latest code
             m_CodePreview.SetCodePreviewTitle("Command logic");
-            m_CodePreview.SetToggle(false);
+
+            if (!isUpdate)
+                m_CodePreview.SetToggle(false);
+
             m_CodePreview.Show();
             m_CodePreview.SetCode(m_RunCommand.Script);
 

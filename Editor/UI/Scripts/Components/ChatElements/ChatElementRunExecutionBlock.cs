@@ -85,7 +85,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             }
         }
 
-        public override void Display()
+        public override void Display(bool isUpdate = false)
         {
             var content = ContentGroups[0].Content;
             if (int.TryParse(content, out var executionId))

@@ -38,7 +38,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
             m_WarningText = view.Q<Label>("warningText");
         }
 
-        public override void Display()
+        public override void Display(bool isUpdate = false)
         {
             if (ValidateCode)
             {

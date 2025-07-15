@@ -83,6 +83,9 @@ namespace Unity.AI.Assistant.Editor
                 var workflow = webSocketBackend.ActiveWorkflow;
                 if (workflow != null && workflow.ConversationId == conversationId.Value)
                     workflow.CancelCurrentChatRequest();
+
+                webSocketBackend.ForceDisconnectWorkflow(conversationId.Value);
+                ChangePromptState(conversationId, PromptState.NotConnected, "User cancelled the prompt. Disconnected workflow instantly.");
             }
         }
 
@@ -162,6 +165,12 @@ namespace Unity.AI.Assistant.Editor
             if (CurrentPromptState == PromptState.Canceling)
             {
                 InternalLog.LogWarning("ProcessPrompt: Early out due to user cancellation");
+                return;
+            }
+
+            if (workflow.IsCancelled)
+            {
+                InternalLog.Log("ProcessPrompt: Early out due to workflow cancellation");
                 return;
             }
 

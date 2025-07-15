@@ -4,6 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-pre.9] - 2025-07-15
+- Return enter cancels prompt and resends it
+- Fix code edit temp file
+- Check for unauthorized code before loading the assembly
+- Support function calling during streaming
+
 ## [1.0.0-pre.8] - 2025-06-27
 - Moved Plugin Attributes back to AI Assistant
 
