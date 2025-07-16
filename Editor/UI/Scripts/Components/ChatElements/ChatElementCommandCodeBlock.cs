@@ -108,5 +108,10 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
         {
             m_CodeElement.SetCodeReformatting(reformatCode);
         }
+
+        public override void SetCodeType(string codeType)
+        {
+            m_CodeElement.SetCodeType(codeType);
+        }
     }
 }

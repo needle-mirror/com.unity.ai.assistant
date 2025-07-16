@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Unity.AI.Assistant.UI.Editor.Scripts.Components;
 using UnityEditor;
 using UnityEngine;
@@ -23,8 +24,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
         public static AssistantWindow ShowWindow()
         {
             var editor = GetWindow<AssistantWindow>();
-            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(AssistantUIConstants.BasePath + AssistantUIConstants.UIEditorPath + AssistantUIConstants.AssetFolder + "icons/Sparkle.png");
-            editor.titleContent = new GUIContent(k_WindowName, icon);
+
             editor.Show();
             editor.minSize = k_MinSize;
 
@@ -33,6 +33,17 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
 
         void CreateGUI()
         {
+            var iconPath =
+                EditorGUIUtility.isProSkin
+                    ? "Sparkle.png"
+                    : "Sparkle_dark.png";
+
+            var path = Path.Combine(AssistantUIConstants.BasePath, AssistantUIConstants.UIEditorPath,
+                AssistantUIConstants.AssetFolder, "icons", iconPath);
+
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            titleContent = new GUIContent(k_WindowName, icon);
+
             // Create and initialize a context for this window, will be unique for every active set of assistant UI / elements
             m_Context = new AssistantUIContext();
 

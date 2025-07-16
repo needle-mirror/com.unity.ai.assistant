@@ -45,12 +45,13 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Markup.Renderers
             if (!renderer.m_OutputTextElements.Contains(displayBlock))
             {
                 var isCSharpLanguage =
-                    (obj.Info != null && (obj.Info.StartsWith("cs", StringComparison.OrdinalIgnoreCase) ||
-                                          obj.Info.Contains("validate-csharp")));
+                    (obj.Info != null && (obj.Info.StartsWith(AssistantConstants.CodeBlockCsharpFiletype, StringComparison.OrdinalIgnoreCase) ||
+                                          obj.Info.Contains(AssistantConstants.CodeBlockCsharpValidateFiletype)));
 
                 displayBlock.Fence = obj.Info;
                 displayBlock.Initialize(m_Context);
                 displayBlock.SetContent(codeText);
+                displayBlock.SetCodeType(obj.Info);
                 renderer.m_OutputTextElements.Add(displayBlock);
 
                 if (!isCSharpLanguage)

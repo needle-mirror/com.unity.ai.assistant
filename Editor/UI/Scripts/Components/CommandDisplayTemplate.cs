@@ -82,5 +82,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         public virtual void SetCodeReformatting(bool reformatCode)
         {
         }
+
+        public virtual void SetCodeType(string codeType)
+        {
+        }
     }
 }

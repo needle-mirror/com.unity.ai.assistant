@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-pre.10] - 2025-07-16
+- Minor bug fixes
+- Fixed issue where URLs were not being updated automatically for upgrading users
+- Fixed issue where versions API endpoint reporting unsupported server versions was not shutting down the UI
+
 ## [1.0.0-pre.9] - 2025-07-15
 - Return enter cancels prompt and resends it
 - Fix code edit temp file

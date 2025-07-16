@@ -112,7 +112,7 @@ namespace Unity.AI.Assistant.Editor
         {
             // Warm up ScriptableSingleton from main thread, or it
             // will throw exceptions later when we access it, and it initializes itself from a thread later on:
-            var _ = AssistantEnvironment.instance.WebSocketApiUrl;
+            var _ = AssistantEnvironment.WebSocketApiUrl;
 
             var promptContext = new PromptContext { Credentials = await GetCredentialsContext(ct) };
 

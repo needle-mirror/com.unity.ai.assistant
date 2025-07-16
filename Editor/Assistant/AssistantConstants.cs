@@ -33,5 +33,17 @@ namespace Unity.AI.Assistant.Editor
 // This was created with the help of Assistant, a Unity Artificial Intelligence product.
 
 ";
+
+        internal const string DefaultCodeBlockCsharpFilename = "Code";
+        internal const string DefaultCodeBlockCsharpExtension = "cs";
+        internal const string DefaultCodeBlockShaderFilename = "NewShader";
+        internal const string DefaultCodeBlockShaderExtension = "shader";
+        internal const string DefaultCodeBlockTextFilename = "Output";
+        internal const string DefaultCodeBlockTextExtension = "txt";
+
+        internal static readonly string[] ShaderCodeBlockTypes = new string[] { "glsl", "hlsl", "shader" };
+
+        internal const string CodeBlockCsharpFiletype = "cs";
+        internal const string CodeBlockCsharpValidateFiletype = "validate-csharp";
     }
 }

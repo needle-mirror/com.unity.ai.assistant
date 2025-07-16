@@ -3,38 +3,30 @@ using UnityEngine;
 
 namespace Unity.AI.Assistant.Editor
 {
-    [FilePath("AssistantEnv", FilePathAttribute.Location.PreferencesFolder)]
-    internal class AssistantEnvironment : ScriptableSingleton<AssistantEnvironment>
+    static class AssistantEnvironment
     {
         internal const string k_DefaultApiUrl = "https://api-beta.prd.azure.muse.unity.com";
         internal const string k_DefaultWebSocketApiUrl = "wss://api-beta.prd.azure.muse.unity.com/v1/assistant/ws";
 
-        [SerializeField]
-        public string ApiUrl = k_DefaultApiUrl;
+       public static string ApiUrl = k_DefaultApiUrl;
+       public static string WebSocketApiUrl = k_DefaultWebSocketApiUrl;
+       public static bool DebugModeEnabled;
 
-        [SerializeField]
-        public string WebSocketApiUrl = k_DefaultWebSocketApiUrl;
-
-        [SerializeField]
-        public bool DebugModeEnabled;
-
-        internal void SetApi(string apiUrl, string backend)
+        internal static void SetApi(string apiUrl)
         {
             ApiUrl = apiUrl;
-            Save(true);
         }
 
-        internal void SetWebSocketApi(string apiUrl)
+        internal static void SetWebSocketApi(string apiUrl)
         {
             WebSocketApiUrl = apiUrl;
-            Save(true);
         }
 
-        internal void Reset()
+        internal static void Reset()
         {
             ApiUrl = k_DefaultApiUrl;
+            WebSocketApiUrl = k_DefaultWebSocketApiUrl;
             DebugModeEnabled = false;
-            Save(true);
         }
     }
 }

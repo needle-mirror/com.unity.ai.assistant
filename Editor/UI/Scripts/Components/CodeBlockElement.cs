@@ -60,6 +60,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         bool m_AnalyticsEnabled;
 
         string m_Code;
+        string m_CodeType;
         bool m_ReformatCode;
 
         string m_TempEditedFilePath;
@@ -106,6 +107,11 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         public void SetCodeReformatting(bool reformatCode)
         {
             m_ReformatCode = reformatCode;
+        }
+
+        public void SetCodeType(string codeType)
+        {
+            m_CodeType = codeType;
         }
 
         protected override void InitializeView(TemplateContainer view)
@@ -288,6 +294,11 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             });
         }
 
+        bool IsShaderType(string codeType)
+        {
+            return AssistantConstants.ShaderCodeBlockTypes.Any(t => codeType.IndexOf(t, StringComparison.OrdinalIgnoreCase) >= 0);
+        }
+
         void OnSaveCodeClicked(PointerUpEvent evt)
         {
             AIAssistantAnalytics.ReportUITriggerLocalEvent(UITriggerLocalEventSubType.SaveCode, d =>
@@ -296,9 +307,34 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 d.ResponseMessage = m_Code;
             });
 
-            string defaultName = CodeExportUtils.ExtractClassName(m_Code) ?? "Code";
+            var defaultName = AssistantConstants.DefaultCodeBlockCsharpFilename;
+            var defaultExtension = AssistantConstants.DefaultCodeBlockCsharpExtension;
 
-            string file = EditorUtility.SaveFilePanel("Save Code", Application.dataPath, defaultName, "cs");
+            bool isCSharpLanguage = false;
+            if (m_CodeType != null)
+            {
+                isCSharpLanguage = m_CodeType.StartsWith(AssistantConstants.CodeBlockCsharpFiletype, StringComparison.OrdinalIgnoreCase) ||
+                                   m_CodeType.Contains(AssistantConstants.CodeBlockCsharpValidateFiletype);
+
+                if (isCSharpLanguage)
+                {
+                    defaultName = CodeExportUtils.ExtractClassName(m_Code) ?? AssistantConstants.DefaultCodeBlockCsharpFilename;
+                }
+                else if (IsShaderType(m_CodeType))
+                {
+                    defaultName = AssistantConstants.DefaultCodeBlockShaderFilename;
+                    defaultExtension = AssistantConstants.DefaultCodeBlockShaderExtension;
+                }
+                else
+                {
+                    defaultName = AssistantConstants.DefaultCodeBlockTextFilename;
+                    defaultExtension = m_CodeType.Length > 0
+                        ? m_CodeType.ToLowerInvariant()
+                        : AssistantConstants.DefaultCodeBlockTextExtension;
+                }
+            }
+
+            string file = EditorUtility.SaveFilePanel("Save Code", Application.dataPath, defaultName, defaultExtension);
             if (string.IsNullOrEmpty(file))
             {
                 return;
@@ -309,7 +345,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             try
             {
                 string output = m_Code;
-                output = SaveWithDisclaimerOnly
+                output = SaveWithDisclaimerOnly || !isCSharpLanguage
                     ? CodeExportUtils.AddDisclaimer(output)
                     : CodeExportUtils.Format(output, Path.GetFileNameWithoutExtension(file));
 

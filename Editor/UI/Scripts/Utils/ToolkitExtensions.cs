@@ -16,8 +16,11 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Utils
             if (!AssistantInstance.instance.Value.SessionStatusTrackingEnabled)
                 return;
 
-            element.AddManipulator(new AssistantSessionStatusTracker());
-            element.AddManipulator(new ServerCompatibilityTracker());
+            // NOTE:
+            // - Manipulators can not compose right now, so we had to disable the native AI Toolkit tracker
+            // - and integrate it into the assistant internal one (former ServerCompatibilityTracker)
+            // - We can not use `AssistantSessionStatusTracker` from AI toolkit directly until they can compose together
+            element.AddManipulator(new AssistantStatusTracker());
         }
     }
 }

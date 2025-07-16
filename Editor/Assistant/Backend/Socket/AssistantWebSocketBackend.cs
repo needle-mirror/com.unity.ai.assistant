@@ -81,7 +81,7 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket
             if (workflow.WorkflowState == State.NotStarted)
             {
                 workflow.Start(
-                    AssistantEnvironment.instance.WebSocketApiUrl,
+                    AssistantEnvironment.WebSocketApiUrl,
                     credentialsContext).WithExceptionLogging();
             }
 
@@ -120,7 +120,7 @@ namespace Unity.AI.Assistant.Editor.Backend.Socket
 
             Configuration config = new()
             {
-                BasePath = AssistantEnvironment.instance.ApiUrl,
+                BasePath = AssistantEnvironment.ApiUrl,
                 DynamicHeaders =
                 {
                     ["Authorization"] = () => $"Bearer {credentialsContext.AccessToken}"

@@ -1,26 +1,26 @@
 {
   "name": "com.unity.ai.assistant",
   "displayName": "Assistant",
-  "version": "1.0.0-pre.9",
+  "version": "1.0.0-pre.10",
   "unity": "6000.2",
   "description": "Use AI for project-aware information retrieval, troubleshooting, code generation, assistance, and scene editing.\n\nAsk\nSolve hard problems or get ideas for your project. Assistant provides you with relevant answers based on the context of your project.\n\nRun\nAutomate actions in the Editor to tackle repetitive tasks and streamline workflows. Use natural language to scatter objects across terrain, adjust lighting, rename assets, restructure project files, and more.\n\nCode\nReduce the time and effort required to structure gameplay mechanics by using Assistant to create pre-compiled scripts.",
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "3.2.1",
     "com.unity.modules.unitywebrequest": "1.0.0",
     "com.unity.serialization": "3.1.1",
-    "com.unity.ai.toolkit": "1.0.0-pre.15"
+    "com.unity.ai.toolkit": "1.0.0-pre.16"
   },
   "unityRelease": "0b4",
   "_upm": {
-    "changelog": "- Return enter cancels prompt and resends it\n- Fix code edit temp file\n- Check for unauthorized code before loading the assembly\n- Support function calling during streaming"
+    "changelog": "- Minor bug fixes\n- Fixed issue where URLs were not being updated automatically for upgrading users\n- Fixed issue where versions API endpoint reporting unsupported server versions was not shutting down the UI"
   },
   "upmCi": {
-    "footprint": "e6046a7b076422f23ed705b05f69f2a418e1172b"
+    "footprint": "80599ce8b08ae36e088aa20244ca9ddead050381"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.ai.assistant@1.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/muse-editor.git",
     "type": "git",
-    "revision": "248496579586e2fd44cd27ed7620d75fd237e65f"
+    "revision": "a48dd98ceff8184c61b18d01e365755befce4d37"
   }
 }

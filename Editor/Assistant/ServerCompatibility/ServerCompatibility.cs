@@ -5,7 +5,6 @@ using Unity.AI.Assistant.Editor.ApplicationModels;
 using Unity.AI.Assistant.Editor.Backend;
 using Unity.AI.Assistant.Editor.Backend.Socket.ErrorHandling;
 using Unity.AI.Assistant.Editor.Data;
-using Unity.AI.Assistant.Editor.Utils;
 using Unity.AI.Toolkit.Accounts.Services;
 
 namespace Unity.AI.Assistant.Editor.ServerCompatibility
@@ -27,12 +26,13 @@ namespace Unity.AI.Assistant.Editor.ServerCompatibility
         {
             Account.sessionStatus.OnChange -= Refresh;
             Account.sessionStatus.OnChange += Refresh;
-            Refresh();
         }
 
         public static void SetBackend(IAssistantBackend backend)
         {
             s_AssistantBackend = backend;
+
+            Refresh();
         }
 
         /// <summary>
