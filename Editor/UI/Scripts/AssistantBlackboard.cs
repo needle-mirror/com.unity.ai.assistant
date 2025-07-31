@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using Unity.AI.Assistant.Bridge.Editor;
+using Unity.AI.Assistant.Editor.Context;
 using Unity.AI.Assistant.Editor.Data;
 using Unity.AI.Assistant.UI.Editor.Scripts.Data;
+using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace Unity.AI.Assistant.UI.Editor.Scripts
@@ -15,10 +17,15 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
         readonly IDictionary<AssistantConversationId, bool> k_FavoriteCache = new Dictionary<AssistantConversationId, bool>();
         readonly IDictionary<AssistantConversationId, ConversationModel> k_ConversationCache = new Dictionary<AssistantConversationId, ConversationModel>();
 
+        readonly List<Object> k_ObjectAttachments = new();
+        readonly List<LogData> k_ConsoleAttachments = new();
+
+        bool m_StateSaveSuspended;
+
         public readonly IList<InspirationModel> Inspirations = new List<InspirationModel>();
 
-        public readonly List<Object> ObjectAttachments = new();
-        public readonly List<LogData> ConsoleAttachments = new();
+        public IReadOnlyCollection<Object> ObjectAttachments => k_ObjectAttachments.AsReadOnly();
+        public IReadOnlyCollection<LogData> ConsoleAttachments => k_ConsoleAttachments.AsReadOnly();
 
         public ICollection<ConversationModel> Conversations => k_ConversationCache.Values;
 
@@ -45,6 +52,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
             m_ActiveConversation = null;
 
             ActiveConversationChanged?.Invoke(previousId, newConversationId);
+
+            SaveActiveConversationState();
         }
 
         public void SetFavorite(AssistantConversationId id, bool state)
@@ -105,12 +114,66 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
         {
             ActiveConversationId = AssistantConversationId.Invalid;
             m_ActiveConversation = null;
+
+            SaveActiveConversationState();
         }
 
         public void ClearAttachments()
         {
-            ObjectAttachments.Clear();
-            ConsoleAttachments.Clear();
+            k_ObjectAttachments.Clear();
+            k_ConsoleAttachments.Clear();
+
+            SaveContextState();
+        }
+
+        public void AddConsoleAttachment(LogData data)
+        {
+            k_ConsoleAttachments.Add(data);
+
+            SaveContextState();
+        }
+
+        public void AddObjectAttachment(Object obj)
+        {
+            if (obj == null)
+            {
+                return;
+            }
+
+            k_ObjectAttachments.Add(obj);
+
+            SaveContextState();
+        }
+
+        void SaveContextState()
+        {
+            if (m_StateSaveSuspended)
+            {
+                return;
+            }
+
+            AssistantUISessionState.instance.Context =
+                JsonUtility.ToJson(ContextSerializationHelper.BuildPromptSelectionContext(k_ObjectAttachments, k_ConsoleAttachments));
+        }
+
+        void SaveActiveConversationState()
+        {
+            if (m_StateSaveSuspended)
+            {
+                return;
+            }
+
+            AssistantUISessionState.instance.LastActiveConversationId = ActiveConversationId.Value;
+        }
+
+        public void SuspendStateSave()
+        {
+            m_StateSaveSuspended = true;
+        }
+
+        public void ResumeStateSave()
+        {
+            m_StateSaveSuspended = false;
         }
     }
 }

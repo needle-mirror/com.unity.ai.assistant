@@ -4,6 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [1.0.0-pre.11] - 2025-07-31
+- Added tooltips to actions buttons
+- Cannot press enter anymore to cancel chat progress
+- Fuzzy matching improvements
+- Added links to new docs
+- Conversation is retained on domain reload
+- Remove preview chips from routes
+
 ## [1.0.0-pre.10] - 2025-07-16
 - Minor bug fixes
 - Fixed issue where URLs were not being updated automatically for upgrading users

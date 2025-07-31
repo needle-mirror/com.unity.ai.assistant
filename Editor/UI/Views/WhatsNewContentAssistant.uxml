@@ -31,8 +31,6 @@
                 <ui:Label text="Find objects with a missing script component in the scene" class="mui-whats-new-page-list-entry mui-whats-new-page-sample-text"/>
                 <ui:Label text="Select the mesh with the largest number of triangles in the scene" class="mui-whats-new-page-list-entry mui-whats-new-page-sample-text"/>
             </ui:VisualElement>
-            <ui:Label text="&lt;b&gt;/run&lt;/b&gt; is a preview feature that is free to use and does not require points until its full release."
-                      class="mui-whats-new-page-footer mui-whats-new-page-text"/>
         </ui:VisualElement>
 
         <ui:VisualElement name="page4" class="mui-whats-new-page-section">
@@ -45,22 +43,6 @@
                 <ui:Label text="Read this script and fix potential issues or bugs" class="mui-whats-new-page-list-entry mui-whats-new-page-sample-text"/>
                 <ui:Label text="Make this code easier to read, and report back if any names, functions or classes were renamed" class="mui-whats-new-page-list-entry mui-whats-new-page-sample-text"/>
             </ui:VisualElement>
-            <ui:Label text="&lt;b&gt;/code&lt;/b&gt; is a preview feature that is free to use and does not require points until its full release."
-                      class="mui-whats-new-page-footer mui-whats-new-page-text"/>
-        </ui:VisualElement>
-
-        <ui:VisualElement name="page5" class="mui-whats-new-page-section">
-            <ui:VisualElement name="page5Video" class="mui-whats-new-page-video-element"/>
-            <ui:Label text="Preview features are free for Unity AI users" class="mui-whats-new-page-header"/>
-            <ui:Label text="Discover our preview features &lt;b&gt;/run&lt;/b&gt; and &lt;b&gt;/code&lt;/b&gt;, which are actively being enhanced by our team. Try them, and give us feedback so we can improve."
-                      class="mui-whats-new-page-text"/>
-            <ui:VisualElement class="mui-whats-new-page-paragraph"/>
-            <ui:Label text="Assistant will continue to improve, with new shortcuts adding functionality, expanding what you can achieve."
-                      class="mui-whats-new-page-text"/>
-            <ui:VisualElement class="mui-whats-new-page-paragraph"/>
-            <ui:Label text="During open Beta, use of Assistant is free regardless if the route is preview."
-                      class="mui-whats-new-page-text"/>
-            <ui:VisualElement class="mui-whats-new-page-paragraph"/>
 
             <ui:Button name="openAssistantButton" class="mui-whats-new-page-action-button">
                 <ui:Label picking-mode="ignore" class="mui-chat-label" text="Open Assistant"/>

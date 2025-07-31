@@ -54,13 +54,13 @@ namespace Unity.AI.Assistant.Editor.Agent
             m_Builder.Compile(k_DummyCommandScript, out _);
         }
 
-        public AgentRunCommand BuildRunCommand(string commandScript, List<Object> contextAttachments)
+        public AgentRunCommand BuildRunCommand(string commandScript, IEnumerable<Object> contextAttachments)
         {
             commandScript = ScriptPreProcessor(commandScript, out var embeddedMonoBehaviours);
 
             using var stream = new MemoryStream();
             var compilationSuccessful = m_Builder.TryCompileCode(commandScript, stream, out var compilationLogs, out var updatedScript);
-            var runCommand = new AgentRunCommand(contextAttachments) { CompilationErrors = compilationLogs, Script = updatedScript };
+            var runCommand = new AgentRunCommand(contextAttachments.ToList()) { CompilationErrors = compilationLogs, Script = updatedScript };
 
             if (runCommand.HasUnauthorizedNamespaceUsage())
             {

@@ -62,7 +62,7 @@ namespace Unity.AI.Assistant.Editor
 
         // Run Command and Related to it
         bool ValidateCode(string code, out string localFixedCode, out CompilationErrors compilationErrors);
-        AgentRunCommand BuildAgentRunCommand(string script, List<UnityEngine.Object> contextAttachments);
+        AgentRunCommand BuildAgentRunCommand(string script, IEnumerable<UnityEngine.Object> contextAttachments);
         void RunAgentCommand(AssistantConversationId conversationId, AgentRunCommand command, string fencedTag);
         ExecutionResult GetRunCommandExecution(int executionId);
 

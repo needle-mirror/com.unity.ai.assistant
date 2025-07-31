@@ -17,9 +17,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
 
         public Action FocusLost { get; set; }
 
-        [SerializeField]
-        bool m_IsRestoredWindow;
-
         [MenuItem("Window/AI/Assistant")]
         public static AssistantWindow ShowWindow()
         {
@@ -49,24 +46,16 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
 
             m_View = new AssistantView(this);
 
-            if (!m_IsRestoredWindow)
-            {
-                m_View.ClearPersistentState();
-            }
-
             m_View.Initialize(m_Context);
             m_View.style.flexGrow = 1;
             m_View.style.minWidth = 400;
             rootVisualElement.Add(m_View);
 
             m_View.InitializeThemeAndStyle();
-
-            m_IsRestoredWindow = true;
         }
 
         void OnDestroy()
         {
-            m_View?.StorePersistentState();
             m_View?.Deinit();
         }
 

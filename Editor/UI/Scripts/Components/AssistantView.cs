@@ -80,6 +80,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         string m_SelectedConsoleMessageContent;
         string m_SelectedGameObjectName;
 
+        bool m_WaitingForConversationChange;
+
         /// <summary>
         /// Constructor for the MuseChatView.
         /// </summary>
@@ -116,6 +118,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         /// <param name="view">the template container of the current element</param>
         protected override void InitializeView(TemplateContainer view)
         {
+            // Suspend any saving of state during initialization until the state was restored (RestoreState)
+            Context.Blackboard.SuspendStateSave();
+
             UserInfoCache.Refresh();
 
             this.style.flexGrow = 1;
@@ -242,7 +247,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
             RegisterContextCallbacks();
 
-            AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
             EditorApplication.playModeStateChanged += OnPlayModeChanged;
 
             EditorApplication.delayCall += () => RestoreState();
@@ -284,30 +288,12 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         public void Deinit()
         {
-            AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
             EditorApplication.playModeStateChanged -= OnPlayModeChanged;
 
             Context.Deinitialize();
 
             UnregisterContextCallbacks();
         }
-
-        public void StorePersistentState()
-        {
-            var activeConversation = Context.Blackboard.ActiveConversation;
-
-            AssistantUISessionState.instance.Context =
-                JsonUtility.ToJson(ContextSerializationHelper.BuildPromptSelectionContext(Context.Blackboard.ObjectAttachments, Context.Blackboard.ConsoleAttachments));
-
-            AssistantUISessionState.instance.LastActiveConversationId = activeConversation?.Id.Value;
-        }
-
-        public void ClearPersistentState()
-        {
-            AssistantUISessionState.instance.Clear();
-        }
-
-        bool m_WaitingForConversationChange = false;
 
         void RestoreState(bool full = true)
         {
@@ -338,6 +324,8 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 RestoreContextSelection(serializableContextList.m_ContextList);
                 UpdateContextSelectionElements();
             }
+
+            Context.Blackboard.ResumeStateSave();
         }
 
         void OnConversationDeleted(AssistantConversationId conversationId)
@@ -380,7 +368,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             if (Context.Blackboard.ActiveConversationId != conversationId)
                 return;
 
-            ClearChat();
+            ClearChat(false);
             SetInspirationVisible(false);
 
             m_WaitingForConversationChange = false;
@@ -410,10 +398,15 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             }
         }
 
-        void ClearChat()
+        void ClearChat(bool clearInput = true)
         {
             m_ConversationName.text = "New conversation";
-            m_ChatInput.ClearText();
+
+            if (clearInput)
+            {
+                m_ChatInput.ClearText();
+            }
+
             m_ConversationPanel.ClearConversation();
             SetInspirationVisible(true);
         }
@@ -457,6 +450,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 m_NewChatButton.EnableInClassList(AssistantUIConstants.ActiveActionButtonClass, false);
                 m_NewChatButtonImage.SetOverrideIconClass(null);
             });
+
 
             AIAssistantAnalytics.ReportUITriggerBackendEvent(UITriggerBackendEventSubType.CreateNewConversation);
         }
@@ -551,11 +545,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_ConversationName.EnableInClassList(AssistantUIConstants.CompactStyle, isCompactView);
 
             m_FooterRoot.EnableInClassList(AssistantUIConstants.CompactStyle, isCompactView);
-        }
-
-        void OnBeforeAssemblyReload()
-        {
-            StorePersistentState();
         }
 
         void OnPlayModeChanged(PlayModeStateChange state)

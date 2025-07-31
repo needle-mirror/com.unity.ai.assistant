@@ -9,7 +9,7 @@ namespace Unity.AI.Assistant.Editor.Commands
         public virtual string Tooltip => string.Empty;
         public virtual string Icon => string.Empty;
         public virtual bool ShowInList => true;
-        public virtual bool IsPreview => true;
+        public virtual bool IsPreview => false;
 
         public abstract bool UseContext { get; }
         public abstract bool UseSmartContext { get; }

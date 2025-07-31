@@ -288,13 +288,13 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                 {
                     case AssistantContextType.ConsoleMessage:
                     {
-                        Context.Blackboard.ConsoleAttachments.Add(entry.GetLogData());
+                        Context.Blackboard.AddConsoleAttachment(entry.GetLogData());
                         break;
                     }
 
                     case AssistantContextType.Component:
                     {
-                        Context.Blackboard.ObjectAttachments.Add(entry.GetComponent());
+                        Context.Blackboard.AddObjectAttachment(entry.GetComponent());
                         break;
                     }
 
@@ -302,7 +302,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
                     case AssistantContextType.SubAsset:
                     case AssistantContextType.SceneObject:
                     {
-                        Context.Blackboard.ObjectAttachments.Add(entry.GetTargetObject());
+                        Context.Blackboard.AddObjectAttachment(entry.GetTargetObject());
                         break;
                     }
                 }

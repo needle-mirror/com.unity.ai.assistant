@@ -15,7 +15,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.WhatsNew.Pages
             RegisterPage(view.Q<VisualElement>("page2"), "Assistant2 - TroubleshootingConsole");
             RegisterPage(view.Q<VisualElement>("page3"), "Assistant3 - RunCommands");
             RegisterPage(view.Q<VisualElement>("page4"), "Assistant4 - ModifyScript");
-            RegisterPage(view.Q<VisualElement>("page5"), "Assistant5 - PointsCost");
         }
 
         public override string Title => "Assistant";

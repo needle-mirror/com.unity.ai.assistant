@@ -64,13 +64,15 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
         {
             var model = ConvertConversationToModel(data);
 
-            if (!m_Blackboard.ActiveConversationId.IsValid)
-            {
-                m_Blackboard.SetActiveConversation(data.Id);
-            }
-
             TaskUtils.DispatchToMainThread(() =>
-                ConversationChanged?.Invoke(model.Id));
+            {
+                if (!m_Blackboard.ActiveConversationId.IsValid)
+                {
+                    m_Blackboard.SetActiveConversation(data.Id);
+                }
+
+                ConversationChanged?.Invoke(model.Id);
+            });
         }
 
         void NotifyAPIStateChanged(AssistantConversationId conversationId)
@@ -247,14 +249,16 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
         void OnConversationCreated(AssistantConversation conversation)
         {
             var model = ConvertConversationToModel(conversation);
-
-            if (!m_Blackboard.ActiveConversationId.IsValid)
-            {
-                m_Blackboard.SetActiveConversation(conversation.Id);
-            }
-
+            
             TaskUtils.DispatchToMainThread(() =>
-                ConversationReload?.Invoke(model.Id));
+            {
+                if (!m_Blackboard.ActiveConversationId.IsValid)
+                {
+                    m_Blackboard.SetActiveConversation(conversation.Id);
+                }
+
+                ConversationReload?.Invoke(model.Id);
+            });
         }
 
         void OnConversationLoaded(AssistantConversation conversation)
@@ -439,7 +443,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
             return contextBuilder.PredictedLength;
         }
 
-        public AgentRunCommand BuildAgentRunCommand(string script, List<UnityEngine.Object> contextAttachments)
+        public AgentRunCommand BuildAgentRunCommand(string script, IEnumerable<UnityEngine.Object> contextAttachments)
         {
             return Provider.BuildAgentRunCommand(script, contextAttachments);
         }

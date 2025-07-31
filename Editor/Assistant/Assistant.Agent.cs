@@ -30,7 +30,7 @@ namespace Unity.AI.Assistant.Editor
             return CodeBlockValidator.ValidateCode(code, out localFixedCode, out compilationErrors);
         }
 
-        public AgentRunCommand BuildAgentRunCommand(string script, List<Object> contextAttachments)
+        public AgentRunCommand BuildAgentRunCommand(string script, IEnumerable<Object> contextAttachments)
         {
             return RunCommandInterpreter.BuildRunCommand(script, contextAttachments);
         }

@@ -26,6 +26,10 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         const string k_SubmitImage = "arrow-up";
         const string k_StopImage = "stop-square";
 
+        const string k_ActionButtonToolTipSend = "Send prompt";
+        const string k_ActionButtonToolTipStop = "Stop response";
+        const string k_ActionButtonToolTipNoPrompt = "No prompt entered";
+
         VisualElement m_Root;
 
         Button m_ActionButton;
@@ -280,7 +284,9 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
         void RefreshUI()
         {
             RefreshChatCharCount();
-            m_ActionButton.EnableInClassList(k_ChatActionEnabledClass, Context.Blackboard.IsAPIWorking || !string.IsNullOrEmpty(m_ChatInput.value) && Context.Blackboard.IsAPIReadyForPrompt);
+            var actionButtonEnabled = Context.Blackboard.IsAPIWorking ||
+                                !string.IsNullOrEmpty(m_ChatInput.value) && Context.Blackboard.IsAPIReadyForPrompt;
+            m_ActionButton.EnableInClassList(k_ChatActionEnabledClass, actionButtonEnabled);
 
             if (!ShowPlaceholder || m_TextHasFocus || !string.IsNullOrEmpty(m_ChatInput.value) || m_RouteActive)
             {
@@ -294,6 +300,16 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
             m_Root.EnableInClassList(k_ChatFocusClass, m_TextHasFocus && m_HighlightFocus);
 
             m_SubmitButtonImage.SetIconClassName(Context.Blackboard.IsAPIWorking ? k_StopImage : k_SubmitImage);
+
+            if (actionButtonEnabled)
+            {
+                m_ActionButton.tooltip =
+                    Context.Blackboard.IsAPIWorking ? k_ActionButtonToolTipStop : k_ActionButtonToolTipSend;
+            }
+            else
+            {
+                m_ActionButton.tooltip = k_ActionButtonToolTipNoPrompt;
+            }
         }
 
         void OnChatValueChanged()
@@ -432,7 +448,7 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
         }
 
-        void OnChatKeyDownEvent(KeyDownEvent evt)
+        internal void OnChatKeyDownEvent(KeyDownEvent evt)
         {
             if (CheckPopupNavigationInput(evt.keyCode))
             {
@@ -511,10 +527,10 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components
 
             evt.StopPropagation();
 
-            // Cancel if we have an active API/prompt
+            // Ignore enter if we have an active API/prompt
             if (Context.Blackboard.IsAPIWorking || !Context.Blackboard.IsAPIReadyForPrompt)
             {
-                CancelRequest?.Invoke();
+                return;
             }
 
             OnSubmit();

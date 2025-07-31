@@ -28,7 +28,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
         VisualElement m_WarningContainer;
         Label m_WarningText;
         Foldout m_OverviewFoldout;
-        PreviewChip m_PreviewChip;
         VisualElement m_TaskBlockInner;
         Label m_TaskMessage;
         AssistantImage m_TaskWarningIcon;
@@ -81,10 +80,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts.Components.ChatElements
 
             m_TaskWarningIcon = view.SetupImage("taskWarningIcon");
             m_TaskWarningIcon.SetDisplay(false);
-
-            m_PreviewChip = new PreviewChip();
-            m_PreviewChip.Initialize(Context);
-            m_TaskBlockInner.Add(m_PreviewChip);
 
             EditorApplication.playModeStateChanged += (state) =>
             {

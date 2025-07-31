@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Search;
 using UnityEngine;
 
 namespace Unity.AI.Assistant.Editor.Context.SmartContext
@@ -22,7 +23,7 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
 
         private static IEnumerable<Object> TryFindAssets(string objectName, string assetType)
         {
-            List<Object> allMatchingAssets = new();
+            List<(Object asset, bool isTypeMatch, long score)> allMatchingAssets = new();
 
             assetType = assetType.ToLower();
 
@@ -30,9 +31,12 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
             if (k_TypesWithModelMainAssets.Contains(assetType) || string.IsNullOrEmpty(assetType))
             {
                 var matchingSubAsset = TryFindAssetsOrSubAssetsOfType(objectName, assetType, "model", false);
-                if (matchingSubAsset?.Count() > 0)
+                if (matchingSubAsset != null)
                 {
-                    allMatchingAssets.AddRange(matchingSubAsset);
+                    foreach (var asset in matchingSubAsset)
+                    {
+                        allMatchingAssets.Add((asset, IsTypeMatch(asset, assetType), GetNameScore(asset, objectName)));
+                    }
                 }
             }
 
@@ -40,25 +44,51 @@ namespace Unity.AI.Assistant.Editor.Context.SmartContext
             if (k_TypesWithTextureMainAssets.Contains(assetType) || string.IsNullOrEmpty(assetType))
             {
                 var matchingAsset = TryFindAssetsOrSubAssetsOfType(objectName, assetType, "texture2d", false);
-                if (matchingAsset?.Count() > 0)
+                if (matchingAsset != null)
                 {
-                    allMatchingAssets.AddRange(matchingAsset);
+                    foreach (var asset in matchingAsset)
+                    {
+                        allMatchingAssets.Add((asset, IsTypeMatch(asset, assetType), GetNameScore(asset, objectName)));
+                    }
                 }
             }
 
             // Various main asset types (not sub assets inside other assets)
             var matchingMainAssets = ContextRetrievalHelpers.FindAssetsWithFuzzyMatch(objectName, assetType, false);
-            if (matchingMainAssets?.Count() > 0)
+            if (matchingMainAssets != null)
             {
                 foreach (var match in matchingMainAssets)
                 {
                     var asset = AssetDatabase.LoadAssetAtPath<Object>(match.Path);
-                    if (asset != null && !allMatchingAssets.Contains(asset))
-                        allMatchingAssets.Add(asset);
+                    if (asset != null && !allMatchingAssets.Any(x => x.asset == asset))
+                        allMatchingAssets.Add((asset, IsTypeMatch(asset, assetType), match.Score));
                 }
             }
 
-            return allMatchingAssets;
+            // Sort: type match first, then by score
+            var sorted = allMatchingAssets
+                .OrderByDescending(a => a.isTypeMatch)
+                .ThenBy(a => -a.score)
+                .Select(a => a.asset);
+
+            return sorted;
+        }
+
+        // Check if asset matches the specified type
+        private static bool IsTypeMatch(Object asset, string assetType)
+        {
+            if (string.IsNullOrEmpty(assetType))
+                return true;
+
+            return asset.GetType().Name.ToLower().Contains(assetType.ToLower());
+        }
+
+        // Get a score for name closeness
+        private static long GetNameScore(Object asset, string objectName)
+        {
+            long outScore = 0;
+            FuzzySearch.FuzzyMatch(objectName.ToLowerInvariant(), asset.name.ToLowerInvariant(), ref outScore);
+            return outScore;
         }
 
         private static IEnumerable<Object> TryFindAssetsOrSubAssetsOfType(string objectName, string assetType,

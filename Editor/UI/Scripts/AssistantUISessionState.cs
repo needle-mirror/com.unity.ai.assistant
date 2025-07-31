@@ -10,8 +10,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
         const string k_Command = "AssistantUserSession_Command";
         const string k_Context = "AssistantUserSession_Context";
 
-        public bool HasActiveSession => IsHistoryOpen || LastActiveConversationId != null;
-
         public bool IsHistoryOpen
         {
             get => SessionState.GetBool(k_HistoryOpen, false);
@@ -40,15 +38,6 @@ namespace Unity.AI.Assistant.UI.Editor.Scripts
         {
             get => SessionState.GetString(k_Prompt, null);
             set => SessionState.SetString(k_Prompt, value);
-        }
-
-        /// <summary>
-        /// Clears data that should survive domain reload.
-        /// </summary>
-        public void Clear()
-        {
-            IsHistoryOpen = false;
-            LastActiveConversationId = null;
         }
     }
 }
