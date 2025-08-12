@@ -3,6 +3,8 @@ All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+## [1.0.0-pre.12] - 2025-08-12
+- Update AI-Toolkit to 1.0.0-pre.18
 
 ## [1.0.0-pre.11] - 2025-07-31
 - Added tooltips to actions buttons
